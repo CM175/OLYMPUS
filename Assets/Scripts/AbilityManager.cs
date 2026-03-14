@@ -12,13 +12,13 @@ public class AbilityManager : MonoBehaviour
         if (Input.GetButtonDown("Fire1"))
             primaryAbility.Use();
 
-        if (Input.GetButtonDown("Fire2"))
+        if (Input.GetKeyDown(KeyCode.E))
             secondaryAbility.Use();
 
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (Input.GetKeyDown(KeyCode.Q))
             mobilityAbility.Use();
 
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.F))
             ultimateAbility.Use();
     }
 }
