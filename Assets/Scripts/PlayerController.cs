@@ -1,44 +1,143 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    public CharacterController controller;
-
-    public float speed = 6f;
+    [Header("Movement")]
+    public float walkSpeed = 6f;
     public float sprintSpeed = 10f;
+    public float crouchSpeed = 3f;
     public float gravity = -9.81f;
     public float jumpHeight = 1.8f;
 
+    [Header("Crouch")]
+    public float standingHeight = 2f;
+    public float crouchHeight = 1f;
+    public float crouchTransitionSpeed = 8f;
+
+    [Header("Ground Check")]
     public Transform groundCheck;
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
 
-    Vector3 velocity;
-    bool isGrounded;
+    // Component refs
+    private CharacterController _controller;
+    private InputSystem_Actions _input;
 
-    void Update()
+    // State
+    private Vector2 _moveInput;
+    private Vector3 _velocity;
+    private bool _isGrounded;
+    private bool _isSprinting;
+    private bool _isCrouching;
+    private bool _jumpQueued;
+
+    private void Awake()
     {
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+        _controller = GetComponent<CharacterController>();
 
-        if (isGrounded && velocity.y < 0)
-            velocity.y = -2f;
+        _input = new InputSystem_Actions();
+    }
 
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
+    private void OnEnable()
+    {
+        _input.Player.Enable();
 
-        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : speed;
+        _input.Player.Move.performed   += OnMove;
+        _input.Player.Move.canceled    += OnMove;
 
-        Vector3 move = transform.right * x + transform.forward * z;
+        _input.Player.Sprint.performed += ctx => _isSprinting = true;
+        _input.Player.Sprint.canceled  += ctx => _isSprinting = false;
 
-        controller.Move(move * currentSpeed * Time.deltaTime);
+        _input.Player.Jump.performed   += OnJump;
+        _input.Player.Crouch.performed += OnCrouch;
+        _input.Player.Crouch.canceled  += OnCrouchReleased;
+    }
 
-        if (Input.GetButtonDown("Jump") && isGrounded)
+    private void OnDisable()
+    {
+        _input.Player.Move.performed   -= OnMove;
+        _input.Player.Move.canceled    -= OnMove;
+
+        _input.Player.Sprint.performed -= ctx => _isSprinting = true;
+        _input.Player.Sprint.canceled  -= ctx => _isSprinting = false;
+
+        _input.Player.Jump.performed   -= OnJump;
+        _input.Player.Crouch.performed -= OnCrouch;
+        _input.Player.Crouch.canceled  -= OnCrouchReleased;
+
+        _input.Player.Disable();
+    }
+
+    // ── Input callbacks ──────────────────────────────────────────────
+
+    private void OnMove(InputAction.CallbackContext ctx)
+        => _moveInput = ctx.ReadValue<Vector2>();
+
+    private void OnJump(InputAction.CallbackContext ctx)
+    {
+        if (_isGrounded)
+            _jumpQueued = true;
+    }
+
+    private void OnCrouch(InputAction.CallbackContext ctx)    => _isCrouching = true;
+    private void OnCrouchReleased(InputAction.CallbackContext ctx) => _isCrouching = false;
+
+    // ── Update ───────────────────────────────────────────────────────
+
+    private void Update()
+    {
+        HandleGroundCheck();
+        HandleCrouchHeight();
+        HandleMovement();
+        HandleGravityAndJump();
+    }
+
+    private void HandleGroundCheck()
+    {
+        _isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+
+        if (_isGrounded && _velocity.y < 0f)
+            _velocity.y = -2f;
+    }
+
+    private void HandleMovement()
+    {
+        float speed = _isCrouching ? crouchSpeed
+                    : _isSprinting ? sprintSpeed
+                    : walkSpeed;
+
+        Vector3 move = transform.right   * _moveInput.x
+                     + transform.forward * _moveInput.y;
+
+        _controller.Move(move * speed * Time.deltaTime);
+    }
+
+    private void HandleGravityAndJump()
+    {
+        if (_jumpQueued && _isGrounded)
         {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            _velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            _jumpQueued = false;
         }
 
-        velocity.y += gravity * Time.deltaTime;
+        _velocity.y += gravity * Time.deltaTime;
+        _controller.Move(_velocity * Time.deltaTime);
+    }
 
-        controller.Move(velocity * Time.deltaTime);
+    private void HandleCrouchHeight()
+    {
+        float targetHeight = _isCrouching ? crouchHeight : standingHeight;
+        _controller.height = Mathf.Lerp(
+            _controller.height,
+            targetHeight,
+            Time.deltaTime * crouchTransitionSpeed
+        );
+
+        // Keep controller grounded as height shrinks/grows
+        Vector3 center = _controller.center;
+        center.y = _controller.height / 2f;
+        _controller.center = center;
     }
 }
