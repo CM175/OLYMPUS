@@ -13,6 +13,7 @@ public class LightningBolt : Ability
 
         if (Physics.Raycast(fpsCamera.transform.position, fpsCamera.transform.forward, out hit, range))
         {
+            Debug.Log("hit something" );
             EnemyHealth enemy = hit.transform.GetComponent<EnemyHealth>();
 
             if (enemy != null)
