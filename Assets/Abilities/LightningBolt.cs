@@ -1,10 +1,12 @@
+
+using System.ComponentModel;
 using UnityEngine;
 
 public class LightningBolt : Ability
 {
     public float range = 100f;
     public int damage = 25;
-    public float chainRange = 5f;
+    public float chainRange = 15f;
 
     protected override void Activate()
     {
@@ -17,12 +19,20 @@ public class LightningBolt : Ability
 
             // Chain to nearest nearby enemy
             Collider[] nearby = Physics.OverlapSphere(hit.point, chainRange);
+            Debug.Log("" + nearby.Length);
             foreach (var col in nearby)
             {
+                
                 if (col.gameObject == hit.collider.gameObject) continue;
-                col.GetComponent<EnemyHealth>()?.TakeDamage((int)(damage * 0.5f));
-                Debug.Log("Chain ");
-                break; // only chain once
+
+                // Skip anything without EnemyHealth
+                EnemyHealth chainTarget = col.GetComponent<EnemyHealth>();
+                if (chainTarget == null) continue;
+
+                // Valid chain target found
+                chainTarget.TakeDamage((int)(damage * 0.5f));
+                Debug.Log($"Thunderbolt: Chained to {col.name} for {damage * 0.5f} damage");
+                break;
             }
 
             Debug.Log($"Thunderbolt hit {hit.collider.name}");

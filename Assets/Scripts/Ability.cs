@@ -2,15 +2,20 @@ using UnityEngine;
 
 public abstract class Ability : MonoBehaviour
 {
-    public float cooldown = 3f;
-    protected float lastUsedTime;
+    public float cooldown;
     public Camera playerCamera;
+    [System.NonSerialized]
+    protected float lastUsedTime;
 
+    protected virtual void Awake()
+    {
+        lastUsedTime = -999f;
+    }
     public virtual void Use()
     {
-        if (Time.time < lastUsedTime + cooldown)
+        
+        if (IsOnCooldown())
             return;
-
         Activate();
         lastUsedTime = Time.time;
     }

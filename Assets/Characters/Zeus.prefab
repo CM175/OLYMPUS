@@ -71,7 +71,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   range: 80
   damage: 40
-  chainRange: 5
+  chainRange: 15
 --- !u!114 &204290176932405347
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -100,9 +100,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97979cceda6759c4dbac3c08278b11f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightningBarrier
-  cooldown: 12
+  cooldown: 3
   playerCamera: {fileID: 0}
-  barrierPrefab: {fileID: 0}
+  barrierPrefab: {fileID: 1588689259449940316, guid: a91c56ed49e736f4ba8f61e4ed848614, type: 3}
   duration: 4
 --- !u!114 &2604176348958728968
 MonoBehaviour:
@@ -116,8 +116,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca2d743a692eb9d4db4ff8427fcc36c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkyCharge
-  cooldown: 14
+  cooldown: 3
   playerCamera: {fileID: 0}
   dashDistance: 8
-  trailEffectPrefab: {fileID: 0}
-  damage: 30

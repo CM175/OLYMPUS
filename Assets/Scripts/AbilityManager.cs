@@ -9,16 +9,25 @@ public class AbilityManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetButtonDown("Fire1"))
+        if (Input.GetMouseButtonDown(0) && primaryAbility != null)
+        {
+            
             primaryAbility.Use();
+        }
 
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.Q) && secondaryAbility != null)
+        {
             secondaryAbility.Use();
+        }
 
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.E) && mobilityAbility != null)
+        {
             mobilityAbility.Use();
+        }
 
-        if (Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKeyDown(KeyCode.F) && ultimateAbility != null)
+        {
             ultimateAbility.Use();
+        }
     }
 }

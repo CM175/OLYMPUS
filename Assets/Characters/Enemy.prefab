@@ -48,6 +48,7 @@ GameObject:
   - component: {fileID: 6860119498970476355}
   - component: {fileID: 9183486768543728246}
   - component: {fileID: 3572857861717574029}
+  - component: {fileID: 4360856521178645762}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
@@ -216,3 +217,15 @@ MonoBehaviour:
   damage: 10
   attackRange: 2
   attackCooldown: 2
+--- !u!114 &4360856521178645762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8903538099588761928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5341993e2aa888641b898f0999d75451, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DamageDisplay

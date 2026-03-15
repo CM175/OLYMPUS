@@ -6,7 +6,7 @@ public class PlayerHealth : MonoBehaviour
     public int maxHealth = 100;
     public Transform spawnPoint;
 
-    int currentHealth;
+    public int currentHealth;
 
     HeroManager heroManager;
     CharacterController _controller;

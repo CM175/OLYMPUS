@@ -3,36 +3,28 @@ using UnityEngine;
 public class SkyCharge : Ability
 {
     public float dashDistance = 8f;
-    public GameObject trailEffectPrefab;
-    public int damage = 30;
 
     protected override void Activate()
     {
-        CharacterController controller = GetComponent<CharacterController>();
-        if (controller == null) return;
+        CharacterController controller = FindFirstObjectByType<CharacterController>();
 
-        Vector3 dashTarget = transform.position + transform.forward * dashDistance;
-
-        // Check for obstacles
-        if (Physics.Raycast(transform.position, transform.forward,
-            out RaycastHit hit, dashDistance))
+        if (controller == null)
         {
-            dashTarget = hit.point - transform.forward * 0.5f;
+            Debug.LogError("SkyCharge: No CharacterController found.");
+            return;
         }
+
+        Vector3 origin = controller.transform.position;
+        Vector3 forward = controller.transform.forward;
+        Vector3 dashTarget = origin + forward * dashDistance;
+
+
+        if (Physics.Raycast(origin, forward, out RaycastHit hit, dashDistance))
+            dashTarget = hit.point - forward * 0.5f;
 
         controller.enabled = false;
-        transform.position = dashTarget;
+        controller.transform.position = dashTarget;
         controller.enabled = true;
 
-        // Damage anything in the trail
-        Collider[] hit2 = Physics.OverlapCapsule(
-            transform.position, dashTarget, 1f);
-        foreach (var col in hit2)
-        {
-            if (col.gameObject == gameObject) continue;
-            col.GetComponent<EnemyHealth>()?.TakeDamage(damage);
-        }
-
-        Debug.Log("Sky Charge activated");
     }
 }
