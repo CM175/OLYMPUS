@@ -4,6 +4,7 @@ public abstract class Ability : MonoBehaviour
 {
     public float cooldown = 3f;
     protected float lastUsedTime;
+    public Camera playerCamera;
 
     public virtual void Use()
     {

@@ -50,17 +50,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Abilities\LightningBolt.cs" />
+    <Compile Include="Assets\Scripts\HeroManager.cs" />
+    <Compile Include="Assets\Scripts\Hero.cs" />
     <Compile Include="Assets\InputSystem_Actions.cs" />
     <Compile Include="Assets\Scripts\EnemyAI.cs" />
     <Compile Include="Assets\Scripts\MouseLook.cs" />
     <Compile Include="Assets\Scripts\PlayerHealth.cs" />
     <Compile Include="Assets\Scripts\PlayerController.cs" />
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
+    <Compile Include="Assets\Abilities\LightningBarrier.cs" />
     <Compile Include="Assets\Scripts\WeaponShoot.cs" />
     <Compile Include="Assets\Scripts\Ability.cs" />
     <Compile Include="Assets\Scripts\EnemySpawner.cs" />
     <Compile Include="Assets\Scripts\EnemyHealth.cs" />
+    <Compile Include="Assets\Abilities\OlympianWrath.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
+    <Compile Include="Assets\Abilities\SkyCharge.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
