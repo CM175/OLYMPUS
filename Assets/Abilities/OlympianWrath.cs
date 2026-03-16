@@ -1,27 +1,67 @@
+using System.Collections;
 using UnityEngine;
 
-public class OlympianWrath : Ability
+public class OlympianWrath : Ultimate
 {
-    public float radius = 20f;
-    public int damage = 50;
+    public float radius = 15f;
+    public float duration = 6f;
+    public float strikeInterval = 0.5f;
+    public int damagePerStrike = 15;
+    public GameObject stormZonePrefab;
 
     protected override void Activate()
     {
-        Collider[] targets = Physics.OverlapSphere(
-            transform.position, radius);
+        GameObject playerObj = GameObject.FindWithTag("Player");
 
-        int hits = 0;
-        foreach (var col in targets)
+        if (playerObj == null)
         {
-            if (col.gameObject == gameObject) continue;
-
-            var enemy = col.GetComponent<EnemyHealth>();
-            var player = col.GetComponent<PlayerHealth>();
-
-            if (enemy != null) { enemy.TakeDamage(damage); hits++; }
-            else if (player != null) { player.TakeDamage(damage); hits++; }
+            Debug.LogError("OlympianWrath: Player not found.");
+            return;
         }
 
-        Debug.Log($"Olympian Wrath hit {hits} targets");
+        StartCoroutine(StormZone(playerObj.transform.position));
+    }
+
+    IEnumerator StormZone(Vector3 center)
+    {
+        Debug.Log("Olympian Wrath activated — storm zone created");
+
+        // Spawn visual if assigned
+        GameObject visual = null;
+        if (stormZonePrefab != null)
+        {
+            visual = Instantiate(stormZonePrefab, center, Quaternion.identity);
+            visual.transform.localScale = Vector3.one * (radius * 2);
+        }
+
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            // Find all enemies inside the radius
+            Collider[] targets = Physics.OverlapSphere(center, radius);
+
+            foreach (var col in targets)
+            {
+                // Skip the player
+                if (col.CompareTag("Player")) continue;
+
+                EnemyHealth enemy = col.GetComponent<EnemyHealth>();
+                if (enemy != null)
+                {
+                    enemy.TakeDamage(damagePerStrike);
+                    Debug.Log($"OlympianWrath: Struck {col.name} for {damagePerStrike}");
+                }
+            }
+
+            yield return new WaitForSeconds(strikeInterval);
+            elapsed += strikeInterval;
+        }
+
+        // Clean up visual
+        if (visual != null)
+            Destroy(visual);
+
+        Debug.Log("Olympian Wrath ended");
     }
 }

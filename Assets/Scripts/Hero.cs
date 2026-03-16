@@ -9,5 +9,5 @@ public class Hero : MonoBehaviour
     public Ability primaryAbility;
     public Ability secondaryAbility;
     public Ability mobilityAbility;
-    public Ability ultimateAbility;
+    public Ultimate ultimateAbility;
 }

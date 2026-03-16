@@ -59,6 +59,7 @@
     <Compile Include="Assets\Scripts\PlayerController.cs" />
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
     <Compile Include="Assets\Abilities\LightningBarrier.cs" />
+    <Compile Include="Assets\Scripts\Ultimate.cs" />
     <Compile Include="Assets\Scripts\WeaponShoot.cs" />
     <Compile Include="Assets\Scripts\Ability.cs" />
     <Compile Include="Assets\Scripts\DamageDisplay.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="Assets\Abilities\OlympianWrath.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Abilities\SkyCharge.cs" />
+    <Compile Include="Assets\Scripts\PlayerStats.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

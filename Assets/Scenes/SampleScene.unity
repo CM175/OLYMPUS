@@ -308,7 +308,6 @@ GameObject:
   - component: {fileID: 351264091}
   - component: {fileID: 351264090}
   - component: {fileID: 351264097}
-  - component: {fileID: 351264096}
   - component: {fileID: 351264098}
   - component: {fileID: 351264099}
   m_Layer: 0
@@ -377,7 +376,7 @@ Transform:
   m_GameObject: {fileID: 351264089}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10.62, y: 0, z: -4.22}
+  m_LocalPosition: {x: 22.71, y: 0, z: 0.66}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -386,22 +385,6 @@ Transform:
   - {fileID: 422172737}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &351264096
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 351264089}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13bd501399bafa4448c1996ec2bcf846, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LightningBolt
-  cooldown: 0
-  fpsCamera: {fileID: 963194227}
-  range: 100
-  damage: 25
 --- !u!114 &351264097
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -414,7 +397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad973a6993ca6ba48b83fca98053ce5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AbilityManager
-  primaryAbility: {fileID: 351264096}
+  primaryAbility: {fileID: 0}
   secondaryAbility: {fileID: 0}
   mobilityAbility: {fileID: 0}
   ultimateAbility: {fileID: 0}
@@ -432,6 +415,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   maxHealth: 100
   spawnPoint: {fileID: 101492584}
+  currentHealth: 0
 --- !u!114 &351264099
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -444,7 +428,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78b4443686d175748bfe448b2c1734fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeroManager
-  currentHero: {fileID: 0}
+  currentHero: {fileID: 2458631646282970328, guid: 9726485d70d048541b68ddb357834ba1, type: 3}
+  playerCamera: {fileID: 963194227}
 --- !u!1 &375830220
 GameObject:
   m_ObjectHideFlags: 0

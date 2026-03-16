@@ -84,10 +84,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c75cb1beee0b444c8d5c69bc97ba6c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OlympianWrath
-  cooldown: 100
+  cooldown: 5
   playerCamera: {fileID: 0}
   radius: 20
-  damage: 80
+  duration: 6
+  strikeInterval: 0.5
+  damagePerStrike: 15
+  stormZonePrefab: {fileID: 9032819149719097012, guid: 02b75287dd698614f99816a27e8c329a, type: 3}
 --- !u!114 &4598133940750652961
 MonoBehaviour:
   m_ObjectHideFlags: 0
