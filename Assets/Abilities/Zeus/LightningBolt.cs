@@ -46,8 +46,11 @@ public class LightningBolt : Ability
             
             //Debug.Log($"Thunderbolt hit {hit.collider.name}");
         }
+
         // Start the visual effect coroutine
-    StartCoroutine(ShowBolt(transform.position, endPoint));
+        StartCoroutine(ShowBolt(transform.position, endPoint));
+        
+        StartCooldown();
     }
 
     private System.Collections.IEnumerator ShowBolt(Vector3 start, Vector3 end)

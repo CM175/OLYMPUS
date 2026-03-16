@@ -11,11 +11,11 @@ public class HUDController : MonoBehaviour
     public HeroManager heroManager;
 
     [Header("Health")]
+    
     public Image healthBarFill;
     public TextMeshProUGUI healthText;
 
     [Header("Ult Charge")]
-    public Image ultChargeBarFill;
     public TextMeshProUGUI ultChargeText;
 
     [Header("Hero Info")]
@@ -25,6 +25,8 @@ public class HUDController : MonoBehaviour
     [Header("Ability Icons")]
     public Image secondaryIcon;
     public Image mobilityIcon;
+    
+    public Image ultimateIcon;
 
     [Header("Cooldown Overlays")]
     public Image ultimateCooldownOverlay;
@@ -41,6 +43,7 @@ public class HUDController : MonoBehaviour
             heroNameText.text = heroManager.currentHero.heroName;
             heroRoleText.text = heroManager.currentHero.role;
         }
+
     }
 
     void Update()
@@ -74,7 +77,7 @@ public class HUDController : MonoBehaviour
             ultChargeText.text = $"{fraction}%";
 
         bool isReady = playerStats.currentUltimateCharge >= playerStats.maxUltimateCharge;
-        ultChargeBarFill.color = isReady ? Color.yellow : Color.gray;
+        ultimateIcon.color = isReady ? Color.yellow : Color.gray;
 
         if (ultReadyIndicator != null)
             ultReadyIndicator.SetActive(isReady);
@@ -103,6 +106,26 @@ public class HUDController : MonoBehaviour
         else
         {
             overlay.gameObject.SetActive(false);
+        }
+    }
+
+    public void SetupAbilityIcons()
+    {
+        if (abilityManager == null) return;
+
+        if (abilityManager.secondaryAbility != null && secondaryIcon != null)
+        {
+            secondaryIcon.sprite = abilityManager.secondaryAbility.sprite;
+        }
+
+        if (abilityManager.mobilityAbility != null && mobilityIcon != null)
+        {
+            mobilityIcon.sprite = abilityManager.mobilityAbility.sprite;
+        }
+        
+        if (abilityManager.ultimateAbility != null && ultimateCooldownOverlay != null)
+        {
+            ultimateIcon.sprite = abilityManager.ultimateAbility.sprite;
         }
     }
 }

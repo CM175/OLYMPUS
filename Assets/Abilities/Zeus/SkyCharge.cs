@@ -26,5 +26,7 @@ public class SkyCharge : Ability
         controller.transform.position = dashTarget;
         controller.enabled = true;
 
+        
+        StartCooldown();
     }
 }

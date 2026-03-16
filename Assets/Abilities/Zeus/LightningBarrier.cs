@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class LightningBarrier : Ability
 {
@@ -28,6 +29,13 @@ public class LightningBarrier : Ability
 
         Destroy(barrier, duration);
         Debug.Log("Lightning Barrier activated");
+        StartCoroutine(WaitToStartCooldown(duration));
+    }
+
+    private IEnumerator WaitToStartCooldown(float time)
+    {
+        yield return new WaitForSeconds(time);
+        StartCooldown();
     }
 }
 

@@ -10,7 +10,7 @@ public abstract class Ultimate : Ability
     protected virtual void Start()
     {
         
-        playerStats = transform.root.GetComponent<PlayerStats>();
+        playerStats = GetComponentInParent<PlayerStats>();
         if (playerStats == null)
         {
             Debug.LogError($"Ultimate: PlayerStats not found on root of {gameObject.name}. " +

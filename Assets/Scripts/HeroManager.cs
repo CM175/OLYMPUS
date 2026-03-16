@@ -43,6 +43,9 @@ public class HeroManager : MonoBehaviour
         abilityManager.mobilityAbility = currentHero.mobilityAbility;
         abilityManager.ultimateAbility = currentHero.ultimateAbility;
 
+        HUDController hud = Object.FindAnyObjectByType<HUDController>();
+        if (hud != null) hud.SetupAbilityIcons();
+
         GiveCameraToAbilities();
         
         Debug.Log($"Loaded Hero: {currentHero.heroName}");
