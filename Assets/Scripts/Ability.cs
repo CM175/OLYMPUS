@@ -7,19 +7,26 @@ public abstract class Ability : MonoBehaviour
     public Camera playerCamera;
     [System.NonSerialized]
     public float lastUsedTime = -999f;
+    [System.NonSerialized] public bool isExecuting = false;
 
     public GameObject vfxPrefab;
-
+    public Sprite sprite;
     public virtual void Use()
     {
-        if (IsOnCooldown())
-            return;
+        if (IsOnCooldown() || isExecuting) return;
+        
+        isExecuting = true;
         Activate();
-        lastUsedTime = Time.time;
     }
     public bool IsOnCooldown()
     {
         return Time.time < lastUsedTime + cooldown;
+    }
+
+    public void StartCooldown()
+    {
+        lastUsedTime = Time.time;
+        isExecuting = false;
     }
     protected abstract void Activate();
 }
