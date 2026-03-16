@@ -7,7 +7,6 @@ public class OlympianWrath : Ultimate
     public float duration = 6f;
     public float strikeInterval = 0.5f;
     public int damagePerStrike = 15;
-    public GameObject stormZonePrefab;
 
     protected override void Activate()
     {
@@ -28,9 +27,9 @@ public class OlympianWrath : Ultimate
 
         // Spawn visual if assigned
         GameObject visual = null;
-        if (stormZonePrefab != null)
+        if (vfxPrefab != null)
         {
-            visual = Instantiate(stormZonePrefab, center, Quaternion.identity);
+            visual = Instantiate(vfxPrefab, center, Quaternion.identity);
             visual.transform.localScale = Vector3.one * (radius * 2);
         }
 
