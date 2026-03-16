@@ -93,10 +93,12 @@ MonoBehaviour:
   vfxPrefab: {fileID: 9032819149719097012, guid: 02b75287dd698614f99816a27e8c329a, type: 3}
   cost: 5
   playerStats: {fileID: 0}
-  radius: 20
+  radius: 15
   duration: 6
   strikeInterval: 0.5
   damagePerStrike: 15
+  strikeBoltPrefab: {fileID: -5031946597044156173}
+  skyHeight: 20
 --- !u!114 &4598133940750652961
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112,7 +114,6 @@ MonoBehaviour:
   cooldown: 3
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 4259436044319103786, guid: a91c56ed49e736f4ba8f61e4ed848614, type: 3}
-  barrierPrefab: {fileID: 0}
   duration: 4
   contactDamage: 10
 --- !u!114 &2604176348958728968
@@ -190,8 +191,8 @@ LineRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0
-        value: 1
+        time: 0.81350327
+        value: 0.9963131
         inSlope: 0
         outSlope: 0
         tangentMode: 0

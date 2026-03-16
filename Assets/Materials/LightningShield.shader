@@ -44,16 +44,26 @@ Shader "Olympus/LightningShield"
                 return o;
             }
 
+            // Add a noise function (like the one we used for the bolt)
+            float noise(float3 p) {
+                return frac(sin(dot(p, float3(12.9898, 78.233, 45.164))) * 43758.5453);
+            }
+
             fixed4 frag (v2f i) : SV_Target {
-                // 1. Fresnel Effect calculation
+                // 1. Fresnel for the edge glow
                 float fresnel = 1.0 - saturate(dot(normalize(i.worldNormal), normalize(i.viewDir)));
                 fresnel = pow(fresnel, _FresnelPower);
 
-                // 2. Procedural flickering logic
-                float flicker = frac(sin(_Time.y * _FlickerSpeed) * 43758.5453);
+                // 2. Procedural "Energy Veins"
+                // We use world position and time to scroll lightning patterns across the sphere
+                float3 worldPos = i.worldNormal * 5.0; // Scale the pattern
+                float lightningPattern = noise(worldPos + _Time.y * 2.0);
                 
-                // 3. Final Output
-                return _BoltColour * fresnel * (0.8 + flicker * 0.2);
+                // 3. Cutoff: Only show the brightest parts of the noise
+                float cut = smoothstep(0.4, 0.5, lightningPattern);
+
+                // 4. Combine: Fresnel glow + sharp flickering veins
+                return _BoltColour * (fresnel + cut * 1.5);
             }
             ENDHLSL
         }

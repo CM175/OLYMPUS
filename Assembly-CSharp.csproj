@@ -64,6 +64,7 @@
     <Compile Include="Assets\InputSystem_Actions.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBolt.cs" />
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
+    <Compile Include="Assets\Scripts\LightningShieldEffect.cs" />
     <Compile Include="Assets\Scripts\BarrierDamage.cs" />
     <Compile Include="Assets\Scripts\Ability.cs" />
     <Compile Include="Assets\Scripts\DamageDisplay.cs" />
