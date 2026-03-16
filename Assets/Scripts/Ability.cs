@@ -8,6 +8,8 @@ public abstract class Ability : MonoBehaviour
     [System.NonSerialized]
     public float lastUsedTime = -999f;
 
+    public GameObject vfxPrefab;
+
     public virtual void Use()
     {
         if (IsOnCooldown())

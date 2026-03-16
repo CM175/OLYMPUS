@@ -8,11 +8,16 @@ public class LightningBolt : Ability
     public int damage = 25;
     public float chainRange = 15f;
 
+    public LineRenderer boltLine; // Assign in Inspector
+    public float beamDuration = 0.1f;
+
     protected override void Activate()
     {
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+        Vector3 endPoint = ray.GetPoint(range);
         if (Physics.Raycast(ray, out RaycastHit hit, range))
         {
+            endPoint = hit.point;
             
             EnemyHealth hitEnemy = hit.collider.GetComponent<EnemyHealth>();
             if (hitEnemy != null)
@@ -40,9 +45,42 @@ public class LightningBolt : Ability
             }
 
             
-
             //Debug.Log($"Thunderbolt hit {hit.collider.name}");
         }
+        // Start the visual effect coroutine
+    StartCoroutine(ShowBolt(transform.position, endPoint));
     }
 
+    private System.Collections.IEnumerator ShowBolt(Vector3 start, Vector3 end)
+    {
+        boltLine.enabled = true;
+        float timer = 0f;
+        int segments = 12; // More segments = more jagged lightning
+        boltLine.positionCount = segments;
+
+        while (timer < beamDuration)
+        {
+            boltLine.SetPosition(0, start); // Origin stays at Zeus
+            
+            for (int i = 1; i < segments - 1; i++)
+            {
+                // Calculate a point along the straight line
+                float fraction = (float)i / (segments - 1);
+                Vector3 midPoint = Vector3.Lerp(start, end, fraction);
+
+                // Add random "divine jitter" to make it look like lightning
+                float jitterAmount = 0.5f; 
+                midPoint += Random.insideUnitSphere * jitterAmount;
+                
+                boltLine.SetPosition(i, midPoint);
+            }
+
+            boltLine.SetPosition(segments - 1, end); // End stays at target
+            
+            timer += Time.deltaTime;
+            yield return null; // This causes the bolt to "flicker" every frame
+        }
+        
+        boltLine.enabled = false;
+    }
 }

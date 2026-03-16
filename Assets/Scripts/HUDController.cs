@@ -74,7 +74,7 @@ public class HUDController : MonoBehaviour
             ultChargeText.text = $"{fraction}%";
 
         bool isReady = playerStats.currentUltimateCharge >= playerStats.maxUltimateCharge;
-        ultChargeBarFill.color = isReady ? Color.yellow : Color.cyan;
+        ultChargeBarFill.color = isReady ? Color.yellow : Color.gray;
 
         if (ultReadyIndicator != null)
             ultReadyIndicator.SetActive(isReady);
