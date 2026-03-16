@@ -86,6 +86,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OlympianWrath
   cooldown: 5
   playerCamera: {fileID: 0}
+  cost: 2000
+  playerStats: {fileID: 0}
   radius: 20
   duration: 6
   strikeInterval: 0.5

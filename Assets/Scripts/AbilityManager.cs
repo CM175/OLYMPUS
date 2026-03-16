@@ -7,9 +7,6 @@ public class AbilityManager : MonoBehaviour
     public Ability mobilityAbility;
     public Ultimate ultimateAbility;
 
-
-    
-
     void Update()
     {
         if (Input.GetMouseButtonDown(0) && primaryAbility != null)
