@@ -5,15 +5,10 @@ public abstract class Ability : MonoBehaviour
     public float cooldown;
     public Camera playerCamera;
     [System.NonSerialized]
-    protected float lastUsedTime;
+    protected float lastUsedTime = -999f;
 
-    protected virtual void Awake()
-    {
-        lastUsedTime = -999f;
-    }
     public virtual void Use()
     {
-        
         if (IsOnCooldown())
             return;
         Activate();

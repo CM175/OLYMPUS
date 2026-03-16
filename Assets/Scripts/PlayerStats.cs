@@ -4,6 +4,7 @@ public class PlayerStats : MonoBehaviour
 {
     public int currentUltimateCharge = 0;
     public int maxUltimateCharge = 100;
+    public int chargePerHit = 5;
 
     public void AddCharge(int amount)
     {
