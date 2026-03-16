@@ -2,21 +2,40 @@ using UnityEngine;
 
 public class PlayerStats : MonoBehaviour
 {
-    public int currentUltimateCharge = 0;
-    public int maxUltimateCharge = 100;
+    public float currentUltimateCharge = 0f;
+    public float maxUltimateCharge;
     public int chargePerHit = 5;
 
-    public void AddCharge(int amount)
-    {
-        currentUltimateCharge = Mathf.Clamp(currentUltimateCharge + amount, 0, maxUltimateCharge);
-        Debug.Log($"Ultimate Charge: {currentUltimateCharge}%");
-    }
+    [Header("Passive Charge")]
+    public float pointsPerSecond = 5f;
+    private float chargeAccumulator = 0f;
 
-    public bool ConsumeCharge(int amount)
+    public void AddCharge(int points)
     {
-        if (currentUltimateCharge >= amount)
+        currentUltimateCharge = Mathf.Clamp(currentUltimateCharge + points, 0, maxUltimateCharge);// Calculate the percentage first, then cast the whole result to an int
+        int percentage = Mathf.RoundToInt((currentUltimateCharge / maxUltimateCharge) * 100);
+        
+        Debug.Log($"Ultimate Charge: {percentage}%");
+    }
+    public void Update()
+    {
+        if (currentUltimateCharge >= maxUltimateCharge) return;
+
+        chargeAccumulator += pointsPerSecond * Time.deltaTime;
+
+        if (chargeAccumulator >= 1f)
         {
-            currentUltimateCharge -= amount;
+            int toAdd = Mathf.FloorToInt(chargeAccumulator);
+            chargeAccumulator -= toAdd;
+            AddCharge(toAdd);
+        }
+        
+    }
+    public bool ConsumeCharge(int points)
+    {
+        if (currentUltimateCharge >= points)
+        {
+            currentUltimateCharge -= points;
             return true;
         }
         return false;

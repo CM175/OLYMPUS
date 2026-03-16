@@ -3,7 +3,7 @@ using UnityEngine;
 public abstract class Ultimate : Ability
 {
     [Header("Ultimate Settings")]
-    public int chargeCost = 100;
+    public int cost = 100;
     
     public PlayerStats playerStats;
 
@@ -11,6 +11,7 @@ public abstract class Ultimate : Ability
     {
         
         playerStats = transform.root.GetComponent<PlayerStats>();
+        playerStats.maxUltimateCharge = cost;
     
         if (playerStats == null)
         {
@@ -20,12 +21,11 @@ public abstract class Ultimate : Ability
         
     }
 
-
     // Overriding the use condition to check for charge
-    public bool IsReady(int currentCharge)
+    public bool IsReady(float currentCharge)
     {
         // Must be off cooldown AND have enough charge
-        return !IsOnCooldown() && currentCharge >= chargeCost;
+        return !IsOnCooldown() && currentCharge >= cost;
     }
 
     public override void Use()
@@ -33,7 +33,7 @@ public abstract class Ultimate : Ability
         if (!IsReady(playerStats.currentUltimateCharge))
             return;
         Activate();
-        playerStats.ConsumeCharge(chargeCost);
+        playerStats.ConsumeCharge(cost);
     }
 
 }

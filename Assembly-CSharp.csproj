@@ -60,7 +60,6 @@
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
     <Compile Include="Assets\Abilities\LightningBarrier.cs" />
     <Compile Include="Assets\Scripts\Ultimate.cs" />
-    <Compile Include="Assets\Scripts\WeaponShoot.cs" />
     <Compile Include="Assets\Scripts\Ability.cs" />
     <Compile Include="Assets\Scripts\DamageDisplay.cs" />
     <Compile Include="Assets\Scripts\EnemySpawner.cs" />
