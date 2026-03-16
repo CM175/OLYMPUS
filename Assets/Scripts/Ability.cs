@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using UnityEngine;
 
 public abstract class Ability : MonoBehaviour
@@ -5,7 +6,7 @@ public abstract class Ability : MonoBehaviour
     public float cooldown;
     public Camera playerCamera;
     [System.NonSerialized]
-    protected float lastUsedTime = -999f;
+    public float lastUsedTime = -999f;
 
     public virtual void Use()
     {

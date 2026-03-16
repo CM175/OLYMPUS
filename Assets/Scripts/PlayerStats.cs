@@ -13,7 +13,7 @@ public class PlayerStats : MonoBehaviour
     public void AddCharge(int points)
     {
         currentUltimateCharge = Mathf.Clamp(currentUltimateCharge + points, 0, maxUltimateCharge);// Calculate the percentage first, then cast the whole result to an int
-        int percentage = Mathf.RoundToInt((currentUltimateCharge / maxUltimateCharge) * 100);
+        int percentage = ultCharge();
         
         Debug.Log($"Ultimate Charge: {percentage}%");
     }
@@ -39,5 +39,10 @@ public class PlayerStats : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    public int ultCharge()
+    {
+        return Mathf.RoundToInt(currentUltimateCharge / maxUltimateCharge * 100);
     }
 }
