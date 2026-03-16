@@ -7,12 +7,8 @@ public class AbilityManager : MonoBehaviour
     public Ability mobilityAbility;
     public Ultimate ultimateAbility;
 
-    public PlayerStats playerStats;
 
-    void awake()
-    {
-        playerStats= GetComponent<PlayerStats>();
-    }
+    
 
     void Update()
     {
@@ -34,11 +30,7 @@ public class AbilityManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.F) && ultimateAbility != null)
         {
-            if (ultimateAbility.IsReady(playerStats.currentUltimateCharge))
-            {
-                ultimateAbility.Use();
-                playerStats.ConsumeCharge(ultimateAbility.chargeCost);
-            }
+            ultimateAbility.Use();
         }
     }
 }

@@ -4,14 +4,11 @@ public class EnemyHealth : MonoBehaviour
 {
     public int health = 100;
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, PlayerStats attacker = null) // Added parameter
     {
         health -= damage;
-        
-        if (health <= 0)
-        {
-            Die();
-        }
+        if (attacker != null) attacker.AddCharge(attacker.chargePerHit); // Award charge on hit
+        if (health <= 0) Die();
     }
 
     void Die()
