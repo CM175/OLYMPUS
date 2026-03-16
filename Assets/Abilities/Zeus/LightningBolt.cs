@@ -1,5 +1,4 @@
-
-using System.ComponentModel;
+using System.Collections;
 using UnityEngine;
 
 public class LightningBolt : Ability
@@ -39,7 +38,7 @@ public class LightningBolt : Ability
 
                     // Valid chain target found
                     chainTarget.TakeDamage((int)(damage * 0.5f));
-                    //Debug.Log($"Thunderbolt: Chained to {col.name} for {damage * 0.5f} damage");
+                    StartCoroutine(ShowChainArc(hit.point, col.transform.position));
                     break;
                 }
             }
@@ -82,5 +81,35 @@ public class LightningBolt : Ability
         }
         
         boltLine.enabled = false;
+    }
+
+    private IEnumerator ShowChainArc(Vector3 start, Vector3 end)
+    {
+        // Create a temporary LineRenderer for the arc
+        LineRenderer arc = Instantiate(boltLine); 
+        arc.enabled = true;
+        
+        float elapsed = 0;
+        float arcDuration = 0.15f;
+        int segments = 8;
+        arc.positionCount = segments;
+
+        while (elapsed < arcDuration)
+        {
+            arc.SetPosition(0, start);
+            for (int i = 1; i < segments - 1; i++)
+            {
+                float lerpVal = (float)i / (segments - 1);
+                Vector3 pos = Vector3.Lerp(start, end, lerpVal);
+                pos += Random.insideUnitSphere * 0.3f; // Smaller jitter for arcs
+                arc.SetPosition(i, pos);
+            }
+            arc.SetPosition(segments - 1, end);
+            
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        Destroy(arc.gameObject);
     }
 }

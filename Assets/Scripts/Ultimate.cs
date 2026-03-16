@@ -11,13 +11,14 @@ public abstract class Ultimate : Ability
     {
         
         playerStats = transform.root.GetComponent<PlayerStats>();
-        playerStats.maxUltimateCharge = cost;
-    
         if (playerStats == null)
         {
             Debug.LogError($"Ultimate: PlayerStats not found on root of {gameObject.name}. " +
                 "Ensure PlayerStats script is on the main Player object.");
         }
+        playerStats.maxUltimateCharge = cost;
+    
+        
         
     }
 
