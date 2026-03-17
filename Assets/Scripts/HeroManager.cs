@@ -7,6 +7,7 @@ public class HeroManager : MonoBehaviour
     public Camera playerCamera;
     
     [Header("State")]
+    
     public Hero currentHero;
 
     private AbilityManager abilityManager;
@@ -24,7 +25,7 @@ public class HeroManager : MonoBehaviour
     public void LoadHero(Hero prefab)
     {
         // 1. Cleanup old hero if one exists
-        if (currentHero != null)
+        if (currentHero != null && currentHero.gameObject.scene.name != null)
         {
             Destroy(currentHero.gameObject);
         }
@@ -43,8 +44,11 @@ public class HeroManager : MonoBehaviour
         abilityManager.mobilityAbility = currentHero.mobilityAbility;
         abilityManager.ultimateAbility = currentHero.ultimateAbility;
 
+        PlayerHealth ph = GetComponent<PlayerHealth>();
+        if (ph != null) ph.OnHeroLoaded(currentHero);
+
         HUDController hud = Object.FindAnyObjectByType<HUDController>();
-        if (hud != null) hud.SetupAbilityIcons();
+        if (hud != null) hud.OnHeroLoaded(currentHero);
 
         GiveCameraToAbilities();
         

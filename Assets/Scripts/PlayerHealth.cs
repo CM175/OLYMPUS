@@ -14,11 +14,14 @@ public class PlayerHealth : MonoBehaviour
 
     void Start()
     {
-        heroManager = GetComponent<HeroManager>();
-        maxHealth = heroManager.currentHero.health;
-        currentHealth = maxHealth;
         _controller = GetComponent<CharacterController>();
         _mesh = GetComponent<MeshRenderer>();
+    }
+
+    public void OnHeroLoaded(Hero hero)
+    {
+        maxHealth = hero.health;
+        currentHealth = maxHealth;
     }
 
     public void TakeDamage(int damage)

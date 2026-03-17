@@ -7,9 +7,12 @@ public class BarrierDamage : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log($"Barrier zapped {other.name} for {damage} damage");
         // Check if the object entering the bubble is an enemy
         if (other.CompareTag("Enemy"))
         {
+            
+            
             EnemyHealth enemy = other.GetComponent<EnemyHealth>();
             if (enemy != null) 
             {

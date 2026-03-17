@@ -59,7 +59,8 @@ public class LightningBolt : Ability
         float timer = 0f;
         int segments = 12; // More segments = more jagged lightning
         boltLine.positionCount = segments;
-
+        boltLine.startWidth = 0.3f;
+        boltLine.endWidth = 0.05f;
         while (timer < beamDuration)
         {
             boltLine.SetPosition(0, start); // Origin stays at Zeus

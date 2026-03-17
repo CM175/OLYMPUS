@@ -28,6 +28,6 @@ Material:
     - _FlickerSpeed: 10
     - _FresnelPower: 3
     m_Colors:
-    - _BoltColour: {r: 0, g: 0.5, b: 1, a: 1}
+    - _BoltColour: {r: 0, g: 362.71497, b: 722.59625, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

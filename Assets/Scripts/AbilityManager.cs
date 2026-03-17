@@ -6,7 +6,7 @@ public class AbilityManager : MonoBehaviour
     public Ability secondaryAbility;
     public Ability mobilityAbility;
     public Ultimate ultimateAbility;
-    public PassiveAbility passiveAbility;
+    //public PassiveAbility passiveAbility;
 
     void Update()
     {
@@ -31,6 +31,6 @@ public class AbilityManager : MonoBehaviour
             ultimateAbility.Use();
         }
 
-        passiveAbility.Use();
+        //if (passiveAbility != null) passiveAbility.Use();
     }
 }

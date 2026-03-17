@@ -9,27 +9,18 @@ public class OlympianWrath : Ultimate
     public int damagePerStrike = 15;
 
     [Header("Visuals")]
-    public LineRenderer strikeBoltPrefab; // Assign a LineRenderer prefab
+    public LineRenderer strikeBoltPrefab;
     public float skyHeight = 20f;
 
     protected override void Activate()
     {
-        GameObject playerObj = GameObject.FindWithTag("Player");
-
-        if (playerObj == null)
-        {
-            Debug.LogError("OlympianWrath: Player not found.");
-            return;
-        }
-
-        StartCoroutine(StormZone(playerObj.transform.position));
+        StartCoroutine(StormZone(transform.root.position));
     }
 
-    IEnumerator StormZone(Vector3 center)
+    private IEnumerator StormZone(Vector3 center)
     {
         Debug.Log("Olympian Wrath activated — storm zone created");
 
-        // Spawn visual if assigned
         GameObject visual = null;
         if (vfxPrefab != null)
         {
@@ -41,19 +32,19 @@ public class OlympianWrath : Ultimate
 
         while (elapsed < duration)
         {
-            // Find all enemies inside the radius
             Collider[] targets = Physics.OverlapSphere(center, radius);
 
             foreach (var col in targets)
             {
-                // Skip the player
                 if (col.CompareTag("Player")) continue;
 
                 EnemyHealth enemy = col.GetComponent<EnemyHealth>();
                 if (enemy != null)
                 {
+                    // Cache position BEFORE TakeDamage destroys the enemy
+                    Vector3 enemyPos = col.transform.position;
                     enemy.TakeDamage(damagePerStrike);
-                    SpawnSkyBolt(col.transform.position);
+                    StartCoroutine(AnimateSkyBolt(enemyPos));
                     Debug.Log($"OlympianWrath: Struck {col.name} for {damagePerStrike}");
                 }
             }
@@ -62,39 +53,47 @@ public class OlympianWrath : Ultimate
             elapsed += strikeInterval;
         }
 
-        // Clean up visual
         if (visual != null)
             Destroy(visual);
 
+        StartCooldown(); // clears isExecuting and starts cooldown timer
         Debug.Log("Olympian Wrath ended");
     }
 
-    void SpawnSkyBolt(Vector3 targetPos)
+    private IEnumerator AnimateSkyBolt(Vector3 targetPos)
     {
-        if (strikeBoltPrefab == null) return;
+        if (strikeBoltPrefab == null)
+        {
+            Debug.LogWarning("OlympianWrath: strikeBoltPrefab is not assigned!");
+            yield break;
+        }
 
         Vector3 skyPos = targetPos + Vector3.up * skyHeight;
         LineRenderer bolt = Instantiate(strikeBoltPrefab);
-        
-        // 1. Define segments (More segments = more jagged)
+        bolt.enabled = true;
+
         int segments = 15;
         bolt.positionCount = segments;
 
-        // 2. Calculate jagged path
-        bolt.SetPosition(0, skyPos); // Start at the sky
-        for (int i = 1; i < segments - 1; i++)
-        {
-            float fraction = (float)i / (segments - 1);
-            Vector3 midPoint = Vector3.Lerp(skyPos, targetPos, fraction);
+        float boltDuration = 0.15f;
+        float elapsed = 0f;
 
-            // 3. Add random horizontal offset to create the "bolt" shape
-            float jitter = 1.2f; 
-            midPoint += new Vector3(Random.Range(-jitter, jitter), 0, Random.Range(-jitter, jitter));
-            
-            bolt.SetPosition(i, midPoint);
+        while (elapsed < boltDuration)
+        {
+            bolt.SetPosition(0, skyPos);
+            for (int i = 1; i < segments - 1; i++)
+            {
+                float fraction = (float)i / (segments - 1);
+                Vector3 mid = Vector3.Lerp(skyPos, targetPos, fraction);
+                mid += Random.insideUnitSphere * 0.4f;
+                bolt.SetPosition(i, mid);
+            }
+            bolt.SetPosition(segments - 1, targetPos);
+
+            elapsed += Time.deltaTime;
+            yield return null;
         }
-        bolt.SetPosition(segments - 1, targetPos); // End at the enemy
-        
-        Destroy(bolt.gameObject, 0.1f);
+
+        Destroy(bolt.gameObject);
     }
 }

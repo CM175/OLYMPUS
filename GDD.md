@@ -28,7 +28,7 @@ The game's unique identity comes from its Greek mythology setting, divine powers
 - Typical match length: **10–15 minutes**
 
 ### Player Perspective
-The game uses a **third-person perspective** to better showcase mythological characters and abilities.
+The game uses a first-person perspective, placing the player directly behind the eyes of their chosen hero for immersive combat and ability use.
 
 ---
 
@@ -99,7 +99,7 @@ Each hero has:
 **Primary Weapon:** Lightning bolts
 
 **Abilities:**
-- Thunder Strike *(AOE lightning attack)*
+- Sky Charge *(Mobility)*
 - Storm Shield *(temporary barrier)*
 
 **Ultimate:** Wrath of Olympus
