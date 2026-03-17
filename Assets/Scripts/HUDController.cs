@@ -36,14 +36,12 @@ public class HUDController : MonoBehaviour
     [Header("Ult Ready")]
     public GameObject ultReadyIndicator; // A flashing or coloured object shown when ult is ready
 
-    void Start()
-    {
-        if (heroManager != null && heroManager.currentHero != null)
-        {
-            heroNameText.text = heroManager.currentHero.heroName;
-            heroRoleText.text = heroManager.currentHero.role;
-        }
 
+    public void OnHeroLoaded(Hero hero)
+    {
+        if (heroNameText != null) heroNameText.text = hero.heroName;
+        if (heroRoleText != null) heroRoleText.text = hero.role;
+        SetupAbilityIcons();
     }
 
     void Update()
@@ -55,7 +53,7 @@ public class HUDController : MonoBehaviour
 
     void UpdateHealth()
     {
-        if (playerHealth == null) return;
+        if (playerHealth == null || playerHealth.maxHealth == 0) return;
 
         float fraction = (float)playerHealth.currentHealth / playerHealth.maxHealth;
         healthBarFill.fillAmount = fraction;

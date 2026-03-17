@@ -11,14 +11,14 @@ public abstract class Ultimate : Ability
     {
         
         playerStats = GetComponentInParent<PlayerStats>();
-        if (playerStats == null)
-        {
-            Debug.LogError($"Ultimate: PlayerStats not found on root of {gameObject.name}. " +
-                "Ensure PlayerStats script is on the main Player object.");
-        }
+
+        // If it's still null, it might not be parented yet. 
+        // We can try to find the local one or wait.
+        if (playerStats == null) return; 
+
         playerStats.maxUltimateCharge = cost;
-    
         
+            
         
     }
 
@@ -31,8 +31,8 @@ public abstract class Ultimate : Ability
 
     public override void Use()
     {
-        if (!IsReady(playerStats.currentUltimateCharge))
-            return;
+        if (!IsReady(playerStats.currentUltimateCharge)) return;
+        isExecuting = true;
         Activate();
         playerStats.ConsumeCharge(cost);
     }
