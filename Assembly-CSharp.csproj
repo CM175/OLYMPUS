@@ -59,10 +59,13 @@
     <Compile Include="Assets\Scripts\Ultimate.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBarrier.cs" />
     <Compile Include="Assets\Abilities\Zeus\OlympianWrath.cs" />
+    <Compile Include="Assets\Abilities\Achillies\ShieldBash.cs" />
     <Compile Include="Assets\Scripts\HUDController.cs" />
+    <Compile Include="Assets\Abilities\Achillies\AchillesFury.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
     <Compile Include="Assets\InputSystem_Actions.cs" />
+    <Compile Include="Assets\Abilities\Achillies\FrontalArmor.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBolt.cs" />
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
     <Compile Include="Assets\Scripts\LightningShieldEffect.cs" />
@@ -72,6 +75,8 @@
     <Compile Include="Assets\Abilities\Zeus\SkyCharge.cs" />
     <Compile Include="Assets\Scripts\EnemySpawner.cs" />
     <Compile Include="Assets\Scripts\EnemyHealth.cs" />
+    <Compile Include="Assets\Abilities\Achillies\BattleCry.cs" />
+    <Compile Include="Assets\Abilities\Achillies\SpearThrow.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
