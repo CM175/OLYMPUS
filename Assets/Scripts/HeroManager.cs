@@ -31,6 +31,11 @@ public class HeroManager : MonoBehaviour
         currentHero = Instantiate(prefab, transform.position, transform.rotation);
         currentHero.transform.SetParent(transform);
 
+        
+        // 6. Notify other systems
+        PlayerHealth ph = GetComponent<PlayerHealth>();
+        if (ph != null) ph.OnHeroLoaded(currentHero);
+
         // 3. Wire abilities from the live instance to AbilityManager
         _abilityManager.primaryAbility  = currentHero.primaryAbility;
         _abilityManager.secondaryAbility = currentHero.secondaryAbility;
@@ -43,12 +48,9 @@ public class HeroManager : MonoBehaviour
         // 5. Initialize ultimate (sets PlayerStats.maxUltimateCharge)
         InitializeUltimate();
 
-        // 6. Initialize passive (e.g. FrontalArmor sets DamageReduction)
+    
+        // 7. Initialize passive (e.g. FrontalArmor sets DamageReduction)
         InitializePassive();
-
-        // 7. Notify other systems
-        PlayerHealth ph = GetComponent<PlayerHealth>();
-        if (ph != null) ph.OnHeroLoaded(currentHero);
 
         HUDController hud = FindAnyObjectByType<HUDController>();
         if (hud != null) hud.OnHeroLoaded(currentHero);
@@ -91,14 +93,6 @@ public class HeroManager : MonoBehaviour
     {
         if (currentHero.passiveAbility == null) return;
 
-        // FrontalArmor needs a reference to PlayerHealth
-        FrontalArmor frontalArmor = currentHero.passiveAbility as FrontalArmor;
-        if (frontalArmor != null)
-        {
-            PlayerHealth ph = GetComponent<PlayerHealth>();
-            frontalArmor.Initialize(ph);
-            return;
-        }
 
         // Generic fallback for simpler passives
         currentHero.passiveAbility.Use();

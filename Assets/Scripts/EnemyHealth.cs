@@ -1,18 +1,30 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class EnemyHealth : MonoBehaviour
 {
     public int health = 100;
+    
+    // Pass the GameObject of the killer so listeners can check if it was them
+    public UnityEvent<GameObject> OnDeathWithKiller; 
 
-    public void TakeDamage(int damage, PlayerStats attacker = null) // Added parameter
+    public void TakeDamage(int damage, GameObject attacker = null)
     {
         health -= damage;
-        if (attacker != null) attacker.AddCharge(damage); // Award charge on hit
-        if (health <= 0) Die();
+        
+        // If the attacker has PlayerStats, they get charge automatically
+        if (attacker != null)
+        {
+            PlayerStats stats = attacker.GetComponent<PlayerStats>();
+            if (stats != null) stats.AddCharge(damage);
+        }
+
+        if (health <= 0) Die(attacker);
     }
 
-    void Die()
+    void Die(GameObject attacker)
     {
+        OnDeathWithKiller?.Invoke(attacker);
         Destroy(transform.root.gameObject);
     }
 }
