@@ -17,7 +17,7 @@ public class BarrierDamage : MonoBehaviour
             if (enemy != null) 
             {
                 // Apply damage and award ultimate charge to the player
-                enemy.TakeDamage(damage, attackerStats);
+                enemy.TakeDamage(damage, gameObject);
                 Debug.Log($"Barrier zapped {other.name} for {damage} damage");
             }
         }

@@ -23,7 +23,7 @@ public class LightningBolt : Ability
             {
                 // Apply damage
                 PlayerStats myStats = transform.root.GetComponent<PlayerStats>();
-                hitEnemy.TakeDamage(damage, myStats);
+                hitEnemy.TakeDamage(damage, gameObject);
 
                 // Chain to nearest nearby enemy
                 Collider[] nearby = Physics.OverlapSphere(hit.point, chainRange);

@@ -32,7 +32,7 @@ public class ShieldBash : Ability
                 ? Mathf.RoundToInt(damage * stats.DamageMultiplier)
                 : damage;
 
-            enemy.TakeDamage(finalDamage, stats);
+            enemy.TakeDamage(finalDamage, gameObject);
 
             // Stun the AI so it stops chasing during the stagger window
             EnemyAI ai = col.GetComponentInParent<EnemyAI>();

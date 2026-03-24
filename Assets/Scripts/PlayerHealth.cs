@@ -38,8 +38,8 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(int damage)
     {
         if (IsInvincible) return;
-
         int reduced = Mathf.RoundToInt(damage * (1f - DamageReduction));
+        Debug.Log("" + DamageReduction);
         currentHealth -= reduced;
 
         if (currentHealth <= 0)
@@ -65,6 +65,5 @@ public class PlayerHealth : MonoBehaviour
 
         currentHealth  = maxHealth;
         IsInvincible   = false;
-        DamageReduction = 0f;
     }
 }

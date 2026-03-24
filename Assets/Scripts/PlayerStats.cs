@@ -23,7 +23,6 @@ public class PlayerStats : MonoBehaviour
         currentUltimateCharge = Mathf.Clamp(
             currentUltimateCharge + points, 0, maxUltimateCharge);
 
-        Debug.Log($"Ultimate Charge: {ultCharge()}%");
     }
 
     public void Update()
