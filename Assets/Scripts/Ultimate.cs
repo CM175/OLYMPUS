@@ -4,37 +4,33 @@ public abstract class Ultimate : Ability
 {
     [Header("Ultimate Settings")]
     public int cost = 100;
-    
-    public PlayerStats playerStats;
 
-    protected virtual void Start()
+    // Not serialized — always set at runtime via Initialize()
+    [System.NonSerialized] public PlayerStats playerStats;
+
+    // ── Called by HeroManager after the hero is parented and in the scene ──
+
+    public void Initialize(PlayerStats stats)
     {
-        
-        playerStats = GetComponentInParent<PlayerStats>();
-
-        // If it's still null, it might not be parented yet. 
-        // We can try to find the local one or wait.
-        if (playerStats == null) return; 
-
+        playerStats = stats;
         playerStats.maxUltimateCharge = cost;
-        
-            
-        
     }
 
-    // Overriding the use condition to check for charge
-    public bool IsReady(float currentCharge)
+    // ── Readiness check ──────────────────────────────────────────────────────
+
+    public bool IsReady()
     {
-        // Must be off cooldown AND have enough charge
-        return !IsOnCooldown() && currentCharge >= cost;
+        if (playerStats == null) return false;
+        return !IsOnCooldown() && playerStats.currentUltimateCharge >= cost;
     }
+
+    // ── Override Use() to gate on charge ────────────────────────────────────
 
     public override void Use()
     {
-        if (!IsReady(playerStats.currentUltimateCharge)) return;
+        if (!IsReady()) return;
         isExecuting = true;
-        Activate();
         playerStats.ConsumeCharge(cost);
+        Activate();
     }
-
 }

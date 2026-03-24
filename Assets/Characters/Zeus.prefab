@@ -93,8 +93,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 9032819149719097012, guid: 02b75287dd698614f99816a27e8c329a, type: 3}
   sprite: {fileID: 21300000, guid: f68e3626cf1c7c34ab1064c4dba43755, type: 3}
-  cost: 5
-  playerStats: {fileID: 0}
+  cost: 100
   radius: 15
   duration: 6
   strikeInterval: 0.5

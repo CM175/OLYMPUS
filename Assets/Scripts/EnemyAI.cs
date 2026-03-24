@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -6,25 +7,27 @@ public class EnemyAI : MonoBehaviour
 {
     [Header("Detection")]
     public float detectionRange = 20f;
-    public float loseRange = 25f;
+    public float loseRange      = 25f;
 
     [Header("Patrol")]
     public float patrolWaitTime = 2f;
-    public float patrolRadius = 10f;
+    public float patrolRadius   = 10f;
 
-    private NavMeshAgent _agent;
-    private Transform _player;
-    private EnemyAttack _attack;
+    private NavMeshAgent  _agent;
+    private Transform     _player;
+    private EnemyAttack   _attack;
 
-    private enum State { Idle, Patrol, Chase }
+    private enum State { Idle, Patrol, Chase, Stunned }
     private State _state = State.Idle;
 
     private float _patrolWaitTimer;
-    private bool _waitingAtPoint;
+    private bool  _waitingAtPoint;
+
+    // ── Lifecycle ────────────────────────────────────────────────────────────
 
     private void Awake()
     {
-        _agent = GetComponent<NavMeshAgent>();
+        _agent  = GetComponent<NavMeshAgent>();
         _attack = GetComponent<EnemyAttack>();
     }
 
@@ -38,9 +41,11 @@ public class EnemyAI : MonoBehaviour
         SetNewPatrolPoint();
     }
 
+    // ── Update ───────────────────────────────────────────────────────────────
+
     private void Update()
     {
-        if (_player == null) return;
+        if (_player == null || _state == State.Stunned) return;
 
         float distToPlayer = Vector3.Distance(transform.position, _player.position);
 
@@ -64,7 +69,18 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // ── Patrol ───────────────────────────────────────────────────────
+    // ── Public API ───────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Briefly interrupts the enemy's AI and movement (called by ShieldBash).
+    /// Safe to call while already stunned — just extends the duration.
+    /// </summary>
+    public void Stun(float duration)
+    {
+        StartCoroutine(StunRoutine(duration));
+    }
+
+    // ── Patrol ───────────────────────────────────────────────────────────────
 
     private void HandlePatrol()
     {
@@ -72,8 +88,8 @@ public class EnemyAI : MonoBehaviour
         {
             if (!_waitingAtPoint)
             {
-                _waitingAtPoint = true;
-                _patrolWaitTimer = patrolWaitTime;
+                _waitingAtPoint    = true;
+                _patrolWaitTimer   = patrolWaitTime;
             }
 
             _patrolWaitTimer -= Time.deltaTime;
@@ -88,25 +104,37 @@ public class EnemyAI : MonoBehaviour
 
     private void SetNewPatrolPoint()
     {
-        Vector3 randomDir = Random.insideUnitSphere * patrolRadius;
-        randomDir += transform.position;
+        Vector3 randomDir = Random.insideUnitSphere * patrolRadius + transform.position;
 
         NavMeshHit hit;
         if (NavMesh.SamplePosition(randomDir, out hit, patrolRadius, NavMesh.AllAreas))
             _agent.SetDestination(hit.position);
     }
 
-    // ── Chase ────────────────────────────────────────────────────────
+    // ── Chase ────────────────────────────────────────────────────────────────
 
     private void HandleChase()
     {
-        // Stop short of the player so EnemyAttack can take over at melee range
         float stopAt = _attack != null ? _attack.attackRange * 0.9f : 1.5f;
         _agent.stoppingDistance = stopAt;
         _agent.SetDestination(_player.position);
     }
 
-    // ── Gizmos ───────────────────────────────────────────────────────
+    // ── Stun coroutine ───────────────────────────────────────────────────────
+
+    private IEnumerator StunRoutine(float duration)
+    {
+        State previousState = _state;
+        _state           = State.Stunned;
+        _agent.isStopped = true;
+
+        yield return new WaitForSeconds(duration);
+
+        _agent.isStopped = false;
+        _state           = previousState == State.Stunned ? State.Patrol : previousState;
+    }
+
+    // ── Gizmos ───────────────────────────────────────────────────────────────
 
     private void OnDrawGizmosSelected()
     {

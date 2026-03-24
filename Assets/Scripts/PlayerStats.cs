@@ -8,29 +8,38 @@ public class PlayerStats : MonoBehaviour
 
     [Header("Passive Charge")]
     public float pointsPerSecond = 5f;
-    private float chargeAccumulator = 0f;
+    private float _chargeAccumulator = 0f;
+
+    /// <summary>
+    /// Multiplier applied to all outgoing ability damage.
+    /// 1 = normal. Set by BattleCry, AchillesFury, etc.
+    /// </summary>
+    public float DamageMultiplier { get; set; } = 1f;
+
+    // ── Charge ───────────────────────────────────────────────────────────────
 
     public void AddCharge(int points)
     {
-        currentUltimateCharge = Mathf.Clamp(currentUltimateCharge + points, 0, maxUltimateCharge);// Calculate the percentage first, then cast the whole result to an int
-        int percentage = ultCharge();
-        
-        Debug.Log($"Ultimate Charge: {percentage}%");
+        currentUltimateCharge = Mathf.Clamp(
+            currentUltimateCharge + points, 0, maxUltimateCharge);
+
+        Debug.Log($"Ultimate Charge: {ultCharge()}%");
     }
+
     public void Update()
     {
         if (currentUltimateCharge >= maxUltimateCharge) return;
 
-        chargeAccumulator += pointsPerSecond * Time.deltaTime;
+        _chargeAccumulator += pointsPerSecond * Time.deltaTime;
 
-        if (chargeAccumulator >= 1f)
+        if (_chargeAccumulator >= 1f)
         {
-            int toAdd = Mathf.FloorToInt(chargeAccumulator);
-            chargeAccumulator -= toAdd;
+            int toAdd = Mathf.FloorToInt(_chargeAccumulator);
+            _chargeAccumulator -= toAdd;
             AddCharge(toAdd);
         }
-        
     }
+
     public bool ConsumeCharge(int points)
     {
         if (currentUltimateCharge >= points)
@@ -43,6 +52,7 @@ public class PlayerStats : MonoBehaviour
 
     public int ultCharge()
     {
+        if (maxUltimateCharge <= 0) return 0;
         return Mathf.RoundToInt(currentUltimateCharge / maxUltimateCharge * 100);
     }
 }

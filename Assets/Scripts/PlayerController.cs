@@ -5,39 +5,45 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
-    public float walkSpeed = 6f;
+    public float walkSpeed   = 6f;
     public float sprintSpeed = 10f;
     public float crouchSpeed = 3f;
-    public float gravity = -9.81f;
-    public float jumpHeight = 1.8f;
+    public float gravity     = -9.81f;
+    public float jumpHeight  = 1.8f;
 
     [Header("Crouch")]
-    public float standingHeight = 2f;
-    public float crouchHeight = 1f;
+    public float standingHeight      = 2f;
+    public float crouchHeight        = 1f;
     public float crouchTransitionSpeed = 8f;
 
     [Header("Ground Check")]
     public Transform groundCheck;
-    public float groundDistance = 0.4f;
+    public float     groundDistance = 0.4f;
     public LayerMask groundMask;
 
-    // Component refs
-    private CharacterController _controller;
-    private InputSystem_Actions _input;
+    /// <summary>
+    /// Runtime speed multiplier — set by AchillesFury, BattleCry, etc.
+    /// 1 = normal speed. Resets to 1 when the buff expires.
+    /// </summary>
+    public float SpeedMultiplier { get; set; } = 1f;
 
-    // State
-    private Vector2 _moveInput;
-    private Vector3 _velocity;
-    private bool _isGrounded;
-    private bool _isSprinting;
-    private bool _isCrouching;
-    private bool _jumpQueued;
+    // ── Private state ────────────────────────────────────────────────────────
+
+    private CharacterController  _controller;
+    private InputSystem_Actions  _input;
+    private Vector2  _moveInput;
+    private Vector3  _velocity;
+    private bool     _isGrounded;
+    private bool     _isSprinting;
+    private bool     _isCrouching;
+    private bool     _jumpQueued;
+
+    // ── Lifecycle ────────────────────────────────────────────────────────────
 
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
-
-        _input = new InputSystem_Actions();
+        _input      = new InputSystem_Actions();
     }
 
     private void OnEnable()
@@ -70,21 +76,20 @@ public class PlayerController : MonoBehaviour
         _input.Player.Disable();
     }
 
-    // ── Input callbacks ──────────────────────────────────────────────
+    // ── Input callbacks ──────────────────────────────────────────────────────
 
     private void OnMove(InputAction.CallbackContext ctx)
         => _moveInput = ctx.ReadValue<Vector2>();
 
     private void OnJump(InputAction.CallbackContext ctx)
     {
-        if (_isGrounded)
-            _jumpQueued = true;
+        if (_isGrounded) _jumpQueued = true;
     }
 
-    private void OnCrouch(InputAction.CallbackContext ctx)    => _isCrouching = true;
+    private void OnCrouch(InputAction.CallbackContext ctx)        => _isCrouching = true;
     private void OnCrouchReleased(InputAction.CallbackContext ctx) => _isCrouching = false;
 
-    // ── Update ───────────────────────────────────────────────────────
+    // ── Update ───────────────────────────────────────────────────────────────
 
     private void Update()
     {
@@ -96,7 +101,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleGroundCheck()
     {
-        _isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+        _isGrounded = Physics.CheckSphere(
+            groundCheck.position, groundDistance, groundMask);
 
         if (_isGrounded && _velocity.y < 0f)
             _velocity.y = -2f;
@@ -104,9 +110,12 @@ public class PlayerController : MonoBehaviour
 
     private void HandleMovement()
     {
-        float speed = _isCrouching ? crouchSpeed
-                    : _isSprinting ? sprintSpeed
-                    : walkSpeed;
+        float baseSpeed = _isCrouching ? crouchSpeed
+                        : _isSprinting ? sprintSpeed
+                        : walkSpeed;
+
+        // SpeedMultiplier is applied on top of the base speed
+        float speed = baseSpeed * SpeedMultiplier;
 
         Vector3 move = transform.right   * _moveInput.x
                      + transform.forward * _moveInput.y;
@@ -130,12 +139,9 @@ public class PlayerController : MonoBehaviour
     {
         float targetHeight = _isCrouching ? crouchHeight : standingHeight;
         _controller.height = Mathf.Lerp(
-            _controller.height,
-            targetHeight,
-            Time.deltaTime * crouchTransitionSpeed
-        );
+            _controller.height, targetHeight,
+            Time.deltaTime * crouchTransitionSpeed);
 
-        // Keep controller grounded as height shrinks/grows
         Vector3 center = _controller.center;
         center.y = _controller.height / 2f;
         _controller.center = center;

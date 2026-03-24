@@ -3,71 +3,104 @@ using UnityEngine;
 public class HeroManager : MonoBehaviour
 {
     [Header("Settings")]
-    public Hero heroPrefab; // Drag your Zeus prefab here
+    public Hero heroPrefab;
     public Camera playerCamera;
-    
+
     [Header("State")]
-    
     public Hero currentHero;
 
-    private AbilityManager abilityManager;
+    private AbilityManager _abilityManager;
 
     void Start()
     {
-        abilityManager = GetComponent<AbilityManager>();
-        
+        _abilityManager = GetComponent<AbilityManager>();
+
         if (heroPrefab != null)
-        {
             LoadHero(heroPrefab);
-        }
     }
 
     public void LoadHero(Hero prefab)
     {
-        // 1. Cleanup old hero if one exists
-        if (currentHero != null && currentHero.gameObject.scene.name != null)
-        {
+        // 1. Destroy previous hero instance if one exists in the scene
+        if (currentHero != null && currentHero.gameObject.scene.IsValid())
             Destroy(currentHero.gameObject);
-        }
 
-        // 2. Instantiate the hero prefab into the scene
-        // We use the prefab's Hero component to create the instance
+        // 2. Instantiate and parent BEFORE any component reads the hierarchy.
+        //    Awake() fires during Instantiate, but Start() fires next frame —
+        //    setting the parent here guarantees Start() sees the correct tree.
         currentHero = Instantiate(prefab, transform.position, transform.rotation);
-        
-        // 3. Parent it to this object so it moves with the player
-        currentHero.transform.SetParent(this.transform);
+        currentHero.transform.SetParent(transform);
 
-        // 4. Assign abilities from the LIVE instance to the AbilityManager
-        // This ensures Coroutines run on an active object in the scene
-        abilityManager.primaryAbility = currentHero.primaryAbility;
-        abilityManager.secondaryAbility = currentHero.secondaryAbility;
-        abilityManager.mobilityAbility = currentHero.mobilityAbility;
-        abilityManager.ultimateAbility = currentHero.ultimateAbility;
+        // 3. Wire abilities from the live instance to AbilityManager
+        _abilityManager.primaryAbility  = currentHero.primaryAbility;
+        _abilityManager.secondaryAbility = currentHero.secondaryAbility;
+        _abilityManager.mobilityAbility  = currentHero.mobilityAbility;
+        _abilityManager.ultimateAbility  = currentHero.ultimateAbility;
 
+        // 4. Give the player camera to every ability
+        GiveCameraToAbilities();
+
+        // 5. Initialize ultimate (sets PlayerStats.maxUltimateCharge)
+        InitializeUltimate();
+
+        // 6. Initialize passive (e.g. FrontalArmor sets DamageReduction)
+        InitializePassive();
+
+        // 7. Notify other systems
         PlayerHealth ph = GetComponent<PlayerHealth>();
         if (ph != null) ph.OnHeroLoaded(currentHero);
 
-        HUDController hud = Object.FindAnyObjectByType<HUDController>();
+        HUDController hud = FindAnyObjectByType<HUDController>();
         if (hud != null) hud.OnHeroLoaded(currentHero);
 
-        GiveCameraToAbilities();
-        
-        Debug.Log($"Loaded Hero: {currentHero.heroName}");
+        Debug.Log($"[HeroManager] Loaded hero: {currentHero.heroName}");
     }
 
-    void GiveCameraToAbilities()
+    // ────────────────────────────────────────────────────────────────────────
+
+    private void GiveCameraToAbilities()
     {
-        // Assign the player camera to the instantiated ability components
-        if (abilityManager.primaryAbility != null)
-            abilityManager.primaryAbility.playerCamera = playerCamera;
+        if (_abilityManager.primaryAbility != null)
+            _abilityManager.primaryAbility.playerCamera = playerCamera;
 
-        if (abilityManager.secondaryAbility != null)
-            abilityManager.secondaryAbility.playerCamera = playerCamera;
+        if (_abilityManager.secondaryAbility != null)
+            _abilityManager.secondaryAbility.playerCamera = playerCamera;
 
-        if (abilityManager.mobilityAbility != null)
-            abilityManager.mobilityAbility.playerCamera = playerCamera;
+        if (_abilityManager.mobilityAbility != null)
+            _abilityManager.mobilityAbility.playerCamera = playerCamera;
 
-        if (abilityManager.ultimateAbility != null)
-            abilityManager.ultimateAbility.playerCamera = playerCamera;
+        if (_abilityManager.ultimateAbility != null)
+            _abilityManager.ultimateAbility.playerCamera = playerCamera;
+    }
+
+    private void InitializeUltimate()
+    {
+        if (_abilityManager.ultimateAbility == null) return;
+
+        PlayerStats stats = GetComponent<PlayerStats>();
+        if (stats == null)
+        {
+            Debug.LogError("[HeroManager] No PlayerStats on Player — ultimate will not function.");
+            return;
+        }
+
+        _abilityManager.ultimateAbility.Initialize(stats);
+    }
+
+    private void InitializePassive()
+    {
+        if (currentHero.passiveAbility == null) return;
+
+        // FrontalArmor needs a reference to PlayerHealth
+        FrontalArmor frontalArmor = currentHero.passiveAbility as FrontalArmor;
+        if (frontalArmor != null)
+        {
+            PlayerHealth ph = GetComponent<PlayerHealth>();
+            frontalArmor.Initialize(ph);
+            return;
+        }
+
+        // Generic fallback for simpler passives
+        currentHero.passiveAbility.Use();
     }
 }
