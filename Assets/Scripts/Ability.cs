@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using UnityEngine;
 
 public abstract class Ability : MonoBehaviour

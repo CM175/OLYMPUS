@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -7,11 +8,16 @@ public class EnemySpawner : MonoBehaviour
 
     void Start()
     {
-        InvokeRepeating("SpawnEnemy", 2f, spawnRate);
+        SpawnLoop();
     }
 
-    void SpawnEnemy()
+    private IEnumerator SpawnLoop()
     {
-        Instantiate(enemyPrefab, transform.position, Quaternion.identity);
+        yield return new WaitForSeconds(2f);
+        while (true)
+        {
+            Instantiate(enemyPrefab, transform.position, Quaternion.identity);
+            yield return new WaitForSeconds(spawnRate);
+        }
     }
 }

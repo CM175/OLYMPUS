@@ -18,16 +18,6 @@ public class LightningBolt : Ability
         if (Physics.Raycast(ray, out RaycastHit hit, range))
         {
             endPoint = hit.point;
-<<<<<<< HEAD
-=======
-            
-            EnemyHealth hitEnemy = hit.collider.GetComponent<EnemyHealth>();
-            if (hitEnemy != null)
-            {
-                // Apply damage
-                PlayerStats myStats = transform.root.GetComponent<PlayerStats>();
-                hitEnemy.TakeDamage(damage, gameObject);
->>>>>>> 43798827e79650ac34ec472772b02a2c78cecc8c
 
             IDamageable target = hit.collider.GetComponent<IDamageable>();
             if (target != null)
