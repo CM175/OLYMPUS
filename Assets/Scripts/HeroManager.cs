@@ -34,24 +34,13 @@ public class HeroManager : MonoBehaviour
         currentHero = Instantiate(prefab, transform.position, transform.rotation);
         currentHero.transform.SetParent(transform);
 
-<<<<<<< HEAD
         _abilityManager.primaryAbility   = currentHero.primaryAbility;
-=======
-        
-        // 6. Notify other systems
-        PlayerHealth ph = GetComponent<PlayerHealth>();
-        if (ph != null) ph.OnHeroLoaded(currentHero);
-
-        // 3. Wire abilities from the live instance to AbilityManager
-        _abilityManager.primaryAbility  = currentHero.primaryAbility;
->>>>>>> 43798827e79650ac34ec472772b02a2c78cecc8c
         _abilityManager.secondaryAbility = currentHero.secondaryAbility;
         _abilityManager.mobilityAbility  = currentHero.mobilityAbility;
         _abilityManager.ultimateAbility  = currentHero.ultimateAbility;
 
         GiveCameraToAbilities();
         InitializeUltimate();
-<<<<<<< HEAD
         InitializePassive();
 
         // Notify PlayerHealth directly — it's on the same GameObject,
@@ -61,15 +50,6 @@ public class HeroManager : MonoBehaviour
         // Notify all subscribers (HUDController, future systems) via event
         // — HeroManager has zero knowledge of who is listening
         OnHeroLoaded?.Invoke(currentHero);
-=======
-
-    
-        // 7. Initialize passive (e.g. FrontalArmor sets DamageReduction)
-        InitializePassive();
-
-        HUDController hud = FindAnyObjectByType<HUDController>();
-        if (hud != null) hud.OnHeroLoaded(currentHero);
->>>>>>> 43798827e79650ac34ec472772b02a2c78cecc8c
 
         Debug.Log($"[HeroManager] Loaded hero: {currentHero.heroName}");
     }
@@ -116,15 +96,9 @@ public class HeroManager : MonoBehaviour
     {
         if (currentHero.passiveAbility == null) return;
 
-<<<<<<< HEAD
         if (currentHero.passiveAbility is IInitializable init)
             init.Initialize(gameObject);
         else
             currentHero.passiveAbility.Use();
-=======
-
-        // Generic fallback for simpler passives
-        currentHero.passiveAbility.Use();
->>>>>>> 43798827e79650ac34ec472772b02a2c78cecc8c
     }
 }
