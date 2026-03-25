@@ -1,9 +1,14 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class EnemyHealth : MonoBehaviour, IDamageable
 {
     public int health = 100;
+    
+    // Pass the GameObject of the killer so listeners can check if it was them
+    public UnityEvent<GameObject> OnDeathWithKiller; 
 
+<<<<<<< HEAD
     /// <summary>
     /// Instance event — raised on this specific enemy taking damage.
     /// Useful for per-enemy effects (hit flash, damage numbers, etc.)
@@ -23,10 +28,29 @@ public class EnemyHealth : MonoBehaviour, IDamageable
         OnDamageDealt?.Invoke(damage);
         OnAnyEnemyDamaged?.Invoke(damage);
         if (health <= 0) Die();
+=======
+    public void TakeDamage(int damage, GameObject attacker = null)
+    {
+        health -= damage;
+        
+        // If the attacker has PlayerStats, they get charge automatically
+        if (attacker != null)
+        {
+            PlayerStats stats = attacker.GetComponent<PlayerStats>();
+            if (stats != null) stats.AddCharge(damage);
+        }
+
+        if (health <= 0) Die(attacker);
+>>>>>>> 43798827e79650ac34ec472772b02a2c78cecc8c
     }
 
-    void Die()
+    void Die(GameObject attacker)
     {
+<<<<<<< HEAD
         Destroy(gameObject);
+=======
+        OnDeathWithKiller?.Invoke(attacker);
+        Destroy(transform.root.gameObject);
+>>>>>>> 43798827e79650ac34ec472772b02a2c78cecc8c
     }
 }
