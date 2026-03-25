@@ -20,24 +20,22 @@ public class ShieldBash : Ability
 
         foreach (var col in colliders)
         {
-            // Only hit things inside the frontal cone
             Vector3 toTarget = (col.transform.position - root.position).normalized;
-            if (Vector3.Dot(root.forward, toTarget) < minDotProduct)
-                continue;
+            if (Vector3.Dot(root.forward, toTarget) < minDotProduct) continue;
 
-            EnemyHealth enemy = col.GetComponent<EnemyHealth>();
-            if (enemy == null) continue;
+            IDamageable target = col.GetComponent<IDamageable>();
+            if (target == null) continue;
 
+            // DamageMultiplier still applied here — it's about outgoing damage scaling
+            // Charge awarding happens automatically via EnemyHealth.OnAnyEnemyDamaged
             int finalDamage = stats != null
                 ? Mathf.RoundToInt(damage * stats.DamageMultiplier)
                 : damage;
 
-            enemy.TakeDamage(finalDamage, stats);
+            target.TakeDamage(finalDamage);
 
-            // Stun the AI so it stops chasing during the stagger window
             EnemyAI ai = col.GetComponentInParent<EnemyAI>();
-            if (ai != null)
-                ai.Stun(stunDuration);
+            if (ai != null) ai.Stun(stunDuration);
         }
 
         StartCooldown();

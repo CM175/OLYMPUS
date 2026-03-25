@@ -9,6 +9,13 @@ public class HeroManager : MonoBehaviour
     [Header("State")]
     public Hero currentHero;
 
+    /// <summary>
+    /// Fired whenever a hero is fully loaded and wired up.
+    /// HUDController (and any other interested system) subscribes to this
+    /// instead of being searched for by HeroManager.
+    /// </summary>
+    public event System.Action<Hero> OnHeroLoaded;
+
     private AbilityManager _abilityManager;
 
     void Start()
@@ -21,56 +28,54 @@ public class HeroManager : MonoBehaviour
 
     public void LoadHero(Hero prefab)
     {
-        // 1. Destroy previous hero instance if one exists in the scene
         if (currentHero != null && currentHero.gameObject.scene.IsValid())
             Destroy(currentHero.gameObject);
 
-        // 2. Instantiate and parent BEFORE any component reads the hierarchy.
-        //    Awake() fires during Instantiate, but Start() fires next frame —
-        //    setting the parent here guarantees Start() sees the correct tree.
         currentHero = Instantiate(prefab, transform.position, transform.rotation);
         currentHero.transform.SetParent(transform);
 
-        // 3. Wire abilities from the live instance to AbilityManager
-        _abilityManager.primaryAbility  = currentHero.primaryAbility;
+        _abilityManager.primaryAbility   = currentHero.primaryAbility;
         _abilityManager.secondaryAbility = currentHero.secondaryAbility;
         _abilityManager.mobilityAbility  = currentHero.mobilityAbility;
         _abilityManager.ultimateAbility  = currentHero.ultimateAbility;
 
-        // 4. Give the player camera to every ability
         GiveCameraToAbilities();
-
-        // 5. Initialize ultimate (sets PlayerStats.maxUltimateCharge)
         InitializeUltimate();
-
-        // 6. Initialize passive (e.g. FrontalArmor sets DamageReduction)
         InitializePassive();
 
-        // 7. Notify other systems
-        PlayerHealth ph = GetComponent<PlayerHealth>();
-        if (ph != null) ph.OnHeroLoaded(currentHero);
+        // Notify PlayerHealth directly — it's on the same GameObject,
+        // so a GetComponent is fine here (same object, not a scene search)
+        GetComponent<PlayerHealth>()?.OnHeroLoaded(currentHero);
 
-        HUDController hud = FindAnyObjectByType<HUDController>();
-        if (hud != null) hud.OnHeroLoaded(currentHero);
+        // Notify all subscribers (HUDController, future systems) via event
+        // — HeroManager has zero knowledge of who is listening
+        OnHeroLoaded?.Invoke(currentHero);
 
         Debug.Log($"[HeroManager] Loaded hero: {currentHero.heroName}");
     }
 
-    // ────────────────────────────────────────────────────────────────────────
+    // ── Private helpers ───────────────────────────────────────────────────────
 
     private void GiveCameraToAbilities()
     {
-        if (_abilityManager.primaryAbility != null)
-            _abilityManager.primaryAbility.playerCamera = playerCamera;
+        InitializeAbility(_abilityManager.primaryAbility);
+        InitializeAbility(_abilityManager.secondaryAbility);
+        InitializeAbility(_abilityManager.mobilityAbility);
+        InitializeAbility(_abilityManager.ultimateAbility);
+    }
 
-        if (_abilityManager.secondaryAbility != null)
-            _abilityManager.secondaryAbility.playerCamera = playerCamera;
+    /// <summary>
+    /// Gives every ability its camera reference, and calls Initialize()
+    /// on any ability that needs player root access (e.g. SkyCharge).
+    /// </summary>
+    private void InitializeAbility(Ability ability)
+    {
+        if (ability == null) return;
 
-        if (_abilityManager.mobilityAbility != null)
-            _abilityManager.mobilityAbility.playerCamera = playerCamera;
+        ability.playerCamera = playerCamera;
 
-        if (_abilityManager.ultimateAbility != null)
-            _abilityManager.ultimateAbility.playerCamera = playerCamera;
+        if (ability is IInitializable init)
+            init.Initialize(gameObject);
     }
 
     private void InitializeUltimate()
@@ -80,7 +85,7 @@ public class HeroManager : MonoBehaviour
         PlayerStats stats = GetComponent<PlayerStats>();
         if (stats == null)
         {
-            Debug.LogError("[HeroManager] No PlayerStats on Player — ultimate will not function.");
+            Debug.LogError("[HeroManager] No PlayerStats found — ultimate will not function.");
             return;
         }
 
@@ -91,16 +96,9 @@ public class HeroManager : MonoBehaviour
     {
         if (currentHero.passiveAbility == null) return;
 
-        // FrontalArmor needs a reference to PlayerHealth
-        FrontalArmor frontalArmor = currentHero.passiveAbility as FrontalArmor;
-        if (frontalArmor != null)
-        {
-            PlayerHealth ph = GetComponent<PlayerHealth>();
-            frontalArmor.Initialize(ph);
-            return;
-        }
-
-        // Generic fallback for simpler passives
-        currentHero.passiveAbility.Use();
+        if (currentHero.passiveAbility is IInitializable init)
+            init.Initialize(gameObject);
+        else
+            currentHero.passiveAbility.Use();
     }
 }
