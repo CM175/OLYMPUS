@@ -609,7 +609,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78b4443686d175748bfe448b2c1734fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeroManager
-  heroPrefab: {fileID: 2484957656847462408, guid: 725df1fb59f35354da88fb89dbd3a129, type: 3}
+  heroPrefab: {fileID: 127376535958184308, guid: 725df1fb59f35354da88fb89dbd3a129, type: 3}
   playerCamera: {fileID: 963194227}
   currentHero: {fileID: 0}
 --- !u!114 &351264100
@@ -626,7 +626,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   currentUltimateCharge: 0
   maxUltimateCharge: 0
-  chargePerHit: 1
+  chargePerDamagePoint: 1
   pointsPerSecond: 5
 --- !u!1 &375830220
 GameObject:
