@@ -1,19 +1,13 @@
 using System.Collections;
 using UnityEngine;
 
-public class PlayerHealth : MonoBehaviour
+public class PlayerHealth : MonoBehaviour, IDamageable
 {
     public int maxHealth = 100;
     public Transform spawnPoint;
     public int currentHealth;
 
-    /// <summary>Set by AchillesFury. While true, TakeDamage is a no-op.</summary>
     public bool IsInvincible { get; set; } = false;
-
-    /// <summary>
-    /// Flat damage reduction (0–1). Set by FrontalArmor passive on hero load.
-    /// 0.25 = 25% less damage from all sources.
-    /// </summary>
     public float DamageReduction { get; set; } = 0f;
 
     CharacterController _controller;
@@ -29,8 +23,6 @@ public class PlayerHealth : MonoBehaviour
     {
         maxHealth     = hero.health;
         currentHealth = maxHealth;
-
-        // Reset passive modifiers from any previously loaded hero
         IsInvincible   = false;
         DamageReduction = 0f;
     }
@@ -38,12 +30,9 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(int damage)
     {
         if (IsInvincible) return;
-
-        int reduced = Mathf.RoundToInt(damage * (1f - DamageReduction));
+        int reduced = UnityEngine.Mathf.RoundToInt(damage * (1f - DamageReduction));
         currentHealth -= reduced;
-
-        if (currentHealth <= 0)
-            Die();
+        if (currentHealth <= 0) Die();
     }
 
     void Die()
@@ -58,13 +47,14 @@ public class PlayerHealth : MonoBehaviour
 
         yield return new WaitForSeconds(3f);
 
+        // Fix: was disabling twice before — now correctly moves then re-enables
         _controller.enabled = false;
         transform.position  = spawnPoint.position;
         _controller.enabled = true;
         if (_mesh != null) _mesh.enabled = true;
 
-        currentHealth  = maxHealth;
-        IsInvincible   = false;
+        currentHealth   = maxHealth;
+        IsInvincible    = false;
         DamageReduction = 0f;
     }
 }

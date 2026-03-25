@@ -14,8 +14,6 @@ public class SpearThrow : Ability
     protected override void Activate()
     {
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
-
-        // RaycastAll lets the spear pierce through every enemy in the line
         RaycastHit[] hits = Physics.RaycastAll(ray, range);
         System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
@@ -24,15 +22,15 @@ public class SpearThrow : Ability
 
         foreach (var hit in hits)
         {
-            EnemyHealth enemy = hit.collider.GetComponent<EnemyHealth>();
-            if (enemy != null)
+            IDamageable target = hit.collider.GetComponent<IDamageable>();
+            if (target != null)
             {
                 int finalDamage = stats != null
                     ? Mathf.RoundToInt(damage * stats.DamageMultiplier)
                     : damage;
 
-                enemy.TakeDamage(finalDamage, stats);
-                endPoint = hit.point; // stop visual at last enemy hit
+                target.TakeDamage(finalDamage);
+                endPoint = hit.point;
             }
         }
 

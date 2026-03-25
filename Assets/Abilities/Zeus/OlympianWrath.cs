@@ -38,14 +38,13 @@ public class OlympianWrath : Ultimate
             {
                 if (col.CompareTag("Player")) continue;
 
-                EnemyHealth enemy = col.GetComponent<EnemyHealth>();
-                if (enemy != null)
+                IDamageable target = col.GetComponent<IDamageable>();
+                if (target != null)
                 {
-                    // Cache position BEFORE TakeDamage destroys the enemy
                     Vector3 enemyPos = col.transform.position;
-                    enemy.TakeDamage(damagePerStrike);
+                    target.TakeDamage(damagePerStrike);
                     StartCoroutine(AnimateSkyBolt(enemyPos));
-                    Debug.Log($"OlympianWrath: Struck {col.name} for {damagePerStrike}");
+                    Debug.Log($"[OlympianWrath] Struck {col.name} for {damagePerStrike}");
                 }
             }
 

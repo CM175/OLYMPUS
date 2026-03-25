@@ -4,10 +4,13 @@ public class PlayerStats : MonoBehaviour
 {
     public float currentUltimateCharge = 0f;
     public float maxUltimateCharge;
-    public int chargePerHit = 5;
+
+    [Header("Charge On Hit")]
+    public int chargePerDamagePoint = 1;
 
     [Header("Passive Charge")]
     public float pointsPerSecond = 5f;
+
     private float _chargeAccumulator = 0f;
 
     /// <summary>
@@ -16,17 +19,37 @@ public class PlayerStats : MonoBehaviour
     /// </summary>
     public float DamageMultiplier { get; set; } = 1f;
 
-    // ── Charge ───────────────────────────────────────────────────────────────
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    private void OnEnable()
+    {
+        // Subscribe once — works for all enemies regardless of when they spawn
+        EnemyHealth.OnAnyEnemyDamaged += OnEnemyDamaged;
+    }
+
+    private void OnDisable()
+    {
+        // Always unsubscribe — prevents memory leaks and ghost callbacks
+        EnemyHealth.OnAnyEnemyDamaged -= OnEnemyDamaged;
+    }
+
+    // ── Event handler ─────────────────────────────────────────────────────────
+
+    private void OnEnemyDamaged(int damage)
+    {
+        // Award charge proportional to damage dealt
+        AddCharge(damage * chargePerDamagePoint);
+    }
+
+    // ── Charge ────────────────────────────────────────────────────────────────
 
     public void AddCharge(int points)
     {
         currentUltimateCharge = Mathf.Clamp(
             currentUltimateCharge + points, 0, maxUltimateCharge);
-
-        Debug.Log($"Ultimate Charge: {ultCharge()}%");
     }
 
-    public void Update()
+    private void Update()
     {
         if (currentUltimateCharge >= maxUltimateCharge) return;
 

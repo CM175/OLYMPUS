@@ -8,10 +8,9 @@ public class HUDController : MonoBehaviour
     public PlayerHealth playerHealth;
     public PlayerStats playerStats;
     public AbilityManager abilityManager;
-    public HeroManager heroManager;
+    public HeroManager heroManager;         // Assign in Inspector
 
     [Header("Health")]
-    
     public Image healthBarFill;
     public TextMeshProUGUI healthText;
 
@@ -25,7 +24,6 @@ public class HUDController : MonoBehaviour
     [Header("Ability Icons")]
     public Image secondaryIcon;
     public Image mobilityIcon;
-    
     public Image ultimateIcon;
 
     [Header("Cooldown Overlays")]
@@ -34,38 +32,55 @@ public class HUDController : MonoBehaviour
     public Image mobilityCooldownOverlay;
 
     [Header("Ult Ready")]
-    public GameObject ultReadyIndicator; // A flashing or coloured object shown when ult is ready
+    public GameObject ultReadyIndicator;
 
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
 
-    public void OnHeroLoaded(Hero hero)
+    private void OnEnable()
+    {
+        if (heroManager != null)
+            heroManager.OnHeroLoaded += OnHeroLoaded;
+        else
+            Debug.LogError("[HUDController] HeroManager reference not set in Inspector.");
+    }
+
+    private void OnDisable()
+    {
+        if (heroManager != null)
+            heroManager.OnHeroLoaded -= OnHeroLoaded;
+    }
+
+    // ── Event handler ─────────────────────────────────────────────────────────
+
+    private void OnHeroLoaded(Hero hero)
     {
         if (heroNameText != null) heroNameText.text = hero.heroName;
         if (heroRoleText != null) heroRoleText.text = hero.role;
         SetupAbilityIcons();
     }
 
-    void Update()
+    // ── Update ────────────────────────────────────────────────────────────────
+
+    private void Update()
     {
         UpdateHealth();
         UpdateUltCharge();
         UpdateCooldowns();
     }
 
-    void UpdateHealth()
+    private void UpdateHealth()
     {
         if (playerHealth == null || playerHealth.maxHealth == 0) return;
 
         float fraction = (float)playerHealth.currentHealth / playerHealth.maxHealth;
         healthBarFill.fillAmount = fraction;
+        healthBarFill.color = Color.Lerp(Color.red, Color.green, fraction);
 
         if (healthText != null)
             healthText.text = $"{playerHealth.currentHealth} / {playerHealth.maxHealth}";
-
-        // Colour shifts red as health drops
-        healthBarFill.color = Color.Lerp(Color.red, Color.green, fraction);
     }
 
-    void UpdateUltCharge()
+    private void UpdateUltCharge()
     {
         if (playerStats == null) return;
 
@@ -75,13 +90,14 @@ public class HUDController : MonoBehaviour
             ultChargeText.text = $"{fraction}%";
 
         bool isReady = playerStats.currentUltimateCharge >= playerStats.maxUltimateCharge;
-        ultimateIcon.color = isReady ? Color.yellow : Color.gray;
+        if (ultimateIcon != null)
+            ultimateIcon.color = isReady ? Color.yellow : Color.gray;
 
         if (ultReadyIndicator != null)
             ultReadyIndicator.SetActive(isReady);
     }
 
-    void UpdateCooldowns()
+    private void UpdateCooldowns()
     {
         if (abilityManager == null) return;
 
@@ -89,14 +105,13 @@ public class HUDController : MonoBehaviour
         UpdateAbilityOverlay(abilityManager.mobilityAbility,  mobilityCooldownOverlay);
     }
 
-    void UpdateAbilityOverlay(Ability ability, Image overlay)
+    private void UpdateAbilityOverlay(Ability ability, Image overlay)
     {
         if (ability == null || overlay == null) return;
 
         if (ability.IsOnCooldown())
         {
-            // How far through the cooldown are we? (1 = just used, 0 = ready)
-            float elapsed = Time.time - ability.lastUsedTime;
+            float elapsed   = Time.time - ability.lastUsedTime;
             float remaining = Mathf.Clamp01(1f - (elapsed / ability.cooldown));
             overlay.fillAmount = remaining;
             overlay.gameObject.SetActive(true);
@@ -107,23 +122,17 @@ public class HUDController : MonoBehaviour
         }
     }
 
-    public void SetupAbilityIcons()
+    private void SetupAbilityIcons()
     {
         if (abilityManager == null) return;
 
         if (abilityManager.secondaryAbility != null && secondaryIcon != null)
-        {
             secondaryIcon.sprite = abilityManager.secondaryAbility.sprite;
-        }
 
         if (abilityManager.mobilityAbility != null && mobilityIcon != null)
-        {
             mobilityIcon.sprite = abilityManager.mobilityAbility.sprite;
-        }
-        
-        if (abilityManager.ultimateAbility != null && ultimateCooldownOverlay != null)
-        {
+
+        if (abilityManager.ultimateAbility != null && ultimateIcon != null)
             ultimateIcon.sprite = abilityManager.ultimateAbility.sprite;
-        }
     }
 }

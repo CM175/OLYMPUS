@@ -14,42 +14,32 @@ public class LightningBolt : Ability
     {
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         Vector3 endPoint = ray.GetPoint(range);
+
         if (Physics.Raycast(ray, out RaycastHit hit, range))
         {
             endPoint = hit.point;
-            
-            EnemyHealth hitEnemy = hit.collider.GetComponent<EnemyHealth>();
-            if (hitEnemy != null)
-            {
-                // Apply damage
-                PlayerStats myStats = transform.root.GetComponent<PlayerStats>();
-                hitEnemy.TakeDamage(damage, myStats);
 
-                // Chain to nearest nearby enemy
+            IDamageable target = hit.collider.GetComponent<IDamageable>();
+            if (target != null)
+            {
+                // No more PlayerStats parameter — charge awards via static event
+                target.TakeDamage(damage);
+
                 Collider[] nearby = Physics.OverlapSphere(hit.point, chainRange);
                 foreach (var col in nearby)
                 {
-                    
                     if (col.gameObject == hit.collider.gameObject) continue;
-
-                    // Skip anything without EnemyHealth
-                    EnemyHealth chainTarget = col.GetComponent<EnemyHealth>();
+                    IDamageable chainTarget = col.GetComponent<IDamageable>();
                     if (chainTarget == null) continue;
 
-                    // Valid chain target found
                     chainTarget.TakeDamage((int)(damage * 0.5f));
                     StartCoroutine(ShowChainArc(hit.point, col.transform.position));
                     break;
                 }
             }
-
-            
-            //Debug.Log($"Thunderbolt hit {hit.collider.name}");
         }
 
-        // Start the visual effect coroutine
         StartCoroutine(ShowBolt(transform.position, endPoint));
-        
         StartCooldown();
     }
 
