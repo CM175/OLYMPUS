@@ -29,8 +29,13 @@ public class SpearThrow : Ability
                     ? Mathf.RoundToInt(damage * stats.DamageMultiplier)
                     : damage;
 
+<<<<<<< HEAD
                 target.TakeDamage(finalDamage);
                 endPoint = hit.point;
+=======
+                enemy.TakeDamage(finalDamage, gameObject);
+                endPoint = hit.point; // stop visual at last enemy hit
+>>>>>>> 43798827e79650ac34ec472772b02a2c78cecc8c
             }
         }
 

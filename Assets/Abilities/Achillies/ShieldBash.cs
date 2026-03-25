@@ -32,7 +32,11 @@ public class ShieldBash : Ability
                 ? Mathf.RoundToInt(damage * stats.DamageMultiplier)
                 : damage;
 
+<<<<<<< HEAD
             target.TakeDamage(finalDamage);
+=======
+            enemy.TakeDamage(finalDamage, gameObject);
+>>>>>>> 43798827e79650ac34ec472772b02a2c78cecc8c
 
             EnemyAI ai = col.GetComponentInParent<EnemyAI>();
             if (ai != null) ai.Stun(stunDuration);

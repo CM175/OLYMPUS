@@ -66,13 +66,16 @@
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
     <Compile Include="Assets\InputSystem_Actions.cs" />
-    <Compile Include="Assets\Abilities\Achillies\FrontalArmor.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBolt.cs" />
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
     <Compile Include="Assets\Scripts\LightningShieldEffect.cs" />
     <Compile Include="Assets\Scripts\BarrierDamage.cs" />
+<<<<<<< HEAD
     <Compile Include="Assets\Scripts\AbilityHUD.cs" />
     <Compile Include="Assets\Scripts\IDamageable.cs" />
+=======
+    <Compile Include="Assets\Abilities\Achillies\SlayerOfTroy.cs" />
+>>>>>>> 43798827e79650ac34ec472772b02a2c78cecc8c
     <Compile Include="Assets\Scripts\Ability.cs" />
     <Compile Include="Assets\Scripts\DamageDisplay.cs" />
     <Compile Include="Assets\Abilities\Zeus\SkyCharge.cs" />

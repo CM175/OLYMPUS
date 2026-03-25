@@ -30,7 +30,12 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     public void TakeDamage(int damage)
     {
         if (IsInvincible) return;
+<<<<<<< HEAD
         int reduced = UnityEngine.Mathf.RoundToInt(damage * (1f - DamageReduction));
+=======
+        int reduced = Mathf.RoundToInt(damage * (1f - DamageReduction));
+        Debug.Log("" + DamageReduction);
+>>>>>>> 43798827e79650ac34ec472772b02a2c78cecc8c
         currentHealth -= reduced;
         if (currentHealth <= 0) Die();
     }
@@ -53,8 +58,13 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         _controller.enabled = true;
         if (_mesh != null) _mesh.enabled = true;
 
+<<<<<<< HEAD
         currentHealth   = maxHealth;
         IsInvincible    = false;
         DamageReduction = 0f;
+=======
+        currentHealth  = maxHealth;
+        IsInvincible   = false;
+>>>>>>> 43798827e79650ac34ec472772b02a2c78cecc8c
     }
 }
