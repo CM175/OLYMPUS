@@ -8,21 +8,33 @@ public class AbilityManager : MonoBehaviour
     public Ability mobilityAbility;
     public Ultimate ultimateAbility;
 
+    private InputSystem_Actions _input;
+
+    private void Awake()
+    {
+        _input = new InputSystem_Actions();
+    }
+
+    private void OnEnable()
+    {
+        _input.Player.Enable();
+        _input.Player.Attack.performed    += _ => UsePrimary();
+        _input.Player.Secondary.performed += _ => UseSecondary();
+        _input.Player.Mobility.performed  += _ => UseMobility();
+        _input.Player.Ultimate.performed  += _ => UseUltimate();
+    }
+
+    private void OnDisable()
+    {
+        _input.Player.Attack.performed    -= _ => UsePrimary();
+        _input.Player.Secondary.performed -= _ => UseSecondary();
+        _input.Player.Mobility.performed  -= _ => UseMobility();
+        _input.Player.Ultimate.performed  -= _ => UseUltimate();
+        _input.Player.Disable();
+    }
+
     public void UsePrimary()   => primaryAbility?.Use();
     public void UseSecondary() => secondaryAbility?.Use();
     public void UseMobility()  => mobilityAbility?.Use();
     public void UseUltimate()  => ultimateAbility?.Use();
-}
-
-public class PlayerInput : MonoBehaviour
-{
-    [SerializeField] private AbilityManager _abilities;
-
-    private void Update()
-    {
-        var kb = Keyboard.current;
-        if (kb.qKey.wasPressedThisFrame) _abilities.UseSecondary();
-        if (kb.eKey.wasPressedThisFrame) _abilities.UseMobility();
-        if (kb.fKey.wasPressedThisFrame) _abilities.UseUltimate();
-    }
 }
