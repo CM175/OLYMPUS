@@ -24,13 +24,12 @@ public abstract class Ultimate : Ability
         return !IsOnCooldown() && playerStats.currentUltimateCharge >= cost;
     }
 
-    // ── Override Use() to gate on charge ────────────────────────────────────
+    // ── Override CanUse() to gate on charge ────────────────────────────────────
 
-    public override void Use()
-    {
-        if (!IsReady()) return;
-        isExecuting = true;
-        playerStats.ConsumeCharge(cost);
-        Activate();
-    }
+    protected override bool CanUse()
+        => base.CanUse()
+           && playerStats != null
+           && playerStats.currentUltimateCharge >= cost;
+
+    protected override void Activate() { playerStats.ConsumeCharge(cost); }
 }

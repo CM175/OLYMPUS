@@ -10,13 +10,18 @@ public abstract class Ability : MonoBehaviour
 
     public GameObject vfxPrefab;
     public Sprite sprite;
-    public virtual void Use()
+
+    public void Use()
     {
-        if (IsOnCooldown() || isExecuting) return;
-        
+        if (!CanUse()) return;
         isExecuting = true;
         Activate();
     }
+
+    protected virtual bool CanUse() => !IsOnCooldown() && !isExecuting;
+
+    protected abstract void Activate();
+    
     public bool IsOnCooldown()
     {
         return Time.time < lastUsedTime + cooldown;
@@ -27,5 +32,4 @@ public abstract class Ability : MonoBehaviour
         lastUsedTime = Time.time;
         isExecuting = false;
     }
-    protected abstract void Activate();
 }

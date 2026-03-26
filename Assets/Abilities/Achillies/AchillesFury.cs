@@ -10,6 +10,7 @@ public class AchillesFury : Ultimate
 
     protected override void Activate()
     {
+        base.Activate();
         StartCoroutine(FuryRoutine());
     }
 
