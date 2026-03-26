@@ -12,14 +12,12 @@ public class EnemyAttack : MonoBehaviour
 
     void Start()
     {
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj == null)
-        {
-            Debug.LogError("[EnemyAttack] No Player found in scene.");
-            return;
-        }
-        _player           = playerObj.transform;
-        _playerDamageable = playerObj.GetComponent<IDamageable>();
+            
+        _player = PlayerRegistry.Player;
+        if (_player == null)
+            Debug.LogError($"[{GetType().Name}] No registered player found.");
+
+        _playerDamageable = _player.GetComponent<IDamageable>();
 
         if (_playerDamageable == null)
             Debug.LogError("[EnemyAttack] Player has no IDamageable component.");
