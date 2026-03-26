@@ -2,9 +2,9 @@ using UnityEngine;
 
 public abstract class PassiveAbility : Ability
 {
-    public override void Use()
+    protected override bool CanUse()
     {
-        Activate();
+        return true;
     }
 
 }

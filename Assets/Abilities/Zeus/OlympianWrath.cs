@@ -14,6 +14,7 @@ public class OlympianWrath : Ultimate
 
     protected override void Activate()
     {
+        base.Activate();
         StartCoroutine(StormZone(transform.root.position));
     }
 
