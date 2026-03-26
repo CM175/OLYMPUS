@@ -26,15 +26,26 @@ public class LightningBolt : Ability
                 target.TakeDamage(damage);
 
                 Collider[] nearby = Physics.OverlapSphere(hit.point, chainRange);
+                Collider bestTarget = null;
+                float   bestDist    = float.MaxValue;
+
                 foreach (var col in nearby)
                 {
                     if (col.gameObject == hit.collider.gameObject) continue;
-                    IDamageable chainTarget = col.GetComponent<IDamageable>();
-                    if (chainTarget == null) continue;
+                    if (col.GetComponent<IDamageable>() == null)   continue;
 
-                    chainTarget.TakeDamage((int)(damage * 0.5f));
-                    StartCoroutine(ShowChainArc(hit.point, col.transform.position));
-                    break;
+                    float dist = Vector3.Distance(hit.point, col.transform.position);
+                    if (dist < bestDist)
+                    {
+                        bestDist   = dist;
+                        bestTarget = col;
+                    }
+                }
+
+                if (bestTarget != null)
+                {
+                    bestTarget.GetComponent<IDamageable>().TakeDamage((int)(damage * 0.5f));
+                    StartCoroutine(ShowChainArc(hit.point, bestTarget.transform.position));
                 }
             }
         }

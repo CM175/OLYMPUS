@@ -13,6 +13,10 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     CharacterController _controller;
     MeshRenderer _mesh;
 
+
+    private void OnEnable()  => PlayerRegistry.Register(transform);
+    private void OnDisable() => PlayerRegistry.Unregister();
+
     void Start()
     {
         _controller = GetComponent<CharacterController>();
@@ -47,8 +51,6 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
         yield return new WaitForSeconds(3f);
 
-        // Fix: was disabling twice before — now correctly moves then re-enables
-        _controller.enabled = false;
         transform.position  = spawnPoint.position;
         _controller.enabled = true;
         if (_mesh != null) _mesh.enabled = true;

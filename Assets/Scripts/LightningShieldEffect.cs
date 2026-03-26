@@ -12,9 +12,24 @@ public class LightningShieldEffect : MonoBehaviour
     void Start()
     {
         meshFilter = GetComponent<MeshFilter>();
-        originalVertices = meshFilter.mesh.vertices;
+        
+        // Clone explicitly so we're intentional about it
+        var clonedMesh = Instantiate(meshFilter.sharedMesh);
+        meshFilter.mesh = clonedMesh;
+        
+        originalVertices  = clonedMesh.vertices;
         displacedVertices = new Vector3[originalVertices.Length];
+        
         InvokeRepeating(nameof(JitterMesh), 0, updateInterval);
+    }
+
+    void OnDestroy()
+    {
+        // Clean up the cloned mesh to prevent leaks
+        if (meshFilter.mesh != null)
+            Destroy(meshFilter.mesh);
+        
+        CancelInvoke(nameof(JitterMesh));
     }
 
     void JitterMesh()

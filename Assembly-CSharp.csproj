@@ -59,6 +59,7 @@
     <Compile Include="Assets\Scripts\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Ultimate.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBarrier.cs" />
+    <Compile Include="Assets\Scripts\PlayerRegistry.cs" />
     <Compile Include="Assets\Abilities\Zeus\OlympianWrath.cs" />
     <Compile Include="Assets\Abilities\Achillies\ShieldBash.cs" />
     <Compile Include="Assets\Scripts\HUDController.cs" />

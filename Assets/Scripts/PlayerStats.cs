@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Serialization;
+using System.Collections;
 
 public class PlayerStats : MonoBehaviour
 {
@@ -6,6 +8,7 @@ public class PlayerStats : MonoBehaviour
     public float maxUltimateCharge;
 
     [Header("Charge On Hit")]
+    [FormerlySerializedAs("chargePerHit")]
     public int chargePerDamagePoint = 1;
 
     [Header("Passive Charge")]

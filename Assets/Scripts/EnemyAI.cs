@@ -33,10 +33,10 @@ public class EnemyAI : MonoBehaviour
 
     private void Start()
     {
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
-            _player = playerObj.transform;
-
+        
+        _player = PlayerRegistry.Player;
+        if (_player == null)
+            Debug.LogError($"[{GetType().Name}] No registered player found.");
         _state = State.Patrol;
         SetNewPatrolPoint();
     }
