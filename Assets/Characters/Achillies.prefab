@@ -70,7 +70,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e8cc0da677021a4eb5187d249f3b0ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldBash
-  cooldown: 0
+  cooldown: 5
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -90,7 +90,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 377573bfd1373474b854d287b719cb4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpearThrow
-  cooldown: 0
+  cooldown: 0.5
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
