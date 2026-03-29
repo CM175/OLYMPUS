@@ -5,7 +5,7 @@ public class BarrierDamage : MonoBehaviour
     public int damage = 10;
     [HideInInspector] public PlayerStats attackerStats;
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay (Collider other)
     {
         // Fix: tag check BEFORE logging — was firing for every collider
         if (!other.CompareTag("Enemy")) return;
