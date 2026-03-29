@@ -25,11 +25,9 @@ public class LightningShieldEffect : MonoBehaviour
 
     void OnDestroy()
     {
-        // Clean up the cloned mesh to prevent leaks
-        if (meshFilter.mesh != null)
-            Destroy(meshFilter.mesh);
-        
         CancelInvoke(nameof(JitterMesh));
+        if (meshFilter != null && meshFilter.mesh != null)
+            Destroy(meshFilter.mesh);
     }
 
     void JitterMesh()
