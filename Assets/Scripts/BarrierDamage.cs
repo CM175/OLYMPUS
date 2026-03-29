@@ -1,19 +1,19 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class BarrierDamage : MonoBehaviour
 {
     public int damage = 10;
     [HideInInspector] public PlayerStats attackerStats;
 
-    private void OnTriggerStay (Collider other)
+    private Dictionary<Collider, float> _nextHitTime = new();
+
+    private void OnTriggerStay(Collider other)
     {
-        // Fix: tag check BEFORE logging — was firing for every collider
         if (!other.CompareTag("Enemy")) return;
-
-        IDamageable target = other.GetComponent<IDamageable>();
-        if (target == null) return;
-
-        target.TakeDamage(damage);
-        Debug.Log($"[BarrierDamage] Zapped {other.name} for {damage} damage.");
+        if (_nextHitTime.TryGetValue(other, out float t) && Time.time < t) return;
+        
+        other.GetComponent<IDamageable>()?.TakeDamage(damage);
+        _nextHitTime[other] = Time.time + 0.5f; // hit every 0.5s
     }
 }
