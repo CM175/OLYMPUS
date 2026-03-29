@@ -8,40 +8,29 @@ public class HUDController : MonoBehaviour
     public PlayerHealth playerHealth;
     public PlayerStats playerStats;
     public AbilityManager abilityManager;
-    public HeroManager heroManager;         // Assign in Inspector
+    public HeroManager heroManager;
 
     [Header("Health")]
     public Image healthBarFill;
     public TextMeshProUGUI healthText;
 
-    [Header("Ult Charge")]
-    public TextMeshProUGUI ultChargeText;
-
     [Header("Hero Info")]
     public TextMeshProUGUI heroNameText;
     public TextMeshProUGUI heroRoleText;
 
-    [Header("Ability Icons")]
-    public Image secondaryIcon;
-    public Image mobilityIcon;
-    public Image ultimateIcon;
-
-    [Header("Cooldown Overlays")]
-    public Image ultimateCooldownOverlay;
-    public Image secondaryOverlay;
-    public Image mobilityCooldownOverlay;
+    [Header("Ability HUD Elements")]
+    // Assign these in the Inspector to GameObjects that have the AbilityHUD script
+    public AbilityHUD secondaryHUD;
+    public AbilityHUD mobilityHUD;
+    public AbilityHUD ultimateHUD;
 
     [Header("Ult Ready")]
     public GameObject ultReadyIndicator;
-
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     private void OnEnable()
     {
         if (heroManager != null)
             heroManager.OnHeroLoaded += OnHeroLoaded;
-        else
-            Debug.LogError("[HUDController] HeroManager reference not set in Inspector.");
     }
 
     private void OnDisable()
@@ -50,16 +39,12 @@ public class HUDController : MonoBehaviour
             heroManager.OnHeroLoaded -= OnHeroLoaded;
     }
 
-    // ── Event handler ─────────────────────────────────────────────────────────
-
     private void OnHeroLoaded(Hero hero)
     {
         if (heroNameText != null) heroNameText.text = hero.heroName;
         if (heroRoleText != null) heroRoleText.text = hero.role;
         SetupAbilityIcons();
     }
-
-    // ── Update ────────────────────────────────────────────────────────────────
 
     private void Update()
     {
@@ -74,24 +59,22 @@ public class HUDController : MonoBehaviour
 
         float fraction = (float)playerHealth.currentHealth / playerHealth.maxHealth;
         healthBarFill.fillAmount = fraction;
-        healthBarFill.color = Color.Lerp(Color.red, Color.green, fraction);
-
+        
         if (healthText != null)
             healthText.text = $"{playerHealth.currentHealth} / {playerHealth.maxHealth}";
     }
 
     private void UpdateUltCharge()
     {
-        if (playerStats == null) return;
+        if (playerStats == null || ultimateHUD == null) return;
 
-        float fraction = playerStats.ultCharge();
-
-        if (ultChargeText != null)
-            ultChargeText.text = $"{fraction}%";
+        // Use the new UpdateCharge method for the Ultimate specifically
+        ultimateHUD.UpdateCharge(playerStats.currentUltimateCharge, playerStats.maxUltimateCharge);
 
         bool isReady = playerStats.currentUltimateCharge >= playerStats.maxUltimateCharge;
-        if (ultimateIcon != null)
-            ultimateIcon.color = isReady ? Color.yellow : Color.gray;
+        
+        // Visual feedback for being ready (like the yellow glow mentioned in your script)
+        ultimateHUD.icon.color = isReady ? Color.yellow : Color.gray;
 
         if (ultReadyIndicator != null)
             ultReadyIndicator.SetActive(isReady);
@@ -101,38 +84,24 @@ public class HUDController : MonoBehaviour
     {
         if (abilityManager == null) return;
 
-        UpdateAbilityOverlay(abilityManager.secondaryAbility, secondaryOverlay);
-        UpdateAbilityOverlay(abilityManager.mobilityAbility,  mobilityCooldownOverlay);
-    }
-
-    private void UpdateAbilityOverlay(Ability ability, Image overlay)
-    {
-        if (ability == null || overlay == null) return;
-
-        if (ability.IsOnCooldown())
-        {
-            float elapsed   = Time.time - ability.lastUsedTime;
-            float remaining = Mathf.Clamp01(1f - (elapsed / ability.cooldown));
-            overlay.fillAmount = remaining;
-            overlay.gameObject.SetActive(true);
-        }
-        else
-        {
-            overlay.gameObject.SetActive(false);
-        }
+        // Use the AbilityHUD's internal logic to update overlays and fills
+        if (secondaryHUD != null) secondaryHUD.UpdateStatus(abilityManager.secondaryAbility);
+        if (mobilityHUD != null) mobilityHUD.UpdateStatus(abilityManager.mobilityAbility);
+        if (ultimateHUD != null) ultimateHUD.UpdateStatus(abilityManager.ultimateAbility);
     }
 
     private void SetupAbilityIcons()
     {
         if (abilityManager == null) return;
 
-        if (abilityManager.secondaryAbility != null && secondaryIcon != null)
-            secondaryIcon.sprite = abilityManager.secondaryAbility.sprite;
+        // Standardize icon assignment through the HUD classes
+        if (secondaryHUD != null && abilityManager.secondaryAbility != null)
+            secondaryHUD.icon.sprite = abilityManager.secondaryAbility.sprite;
 
-        if (abilityManager.mobilityAbility != null && mobilityIcon != null)
-            mobilityIcon.sprite = abilityManager.mobilityAbility.sprite;
+        if (mobilityHUD != null && abilityManager.mobilityAbility != null)
+            mobilityHUD.icon.sprite = abilityManager.mobilityAbility.sprite;
 
-        if (abilityManager.ultimateAbility != null && ultimateIcon != null)
-            ultimateIcon.sprite = abilityManager.ultimateAbility.sprite;
+        if (ultimateHUD != null && abilityManager.ultimateAbility != null)
+            ultimateHUD.icon.sprite = abilityManager.ultimateAbility.sprite;
     }
 }
