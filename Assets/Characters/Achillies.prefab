@@ -127,7 +127,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75e6137ca1063c14aad0719de1d1c464, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleCry
-  cooldown: 0
+  cooldown: 8
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
