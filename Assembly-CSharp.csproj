@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\IInitializable.cs" />
+    <Compile Include="Assets\Abilities\Hermes\AmbushInvisibility.cs" />
     <Compile Include="Assets\Scripts\PassiveAbility.cs" />
     <Compile Include="Assets\Scripts\HeroManager.cs" />
     <Compile Include="Assets\Scripts\Hero.cs" />
@@ -66,17 +67,21 @@
     <Compile Include="Assets\Abilities\Achillies\AchillesFury.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
+    <Compile Include="Assets\Abilities\Hermes\BlinkDash.cs" />
     <Compile Include="Assets\InputSystem_Actions.cs" />
     <Compile Include="Assets\Abilities\Achillies\FrontalArmor.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBolt.cs" />
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
     <Compile Include="Assets\Scripts\LightningShieldEffect.cs" />
     <Compile Include="Assets\Scripts\BarrierDamage.cs" />
+    <Compile Include="Assets\Abilities\Hermes\FleetFooted.cs" />
     <Compile Include="Assets\Scripts\AbilityHUD.cs" />
     <Compile Include="Assets\Abilities\Achillies\SlayerOfTroy.cs" />
     <Compile Include="Assets\Scripts\IDamageable.cs" />
     <Compile Include="Assets\Scripts\Ability.cs" />
+    <Compile Include="Assets\Abilities\Hermes\ChronosShift.cs" />
     <Compile Include="Assets\Scripts\DamageDisplay.cs" />
+    <Compile Include="Assets\Abilities\Hermes\WingedDaggers.cs" />
     <Compile Include="Assets\Abilities\Zeus\SkyCharge.cs" />
     <Compile Include="Assets\Scripts\EnemySpawner.cs" />
     <Compile Include="Assets\Scripts\EnemyHealth.cs" />

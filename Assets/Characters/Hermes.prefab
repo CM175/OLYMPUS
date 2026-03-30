@@ -1,0 +1,149 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2491922372613514429
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6219670509598877871}
+  - component: {fileID: 1924039878049136692}
+  - component: {fileID: 7774983136517545083}
+  - component: {fileID: 1473492060491585570}
+  - component: {fileID: 397904243652920066}
+  - component: {fileID: 3086645997603996126}
+  - component: {fileID: 8224165050478367327}
+  m_Layer: 0
+  m_Name: Hermes
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6219670509598877871
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2491922372613514429}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1133.638, y: 0, z: 9985.616}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1924039878049136692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2491922372613514429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bcba9535a02f14abb0ffd67b139122, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Hero
+  heroName: Hermes
+  role: Trickster
+  health: 175
+  primaryAbility: {fileID: 7774983136517545083}
+  secondaryAbility: {fileID: 8224165050478367327}
+  mobilityAbility: {fileID: 3086645997603996126}
+  ultimateAbility: {fileID: 397904243652920066}
+  passiveAbility: {fileID: 1473492060491585570}
+--- !u!114 &7774983136517545083
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2491922372613514429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0e5ec8fb484303429c35d32e6c6fbe1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WingedDaggers
+  cooldown: 0.3
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  damage: 15
+  attackRange: 2.5
+  attackRate: 0.5
+--- !u!114 &1473492060491585570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2491922372613514429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1294a2926a8b9846a91e378b4369464, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FleetFooted
+  cooldown: 0
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  movementSpeedBonus: 1.25
+--- !u!114 &397904243652920066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2491922372613514429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9442ef74296702541b00759c47586e1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MessengerOfTheGods
+  cooldown: 0
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  cost: 100
+  duration: 8
+  hyperSpeedMultiplier: 2
+  reducedBlinkCooldown: 1
+--- !u!114 &3086645997603996126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2491922372613514429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4d7e0af8c466584a88c175218fa87c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlinkDash
+  cooldown: 3
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  dashDistance: 10
+--- !u!114 &8224165050478367327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2491922372613514429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9726c240909ff464aae7de1543f3ffc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AmbushInvisibility
+  cooldown: 8
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  duration: 2
