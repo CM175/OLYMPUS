@@ -94,10 +94,15 @@ public class HeroManager : MonoBehaviour
 
     private void InitializePassive()
     {
+        
+        Debug.Log("Init Passive");
         if (currentHero.passiveAbility == null) return;
 
         if (currentHero.passiveAbility is IInitializable init)
+        {
+            Debug.Log("Passive Initialized");
             init.Initialize(gameObject);
+        }
         else
             currentHero.passiveAbility.Use();
     }

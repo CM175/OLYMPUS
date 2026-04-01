@@ -1,0 +1,151 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3756768333150014453
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1869446180697722721}
+  - component: {fileID: 2771590579338888618}
+  - component: {fileID: 2121139858557063293}
+  - component: {fileID: 2271320762536309116}
+  - component: {fileID: 8508789301366446286}
+  - component: {fileID: 8500216837366833214}
+  - component: {fileID: 3248273820284310416}
+  m_Layer: 0
+  m_Name: Artemis
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1869446180697722721
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3756768333150014453}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 23.07193, y: 0, z: 0.05307}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2771590579338888618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3756768333150014453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bcba9535a02f14abb0ffd67b139122, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Hero
+  heroName: Artemis
+  role: Striker
+  health: 200
+  primaryAbility: {fileID: 2121139858557063293}
+  secondaryAbility: {fileID: 2271320762536309116}
+  mobilityAbility: {fileID: 8508789301366446286}
+  ultimateAbility: {fileID: 8500216837366833214}
+  passiveAbility: {fileID: 3248273820284310416}
+--- !u!114 &2121139858557063293
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3756768333150014453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a3a3a0271a2a6e42a7a11aa3e803ec6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  cooldown: 0.5
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  arrowPrefab: {fileID: 2578599041181282640, guid: aca1def2289d35d4485faee313be2a09, type: 3}
+  maxChargeTime: 1.5
+  minDamage: 20
+  maxDamage: 75
+  projectileSpeed: 50
+--- !u!114 &2271320762536309116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3756768333150014453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f45e0ff8404476c4fbe1cd87ef9eda3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoonlightTrap
+  cooldown: 5
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  trapPrefab: {fileID: 4427847545636997538, guid: d5ec8d98cf2ef754d9fbefda9bc6a84e, type: 3}
+  throwForce: 5
+--- !u!114 &8508789301366446286
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3756768333150014453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 814664d49b34f1e438010aeadfdfc66e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HuntersLeap
+  cooldown: 0
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  leapStrength: 10
+  leapHeight: 3
+--- !u!114 &8500216837366833214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3756768333150014453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ec2b9bae3ced314fb0202f16c4e1c19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GreatConstellation
+  cooldown: 0
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  cost: 100
+  damage: 150
+  beamRadius: 2
+--- !u!114 &3248273820284310416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3756768333150014453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69864e26c4109514aad10737a97b59a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrackThePrey
+  cooldown: 0
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
