@@ -92,7 +92,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  movementSpeedBonus: 100
+  movementSpeedBonus: 1.5
 --- !u!114 &397904243652920066
 MonoBehaviour:
   m_ObjectHideFlags: 0

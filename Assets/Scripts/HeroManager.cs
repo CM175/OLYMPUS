@@ -103,7 +103,7 @@ public class HeroManager : MonoBehaviour
             Debug.Log("Passive Initialized");
             init.Initialize(gameObject);
         }
-        else
-            currentHero.passiveAbility.Use();
+        
+        currentHero.passiveAbility.Use();
     }
 }
