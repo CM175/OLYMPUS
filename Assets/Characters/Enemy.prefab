@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 4379061914881502853}
   - component: {fileID: 6590984461402273561}
   - component: {fileID: 7293843519876922040}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Enemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -51,6 +51,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   health: 100
+  OnDeathWithKiller:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!195 &2693273557935024900
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -150,7 +153,7 @@ GameObject:
   - component: {fileID: 9164424088655381020}
   - component: {fileID: 4691176469712029190}
   - component: {fileID: 7234829877350022979}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Capsule
   m_TagString: Untagged
   m_Icon: {fileID: 0}

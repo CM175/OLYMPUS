@@ -1,9 +1,10 @@
 using UnityEngine;
+
 public class BaseProjectile : MonoBehaviour
 {
     [Header("Movement Settings")]
     public float speed = 50f;
-    public float gravityScale = 0f; // 0 for straight shots (Pharah), >0 for arcs (Junkrat)
+    public float gravityScale = 0f; 
     public float maxRange = 100f;
 
     [Header("Impact Settings")]
@@ -12,52 +13,62 @@ public class BaseProjectile : MonoBehaviour
     public GameObject impactEffect;
 
     protected Vector3 spawnPosition;
+    protected Rigidbody rb;
 
-    void Start()
+    protected virtual void Start()
     {
         spawnPosition = transform.position;
-        InitializeMovement();
+        rb = GetComponent<Rigidbody>(); 
+        // We removed InitializeMovement() from here so it doesn't fire prematurely
     }
 
     protected virtual void InitializeMovement()
     {
-        // Set initial velocity based on Speed
+        // Default straight-line movement
+        if (rb != null)
+        {
+            rb.useGravity = gravityScale > 0;
+            rb.linearVelocity = transform.forward * speed;
+        }
     }
 
-    void Update()
+    protected virtual void Update()
     {
-        // Check if we've traveled past maxRange to self-destruct
+        // Self-destruct if out of range
         if (Vector3.Distance(spawnPosition, transform.position) >= maxRange)
         {
             Destroy(gameObject);
         }
     }
 
-    // This is the "Magic" function you override for different heroes
-   protected virtual void OnTriggerEnter(Collider other)
+    // This is called by Unity Physics (Ensure Collider is a Trigger)
+    protected virtual void OnTriggerEnter(Collider other)
     {
-        // 1. Play Sound/VFX
+        OnImpact(other);
+    }
+
+    protected virtual void OnImpact(Collider other)
+    {
         SpawnImpactVisuals(other);
+        ApplyDamage(other);
 
-        // 2. Deal damage
-        Applydamage(other);
-
-        // 3. Logic for piercing vs disappearing
         if (!piercesTargets)
         {
             Destroy(gameObject);
         }
     }
 
-    private void Applydamage(Collider other)
+    protected void ApplyDamage(Collider other)
     {
-        // Interface-based damage system is best
         var hit = other.GetComponent<IDamageable>();
         hit?.TakeDamage(damage);
     }
 
-    protected virtual void SpawnImpactVisuals(Collider other)
+    protected void SpawnImpactVisuals(Collider other)
     {
-
+        if (impactEffect != null)
+        {
+            Instantiate(impactEffect, transform.position, Quaternion.identity);
+        }
     }
 }

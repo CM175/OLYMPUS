@@ -1,22 +1,59 @@
 using UnityEngine;
 
-public class MoonlightTrap : Ability
+public class MoonlightTrap : BaseProjectile
 {
-    public GameObject trapPrefab;
-    public float throwForce = 5f;
-
-    protected override void Activate()
+    [Header("Trap Settings")]
+    public float triggerRadius = 2f;
+    public float trappedDuration = 1.5f;
+    public LayerMask enemyLayer;
+    private bool _isArmed = false;
+    protected override void Start()
     {
-        Vector3 spawnPos = transform.root.position + transform.root.forward;
-        GameObject trap = Instantiate(trapPrefab, spawnPos, Quaternion.identity);
-        
-        Rigidbody rb = trap.GetComponent<Rigidbody>();
-        if (rb != null)
+        base.Start();
+        InitializeMovement();
+    }
+    protected override void OnImpact(Collider other)
+    {
+        // Check if we hit the ground/environment
+        if (other.gameObject.layer == LayerMask.NameToLayer("Ground"))
         {
-            rb.AddForce(transform.root.forward * throwForce, ForceMode.Impulse);
+            ArmTrap();
+        }
+    }
+
+    private void ArmTrap()
+    {
+        _isArmed = true;
+        rb.linearVelocity = Vector3.zero;
+        rb.isKinematic = true; // Stop moving
+        Debug.Log("Moonlight Trap Armed and Waiting...");
+    }
+
+    protected override void Update()
+    {
+        if (!_isArmed)
+        {
+            base.Update(); // Use standard range-check while flying
+            return;
         }
 
-        Debug.Log("[MoonlightTrap] Trap deployed.");
-        StartCooldown();
+        // Manual check for enemies walking over the trap
+        Collider[] victims = Physics.OverlapSphere(transform.position, triggerRadius, enemyLayer);
+        if (victims.Length > 0)
+        {
+            TriggerTrap(victims[0]);
+        }
+    }
+
+    private void TriggerTrap(Collider victim)
+    {
+        ApplyDamage(victim);
+        
+        // Custom logic: Stop the player from moving
+        EnemyAI ea = victim.GetComponent<EnemyAI>();
+        if (ea != null) ea.Stun(trappedDuration);
+
+        SpawnImpactVisuals(victim);
+        Destroy(gameObject);
     }
 }

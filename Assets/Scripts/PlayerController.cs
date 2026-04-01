@@ -98,21 +98,43 @@ public class PlayerController : MonoBehaviour
         HandleGravityAndJump();
     }
 
+    public void ApplyImpulse(Vector3 force)
+    {
+        // Adding to the current velocity creates a smooth transition
+        // rather than an instant teleport.
+        _velocity += force;
+    }
+
+    // Inside PlayerController.cs
+
     private void HandleGroundCheck()
     {
-        _isGrounded = Physics.CheckSphere(
-            GetGroundCheckPosition(),
-            groundDistance,
-            groundMask);
+        bool wasGrounded = _isGrounded; // Store the state from last frame
+        _isGrounded = Physics.CheckSphere(GetGroundCheckPosition(), groundDistance, groundMask);
 
-        if (_isGrounded && _velocity.y < 0f)
+        if (_isGrounded)
         {
-            _velocity.y = -2f;
+            // If we just landed this frame...
+            if (!wasGrounded)
+            {
+                OnLand();
+            }
+
+            if (_velocity.y < 0f)
+            {
+                _velocity.y = -2f; // Keep the player snapped to ground
+            }
         }
-        else if (!_isGrounded)
-        {
-            _jumpQueued = false;
-        }
+    }
+
+    private void OnLand()
+    {
+        // Zero out horizontal velocity (X and Z) so the leap momentum stops
+        _velocity.x = 0f;
+        _velocity.z = 0f;
+        
+        // Optional: Reset any leap-specific flags if you added them
+        Debug.Log("Landed: Resetting horizontal momentum.");
     }
 
     private void HandleMovement()
