@@ -92,7 +92,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  movementSpeedBonus: 1.25
+  movementSpeedBonus: 100
 --- !u!114 &397904243652920066
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,11 +125,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4d7e0af8c466584a88c175218fa87c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlinkDash
-  cooldown: 3
+  cooldown: 5
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  dashDistance: 10
+  dashDistance: 20
 --- !u!114 &8224165050478367327
 MonoBehaviour:
   m_ObjectHideFlags: 0

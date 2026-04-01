@@ -511,7 +511,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   walkSpeed: 6
-  sprintSpeed: 10
   crouchSpeed: 3
   gravity: -9.81
   jumpHeight: 2
@@ -609,7 +608,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78b4443686d175748bfe448b2c1734fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeroManager
-  heroPrefab: {fileID: 127376535958184308, guid: 725df1fb59f35354da88fb89dbd3a129, type: 3}
+  heroPrefab: {fileID: 1924039878049136692, guid: 02ef36e69b97f7146a915fc5eb93f260, type: 3}
   playerCamera: {fileID: 963194227}
   currentHero: {fileID: 0}
 --- !u!114 &351264100
@@ -936,6 +935,7 @@ GameObject:
   - component: {fileID: 444560809}
   - component: {fileID: 444560811}
   - component: {fileID: 444560810}
+  - component: {fileID: 444560812}
   m_Layer: 5
   m_Name: UltimateIcon
   m_TagString: Untagged
@@ -1003,6 +1003,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 444560808}
   m_CullTransparentMesh: 1
+--- !u!114 &444560812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444560808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da62adf7fffa5c84ca501c8be30009d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AbilityHUD
+  icon: {fileID: 444560810}
+  overlay: {fileID: 1075265390}
+  percentText: {fileID: 430377368}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -1585,6 +1600,7 @@ GameObject:
   - component: {fileID: 1502299243}
   - component: {fileID: 1502299245}
   - component: {fileID: 1502299244}
+  - component: {fileID: 1502299246}
   m_Layer: 5
   m_Name: SecondaryIcon
   m_TagString: Untagged
@@ -1651,6 +1667,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1502299242}
   m_CullTransparentMesh: 1
+--- !u!114 &1502299246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1502299242}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da62adf7fffa5c84ca501c8be30009d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AbilityHUD
+  icon: {fileID: 1502299244}
+  overlay: {fileID: 951624930}
+  percentText: {fileID: 0}
 --- !u!1 &1502934490
 GameObject:
   m_ObjectHideFlags: 0
@@ -1926,6 +1957,7 @@ GameObject:
   - component: {fileID: 1757510037}
   - component: {fileID: 1757510039}
   - component: {fileID: 1757510038}
+  - component: {fileID: 1757510040}
   m_Layer: 5
   m_Name: MobilityIcon
   m_TagString: Untagged
@@ -1992,6 +2024,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1757510036}
   m_CullTransparentMesh: 1
+--- !u!114 &1757510040
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1757510036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da62adf7fffa5c84ca501c8be30009d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AbilityHUD
+  icon: {fileID: 1757510038}
+  overlay: {fileID: 1341352442}
+  percentText: {fileID: 0}
 --- !u!1 &1801118752
 GameObject:
   m_ObjectHideFlags: 0
@@ -2405,15 +2452,11 @@ MonoBehaviour:
   heroManager: {fileID: 351264099}
   healthBarFill: {fileID: 1689150383}
   healthText: {fileID: 1801118754}
-  ultChargeText: {fileID: 430377368}
   heroNameText: {fileID: 0}
   heroRoleText: {fileID: 0}
-  secondaryIcon: {fileID: 85395857}
-  mobilityIcon: {fileID: 1818878268}
-  ultimateIcon: {fileID: 1071881868}
-  ultimateCooldownOverlay: {fileID: 1075265390}
-  secondaryOverlay: {fileID: 951624930}
-  mobilityCooldownOverlay: {fileID: 1341352442}
+  secondaryHUD: {fileID: 1502299246}
+  mobilityHUD: {fileID: 1757510040}
+  ultimateHUD: {fileID: 444560812}
   ultReadyIndicator: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
