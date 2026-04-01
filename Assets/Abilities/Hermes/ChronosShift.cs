@@ -19,11 +19,10 @@ public class ChronosShift : Ultimate
         PlayerController controller = transform.root.GetComponent<PlayerController>();
         BlinkDash blink = transform.root.GetComponentInChildren<BlinkDash>();
 
-        float originalSpeed = controller != null ? controller.SpeedMultiplier : 1f;
         float originalBlinkCD = 0f;
 
         // Apply Hyper-Speed
-        if (controller != null) controller.SpeedMultiplier = hyperSpeedMultiplier;
+        if (controller != null) controller.SpeedMultiplier += hyperSpeedMultiplier;
 
         // Reduce Blink Dash cooldown
         if (blink != null)
@@ -37,7 +36,7 @@ public class ChronosShift : Ultimate
         yield return new WaitForSeconds(duration);
 
         // Reset Stats
-        if (controller != null) controller.SpeedMultiplier = originalSpeed;
+        if (controller != null) controller.SpeedMultiplier -= hyperSpeedMultiplier;
         if (blink != null) blink.cooldown = originalBlinkCD;
 
         Debug.Log("[ChronosShift] Time resumed.");

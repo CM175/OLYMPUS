@@ -84,6 +84,7 @@
     <Compile Include="Assets\Abilities\Achillies\SlayerOfTroy.cs" />
     <Compile Include="Assets\Scripts\IDamageable.cs" />
     <Compile Include="Assets\Scripts\Ability.cs" />
+    <Compile Include="Assets\Scripts\Projectile.cs" />
     <Compile Include="Assets\Abilities\Hermes\ChronosShift.cs" />
     <Compile Include="Assets\Scripts\DamageDisplay.cs" />
     <Compile Include="Assets\Abilities\Hermes\WingedDaggers.cs" />
