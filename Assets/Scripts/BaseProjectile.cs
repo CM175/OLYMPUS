@@ -34,7 +34,7 @@ public class BaseProjectile : MonoBehaviour
     }
 
     // This is the "Magic" function you override for different heroes
-    protected virtual void OnImpact(Collider other)
+   protected virtual void OnTriggerEnter(Collider other)
     {
         // 1. Play Sound/VFX
         SpawnImpactVisuals(other);

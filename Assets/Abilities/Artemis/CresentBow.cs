@@ -27,22 +27,23 @@ public class CrescentBow : Ability
     {
         _isCharging = false;
         float chargeRatio = _currentCharge / maxChargeTime;
-        float finalDamage = Mathf.Lerp(minDamage, maxDamage, chargeRatio);
 
-        FireArrow(finalDamage);
+        FireArrow(chargeRatio);
         
         _currentCharge = 0f;
         StartCooldown();
     }
 
-    private void FireArrow(float dmg)
+    private void FireArrow(float charge)
     {
         if (playerCamera == null) return;
 
         GameObject arrow = Instantiate(arrowPrefab, playerCamera.transform.position + playerCamera.transform.forward, playerCamera.transform.rotation);
+        StormArrow stormArrow = arrow.GetComponent<StormArrow>();
         // Assuming your projectile script has a 'damage' field
-        // arrow.GetComponent<Projectile>().damage = dmg; 
+        // arrow.GetComponent<Projectile>().damage = dmg;
+        stormArrow.SetCharge(charge);
         
-        Debug.Log($"[CrescentBow] Fired arrow for {dmg} damage.");
+        Debug.Log($"[CrescentBow] Charged arrow to {charge}% ");
     }
 }

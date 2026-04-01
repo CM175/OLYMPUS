@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 8538257266898815825}
   - component: {fileID: 4612082646564182883}
   - component: {fileID: 3893992145557804266}
+  - component: {fileID: 6162021183150269998}
+  - component: {fileID: -7276492725072085175}
   m_Layer: 0
   m_Name: Arrow
   m_TagString: Untagged
@@ -106,7 +108,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -114,3 +116,52 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!114 &6162021183150269998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2578599041181282640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b44d02f6e9f6e1f4087822f4b38e571c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StormArrow
+  speed: 50
+  gravityScale: 0
+  maxRange: 100
+  damage: 20
+  piercesTargets: 0
+  impactEffect: {fileID: 0}
+  maxSpeed: 100
+  minSpeed: 20
+  maxDamage: 125
+  minDamage: 25
+--- !u!54 &-7276492725072085175
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2578599041181282640}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
