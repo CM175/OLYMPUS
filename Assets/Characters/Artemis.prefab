@@ -73,11 +73,8 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  arrowPrefab: {fileID: 2578599041181282640, guid: aca1def2289d35d4485faee313be2a09, type: 3}
-  maxChargeTime: 1.5
-  minDamage: 20
-  maxDamage: 75
-  projectileSpeed: 50
+  arrowPrefab: {fileID: 7647197124771894346, guid: 5268b13d70d812e48b4eafe296c33393, type: 3}
+  maxChargeTime: 0.8
 --- !u!114 &2271320762536309116
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -108,12 +105,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 814664d49b34f1e438010aeadfdfc66e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HuntersLeap
-  cooldown: 0
+  cooldown: 3
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  leapStrength: 10
-  leapHeight: 3
+  leapForce: 12.5
+  leapHeight: 0.5
 --- !u!114 &8500216837366833214
 MonoBehaviour:
   m_ObjectHideFlags: 0

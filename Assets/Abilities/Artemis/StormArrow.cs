@@ -2,58 +2,39 @@ using UnityEngine;
 
 public class StormArrow : BaseProjectile
 {
-    [Header("Bow Specifics")]
-    public float maxSpeed = 100f;
     public float minSpeed = 20f;
-    public int maxDamage = 125;
-    public int minDamage = 25;
     
-    private Rigidbody rb;
-
-    // Call this from your Bow script right after instantiating the arrow
+    public float maxSpeed = 100f;
+    
+    public int minDamage= 25;
+    
+    public int maxDamage = 125;
+    
     public void SetCharge(float chargeRatio)
     {
-        // Linearly interpolate speed and damage based on how long the string was held
-        speed = Mathf.Lerp(minSpeed, maxSpeed, chargeRatio);
+        // Scale stats based on bow charge
         damage = Mathf.RoundToInt(Mathf.Lerp(minDamage, maxDamage, chargeRatio));
+        speed = Mathf.Lerp(minSpeed, maxSpeed, chargeRatio);
+        gravityScale = Mathf.Lerp(1.5f, 0.2f, chargeRatio);
+
+            if (rb == null) rb = GetComponent<Rigidbody>();
         
-        // Hanzo's arrows typically have less gravity the harder they are fired
-        gravityScale = Mathf.Lerp(2.0f, 0.2f, chargeRatio); 
+        rb.useGravity = gravityScale > 0;
+        rb.linearVelocity = transform.forward * speed; 
     }
+    
 
     protected override void InitializeMovement()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.useGravity = gravityScale > 0;
-        rb.linearVelocity = transform.forward * speed;
+        // Do nothing here; wait for SetCharge to be called by the Bow
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
-        // "Arrow Swiveling": Makes the arrow point in the direction it's actually falling
-        if (rb != null && rb.linearVelocity != Vector3.zero)
+        // Make the arrow "swivel" to face its travel direction
+        if (rb != null && rb.linearVelocity.sqrMagnitude > 0.1f)
         {
             transform.rotation = Quaternion.LookRotation(rb.linearVelocity);
         }
-    }
-
-    protected override void OnTriggerEnter(Collider other)
-    {
-
-        // Hanzo-specific: Logic for Headshots
-        bool isHeadshot = CheckForHeadshot(other);
-        if (isHeadshot)
-        {
-            damage *= 2; 
-            Debug.Log("Critical Hit!");
-        }
-
-        base.OnTriggerEnter(other);
-    }
-
-    private bool CheckForHeadshot(Collider other)
-    {
-        // Simple check: does the collider have a specific tag or layer?
-        return other.CompareTag("HeadshotBox");
     }
 }

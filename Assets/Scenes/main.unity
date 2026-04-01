@@ -608,7 +608,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78b4443686d175748bfe448b2c1734fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeroManager
-  heroPrefab: {fileID: 1924039878049136692, guid: 02ef36e69b97f7146a915fc5eb93f260, type: 3}
+  heroPrefab: {fileID: 2771590579338888618, guid: 1f7f86c1b7df0564f9162d24f8ee7151, type: 3}
   playerCamera: {fileID: 963194227}
   currentHero: {fileID: 0}
 --- !u!114 &351264100
