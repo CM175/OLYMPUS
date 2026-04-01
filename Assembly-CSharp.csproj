@@ -49,6 +49,7 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Abilities\Artemis\StormArrow.cs" />
     <Compile Include="Assets\Scripts\IInitializable.cs" />
     <Compile Include="Assets\Abilities\Hermes\AmbushInvisibility.cs" />
     <Compile Include="Assets\Scripts\PassiveAbility.cs" />
@@ -70,6 +71,7 @@
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
     <Compile Include="Assets\Abilities\Artemis\GreatConstellation.cs" />
+    <Compile Include="Assets\Scripts\BaseProjectile.cs" />
     <Compile Include="Assets\Abilities\Hermes\BlinkDash.cs" />
     <Compile Include="Assets\InputSystem_Actions.cs" />
     <Compile Include="Assets\Abilities\Achillies\FrontalArmor.cs" />
@@ -84,7 +86,6 @@
     <Compile Include="Assets\Abilities\Achillies\SlayerOfTroy.cs" />
     <Compile Include="Assets\Scripts\IDamageable.cs" />
     <Compile Include="Assets\Scripts\Ability.cs" />
-    <Compile Include="Assets\Scripts\Projectile.cs" />
     <Compile Include="Assets\Abilities\Hermes\ChronosShift.cs" />
     <Compile Include="Assets\Scripts\DamageDisplay.cs" />
     <Compile Include="Assets\Abilities\Hermes\WingedDaggers.cs" />
