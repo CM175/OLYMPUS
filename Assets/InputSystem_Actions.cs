@@ -174,6 +174,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""Primary"",
+                    ""type"": ""Button"",
+                    ""id"": ""20aaf24d-e55a-4191-a770-db7b0eaf8a5d"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Secondary"",
                     ""type"": ""Button"",
                     ""id"": ""fce4f29b-af76-4ff9-8036-8fb4cc692ecb"",
@@ -601,7 +610,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""992beaf0-5c47-45cc-a14d-7b6bb9a72f24"",
-                    ""path"": ""<Keyboard>/#(E)"",
+                    ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -617,6 +626,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Ultimate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""191e10a7-fec8-4a8f-823f-3ed18c7579c0"",
+                    ""path"": ""<Keyboard>/#(E)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Primary"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1213,6 +1233,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_Previous = m_Player.FindAction("Previous", throwIfNotFound: true);
         m_Player_Next = m_Player.FindAction("Next", throwIfNotFound: true);
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
+        m_Player_Primary = m_Player.FindAction("Primary", throwIfNotFound: true);
         m_Player_Secondary = m_Player.FindAction("Secondary", throwIfNotFound: true);
         m_Player_Mobility = m_Player.FindAction("Mobility", throwIfNotFound: true);
         m_Player_Ultimate = m_Player.FindAction("Ultimate", throwIfNotFound: true);
@@ -1318,6 +1339,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Previous;
     private readonly InputAction m_Player_Next;
     private readonly InputAction m_Player_Sprint;
+    private readonly InputAction m_Player_Primary;
     private readonly InputAction m_Player_Secondary;
     private readonly InputAction m_Player_Mobility;
     private readonly InputAction m_Player_Ultimate;
@@ -1368,6 +1390,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Sprint".
         /// </summary>
         public InputAction @Sprint => m_Wrapper.m_Player_Sprint;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Primary".
+        /// </summary>
+        public InputAction @Primary => m_Wrapper.m_Player_Primary;
         /// <summary>
         /// Provides access to the underlying input action "Player/Secondary".
         /// </summary>
@@ -1433,6 +1459,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Sprint.started += instance.OnSprint;
             @Sprint.performed += instance.OnSprint;
             @Sprint.canceled += instance.OnSprint;
+            @Primary.started += instance.OnPrimary;
+            @Primary.performed += instance.OnPrimary;
+            @Primary.canceled += instance.OnPrimary;
             @Secondary.started += instance.OnSecondary;
             @Secondary.performed += instance.OnSecondary;
             @Secondary.canceled += instance.OnSecondary;
@@ -1480,6 +1509,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Sprint.started -= instance.OnSprint;
             @Sprint.performed -= instance.OnSprint;
             @Sprint.canceled -= instance.OnSprint;
+            @Primary.started -= instance.OnPrimary;
+            @Primary.performed -= instance.OnPrimary;
+            @Primary.canceled -= instance.OnPrimary;
             @Secondary.started -= instance.OnSecondary;
             @Secondary.performed -= instance.OnSecondary;
             @Secondary.canceled -= instance.OnSecondary;
@@ -1852,6 +1884,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSprint(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Primary" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPrimary(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Secondary" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

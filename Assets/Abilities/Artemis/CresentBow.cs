@@ -1,79 +1,54 @@
 using UnityEngine;
 
-public class CrescentBow : Ability, IInitializable
+public class CrescentBowAbility : Attack
 {
-    [Header("Bow Stats")]
+    [Header("Charge Settings")]
+    public float maxChargeTime = 2f;
+    private float chargeStartTime;
+    private bool isCharging;
+
+    [Header("Projectile")]
     public GameObject arrowPrefab;
-    public float maxChargeTime = 0.8f;
-    
-    private PlayerController _controller;
-    private float _currentCharge = 0f;
-    private bool _isCharging = false;
+    //public Transform firePoint;
 
-    public void Initialize(GameObject playerRoot)
+    public override void OnPress()
     {
-        _controller = playerRoot.GetComponent<PlayerController>();
+        isCharging = true;
+        chargeStartTime = Time.time;
     }
 
-    private void Update()
+    public override void OnRelease()
     {
-        if (_isCharging)
-        {
-            // Add the time passed since the last frame
-            _currentCharge += Time.deltaTime;
+        if (!isCharging) return;
 
-            // Clamp the value so it doesn't exceed your defined maxChargeTime
-            if (_currentCharge > maxChargeTime)
-            {
-                _currentCharge = maxChargeTime;
-            }
-        }
-        
-    }
-    public void StartCharging()
-    {
-        // Don't start charging if we can't use the ability yet
-        if (!CanUse()) return; 
-        
-        _controller.SpeedMultiplier *= 0.75f;
-        _isCharging = true;
-        _currentCharge = 0f;
+        float chargeTime = Time.time - chargeStartTime;
+        float chargePercent = Mathf.Clamp01(chargeTime / maxChargeTime);
+
+        TryFireCharged(chargePercent);
+
+        isCharging = false;
     }
 
-    protected override void Activate()
+    private void TryFireCharged(float chargePercent)
     {
-        // Prevent firing if we weren't actually charging (e.g., button released during cooldown)
-        if (!_isCharging) 
-        {
-            isExecuting = false; 
-            return;
-        }
+        if (!CanUse()) return;
 
-        _isCharging = false;
-        float chargeRatio = _currentCharge / maxChargeTime;
-
-        FireArrow(chargeRatio);
-        _controller.SpeedMultiplier /=0.75f;
-        _currentCharge = 0f;
+        FireArrow(chargePercent);
         StartCooldown();
     }
 
-    private void FireArrow(float charge)
+    private void FireArrow(float chargePercent)
     {
-        if (playerCamera == null) return;
-
-        // Instantiate at the camera position
         GameObject arrow = Instantiate(arrowPrefab, playerCamera.transform.position + playerCamera.transform.forward, playerCamera.transform.rotation);
-        
-        // Get the specific Hanzo-style arrow component
         StormArrow stormArrow = arrow.GetComponent<StormArrow>();
-        
         if (stormArrow != null)
         {
+            
+            Debug.Log($"Storm Arrow");
             // Pass the charge ratio (0.0 to 1.0) to the arrow
-            stormArrow.SetCharge(charge);
+            stormArrow.SetCharge(chargePercent);
         }
-        
-        Debug.Log($"[CrescentBow] Fired with {charge * 100}% charge");
+
+        Debug.Log($"Fired bow with {chargePercent * 100f}% charge");
     }
 }

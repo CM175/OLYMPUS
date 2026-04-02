@@ -20,6 +20,8 @@ public class HUDController : MonoBehaviour
 
     [Header("Ability HUD Elements")]
     // Assign these in the Inspector to GameObjects that have the AbilityHUD script
+    
+    public AbilityHUD primaryHUD;
     public AbilityHUD secondaryHUD;
     public AbilityHUD mobilityHUD;
     public AbilityHUD ultimateHUD;
@@ -85,6 +87,8 @@ public class HUDController : MonoBehaviour
         if (abilityManager == null) return;
 
         // Use the AbilityHUD's internal logic to update overlays and fills
+        
+        if (primaryHUD != null) primaryHUD.UpdateStatus(abilityManager.primaryAbility);
         if (secondaryHUD != null) secondaryHUD.UpdateStatus(abilityManager.secondaryAbility);
         if (mobilityHUD != null) mobilityHUD.UpdateStatus(abilityManager.mobilityAbility);
         if (ultimateHUD != null) ultimateHUD.UpdateStatus(abilityManager.ultimateAbility);
@@ -94,14 +98,27 @@ public class HUDController : MonoBehaviour
     {
         if (abilityManager == null) return;
 
-        // Standardize icon assignment through the HUD classes
-        if (secondaryHUD != null && abilityManager.secondaryAbility != null)
-            secondaryHUD.icon.sprite = abilityManager.secondaryAbility.sprite;
+        // Helper function to handle the logic cleanly for all slots
+        SetupSingleHUD(primaryHUD, abilityManager.primaryAbility);
+        SetupSingleHUD(secondaryHUD, abilityManager.secondaryAbility);
+        SetupSingleHUD(mobilityHUD, abilityManager.mobilityAbility);
+        SetupSingleHUD(ultimateHUD, abilityManager.ultimateAbility);
+    }
 
-        if (mobilityHUD != null && abilityManager.mobilityAbility != null)
-            mobilityHUD.icon.sprite = abilityManager.mobilityAbility.sprite;
+    private void SetupSingleHUD(AbilityHUD hud, Ability ability)
+    {
+        if (hud == null) return;
 
-        if (ultimateHUD != null && abilityManager.ultimateAbility != null)
-            ultimateHUD.icon.sprite = abilityManager.ultimateAbility.sprite;
+        if (ability != null)
+        {
+            Debug.Log("ability successfully shown");
+            hud.gameObject.SetActive(true); // Show the UI container
+            hud.icon.sprite = ability.sprite;
+        }
+        else
+        {
+            Debug.Log("ability Failed");
+            hud.gameObject.SetActive(false); // Hide the entire UI element if ability is null
+        }
     }
 }

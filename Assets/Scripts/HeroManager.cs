@@ -34,7 +34,9 @@ public class HeroManager : MonoBehaviour
         currentHero = Instantiate(prefab, transform.position, transform.rotation);
         currentHero.transform.SetParent(transform);
 
-        _abilityManager.primaryAbility   = currentHero.primaryAbility;
+        _abilityManager.primaryAttack   = currentHero.primaryAttack;
+        
+        _abilityManager.primaryAbility = currentHero.primaryAbility;
         _abilityManager.secondaryAbility = currentHero.secondaryAbility;
         _abilityManager.mobilityAbility  = currentHero.mobilityAbility;
         _abilityManager.ultimateAbility  = currentHero.ultimateAbility;
@@ -58,6 +60,8 @@ public class HeroManager : MonoBehaviour
 
     private void GiveCameraToAbilities()
     {
+        InitializeAbility(_abilityManager.primaryAttack);
+        
         InitializeAbility(_abilityManager.primaryAbility);
         InitializeAbility(_abilityManager.secondaryAbility);
         InitializeAbility(_abilityManager.mobilityAbility);

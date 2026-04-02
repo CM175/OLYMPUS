@@ -17,7 +17,7 @@ public class StormArrow : BaseProjectile
         speed = Mathf.Lerp(minSpeed, maxSpeed, chargeRatio);
         gravityScale = Mathf.Lerp(1.5f, 0.2f, chargeRatio);
 
-            if (rb == null) rb = GetComponent<Rigidbody>();
+        if (rb == null) rb = GetComponent<Rigidbody>();
         
         rb.useGravity = gravityScale > 0;
         rb.linearVelocity = transform.forward * speed; 

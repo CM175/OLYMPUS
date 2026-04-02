@@ -1,12 +1,8 @@
 using System.Collections;
 using UnityEngine;
 
-public class SpearThrow : Ability
+public class SpearThrow : Attack
 {
-    [Header("Stats")]
-    public float range = 50f;
-    public int damage = 35;
-
     [Header("Visuals")]
     public LineRenderer spearLine;
     public float lineDuration = 0.12f;

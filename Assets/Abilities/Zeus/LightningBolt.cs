@@ -1,10 +1,9 @@
 using System.Collections;
+
 using UnityEngine;
 
-public class LightningBolt : Ability
+public class LightningBolt : Attack
 {
-    public float range = 100f;
-    public int damage = 25;
     public float chainRange = 15f;
 
     public LineRenderer boltLine; // Assign in Inspector
@@ -32,6 +31,7 @@ public class LightningBolt : Ability
                 foreach (var col in nearby)
                 {
                     if (col.gameObject == hit.collider.gameObject) continue;
+                    if (col.gameObject.transform == transform.root ) continue;
                     if (col.GetComponent<IDamageable>() == null)   continue;
 
                     float dist = Vector3.Distance(hit.point, col.transform.position);
@@ -51,20 +51,20 @@ public class LightningBolt : Ability
         }
 
         StartCoroutine(ShowBolt(transform.position, endPoint));
-        StartCooldown();
     }
 
     private System.Collections.IEnumerator ShowBolt(Vector3 start, Vector3 end)
     {
-        boltLine.enabled = true;
+        LineRenderer arc = Instantiate(boltLine); 
+        arc.enabled = true;
         float timer = 0f;
         int segments = 12; // More segments = more jagged lightning
-        boltLine.positionCount = segments;
-        boltLine.startWidth = 0.3f;
-        boltLine.endWidth = 0.05f;
+        arc.positionCount = segments;
+        arc.startWidth = 0.3f;
+        arc.endWidth = 0.05f;
         while (timer < beamDuration)
         {
-            boltLine.SetPosition(0, start); // Origin stays at Zeus
+            arc.SetPosition(0, start); // Origin stays at Zeus
             
             for (int i = 1; i < segments - 1; i++)
             {
@@ -76,16 +76,17 @@ public class LightningBolt : Ability
                 float jitterAmount = 0.5f; 
                 midPoint += Random.insideUnitSphere * jitterAmount;
                 
-                boltLine.SetPosition(i, midPoint);
+                arc.SetPosition(i, midPoint);
             }
 
-            boltLine.SetPosition(segments - 1, end); // End stays at target
+            arc.SetPosition(segments - 1, end); // End stays at target
             
             timer += Time.deltaTime;
             yield return null; // This causes the bolt to "flicker" every frame
         }
         
-        boltLine.enabled = false;
+        
+        Destroy(arc.gameObject);
     }
 
     private IEnumerator ShowChainArc(Vector3 start, Vector3 end)
