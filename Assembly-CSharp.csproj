@@ -53,6 +53,7 @@
     <Compile Include="Assets\Scripts\IInitializable.cs" />
     <Compile Include="Assets\Abilities\Hermes\AmbushInvisibility.cs" />
     <Compile Include="Assets\Scripts\PassiveAbility.cs" />
+    <Compile Include="Assets\Abilities\Achillies\SpearProjectile.cs" />
     <Compile Include="Assets\Scripts\HeroManager.cs" />
     <Compile Include="Assets\Scripts\Hero.cs" />
     <Compile Include="Assets\Scripts\EnemyAI.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="Assets\Scripts\EnemySpawner.cs" />
     <Compile Include="Assets\Scripts\EnemyHealth.cs" />
     <Compile Include="Assets\Abilities\Achillies\BattleCry.cs" />
+    <Compile Include="Assets\Abilities\Achillies\SpearThrust.cs" />
     <Compile Include="Assets\Abilities\Achillies\SpearThrow.cs" />
   </ItemGroup>
   <ItemGroup>
