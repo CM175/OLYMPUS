@@ -75,6 +75,7 @@
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
     <Compile Include="Assets\Abilities\Artemis\GreatConstellation.cs" />
+    <Compile Include="Assets\Scripts\CapturePoint.cs" />
     <Compile Include="Assets\Scripts\BaseProjectile.cs" />
     <Compile Include="Assets\Abilities\Hermes\BlinkDash.cs" />
     <Compile Include="Assets\InputSystem_Actions.cs" />
