@@ -68,6 +68,7 @@
     <Compile Include="Assets\Abilities\Achillies\ShieldBash.cs" />
     <Compile Include="Assets\Scripts\HUDController.cs" />
     <Compile Include="Assets\Abilities\Achillies\AchillesFury.cs" />
+    <Compile Include="Assets\Scripts\PrimaryAttack.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
     <Compile Include="Assets\Abilities\Artemis\GreatConstellation.cs" />

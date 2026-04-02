@@ -6,9 +6,12 @@ public class Hero : MonoBehaviour
     public string role;
     public int health;
 
+    [Header("Abilities")]
+    public Attack       primaryAttack;
+    
     public Ability       primaryAbility;
     public Ability       secondaryAbility;
     public Ability       mobilityAbility;
     public Ultimate      ultimateAbility;
-    public PassiveAbility passiveAbility;   // Optional — leave null for heroes without a passive
+    public PassiveAbility passiveAbility;
 }

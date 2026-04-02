@@ -1,11 +1,7 @@
 using UnityEngine;
 
-public class WingedDaggers : Ability
+public class WingedDaggers : Attack
 {
-    [Header("Dagger Settings")]
-    public int damage = 15;
-    public float attackRange = 2.5f;
-    public float attackRate = 0.5f; // Time between swings
 
     protected override void Activate()
     {
@@ -13,8 +9,8 @@ public class WingedDaggers : Ability
         Transform root = transform.root;
         
         // Find potential targets in a small sphere at the dagger's reach
-        Vector3 attackPoint = root.position + root.forward * (attackRange / 2f);
-        Collider[] hitEnemies = Physics.OverlapSphere(attackPoint, attackRange / 2f);
+        Vector3 attackPoint = root.position + root.forward * (range / 2f);
+        Collider[] hitEnemies = Physics.OverlapSphere(attackPoint, range / 2f);
 
         foreach (var enemy in hitEnemies)
         {
@@ -30,9 +26,6 @@ public class WingedDaggers : Ability
 
         // Logic to trigger a "Swing" animation would go here
         Debug.Log("[WingedDaggers] Slashed!");
-
-        // Start the short cooldown between attacks
-        Invoke(nameof(StartCooldown), attackRate);
     }
 
     private void ApplyDamage(IDamageable target, Transform enemyTransform)
@@ -53,7 +46,7 @@ public class WingedDaggers : Ability
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Vector3 attackPoint = transform.root.position + transform.root.forward * (attackRange / 2f);
-        Gizmos.DrawWireSphere(attackPoint, attackRange / 2f);
+        Vector3 attackPoint = transform.root.position + transform.root.forward * (range / 2f);
+        Gizmos.DrawWireSphere(attackPoint, range / 2f);
     }
 }

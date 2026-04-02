@@ -52,8 +52,9 @@ MonoBehaviour:
   heroName: Hermes
   role: Trickster
   health: 175
-  primaryAbility: {fileID: 7774983136517545083}
-  secondaryAbility: {fileID: 8224165050478367327}
+  primaryAttack: {fileID: 7774983136517545083}
+  primaryAbility: {fileID: 8224165050478367327}
+  secondaryAbility: {fileID: 0}
   mobilityAbility: {fileID: 3086645997603996126}
   ultimateAbility: {fileID: 397904243652920066}
   passiveAbility: {fileID: 1473492060491585570}
@@ -69,13 +70,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0e5ec8fb484303429c35d32e6c6fbe1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WingedDaggers
-  cooldown: 0.3
+  cooldown: 0.5
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   damage: 15
-  attackRange: 2.5
-  attackRate: 0.5
+  range: 2.5
+  isHolding: 0
 --- !u!114 &1473492060491585570
 MonoBehaviour:
   m_ObjectHideFlags: 0

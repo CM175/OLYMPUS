@@ -88,6 +88,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Primary",
+                    "type": "Button",
+                    "id": "20aaf24d-e55a-4191-a770-db7b0eaf8a5d",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Secondary",
                     "type": "Button",
                     "id": "fce4f29b-af76-4ff9-8036-8fb4cc692ecb",
@@ -515,7 +524,7 @@
                 {
                     "name": "",
                     "id": "992beaf0-5c47-45cc-a14d-7b6bb9a72f24",
-                    "path": "<Keyboard>/#(E)",
+                    "path": "<Keyboard>/leftShift",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -531,6 +540,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Ultimate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "191e10a7-fec8-4a8f-823f-3ed18c7579c0",
+                    "path": "<Keyboard>/#(E)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Primary",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

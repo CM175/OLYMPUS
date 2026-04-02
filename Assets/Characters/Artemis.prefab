@@ -34,7 +34,8 @@ Transform:
   m_LocalPosition: {x: 23.07193, y: 0, z: 0.05307}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6463173782664315259}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2771590579338888618
@@ -52,8 +53,9 @@ MonoBehaviour:
   heroName: Artemis
   role: Striker
   health: 200
-  primaryAbility: {fileID: 2121139858557063293}
-  secondaryAbility: {fileID: 2271320762536309116}
+  primaryAttack: {fileID: 2121139858557063293}
+  primaryAbility: {fileID: 2271320762536309116}
+  secondaryAbility: {fileID: 0}
   mobilityAbility: {fileID: 8508789301366446286}
   ultimateAbility: {fileID: 8500216837366833214}
   passiveAbility: {fileID: 3248273820284310416}
@@ -73,8 +75,11 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  arrowPrefab: {fileID: 7647197124771894346, guid: 5268b13d70d812e48b4eafe296c33393, type: 3}
+  damage: 10
+  range: 100
+  isHolding: 0
   maxChargeTime: 0.8
+  arrowPrefab: {fileID: 7647197124771894346, guid: 5268b13d70d812e48b4eafe296c33393, type: 3}
 --- !u!114 &2271320762536309116
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92,7 +97,6 @@ MonoBehaviour:
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   trapPrefab: {fileID: 4427847545636997538, guid: d5ec8d98cf2ef754d9fbefda9bc6a84e, type: 3}
-  throwForce: 5
 --- !u!114 &8508789301366446286
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146,3 +150,34 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+--- !u!1 &5118594110050019796
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6463173782664315259}
+  m_Layer: 0
+  m_Name: Firepoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6463173782664315259
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5118594110050019796}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1869446180697722721}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

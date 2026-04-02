@@ -53,9 +53,10 @@ MonoBehaviour:
   heroName: Achillies
   role: Striker
   health: 225
-  primaryAbility: {fileID: 2332108503570882413}
-  secondaryAbility: {fileID: 4629839524577283708}
-  mobilityAbility: {fileID: 691462736097353240}
+  primaryAttack: {fileID: 2332108503570882413}
+  primaryAbility: {fileID: 4629839524577283708}
+  secondaryAbility: {fileID: 691462736097353240}
+  mobilityAbility: {fileID: 0}
   ultimateAbility: {fileID: 8444528355459521143}
   passiveAbility: {fileID: 3960189197151477339}
 --- !u!114 &4629839524577283708
@@ -94,8 +95,9 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  range: 50
   damage: 35
+  range: 50
+  isHolding: 0
   spearLine: {fileID: -6842620798570557349}
   lineDuration: 0.12
 --- !u!114 &3960189197151477339

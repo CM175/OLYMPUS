@@ -11,6 +11,8 @@ public abstract class Ability : MonoBehaviour
     public GameObject vfxPrefab;
     public Sprite sprite;
 
+    public virtual void OnPress() {}
+    public virtual void OnRelease() {}
     public void Use()
     {
         if (!CanUse()) return;
