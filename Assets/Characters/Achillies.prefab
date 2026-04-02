@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 691462736097353240}
   - component: {fileID: 8444528355459521143}
   - component: {fileID: -6842620798570557349}
+  - component: {fileID: -2986195457238110069}
   m_Layer: 0
   m_Name: Achillies
   m_TagString: Untagged
@@ -53,10 +54,10 @@ MonoBehaviour:
   heroName: Achillies
   role: Striker
   health: 225
-  primaryAttack: {fileID: 2332108503570882413}
-  primaryAbility: {fileID: 4629839524577283708}
-  secondaryAbility: {fileID: 691462736097353240}
-  mobilityAbility: {fileID: 0}
+  primaryAttack: {fileID: -2986195457238110069}
+  primaryAbility: {fileID: 2332108503570882413}
+  secondaryAbility: {fileID: 4629839524577283708}
+  mobilityAbility: {fileID: 691462736097353240}
   ultimateAbility: {fileID: 8444528355459521143}
   passiveAbility: {fileID: 3960189197151477339}
 --- !u!114 &4629839524577283708
@@ -91,15 +92,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 377573bfd1373474b854d287b719cb4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpearThrow
-  cooldown: 0.5
+  cooldown: 5
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  spearPrefab: {fileID: 4986571318311556195, guid: 71e7570cf4627904d8c3f1ffb3123a2c, type: 3}
   damage: 35
-  range: 50
-  isHolding: 0
-  spearLine: {fileID: -6842620798570557349}
-  lineDuration: 0.12
 --- !u!114 &3960189197151477339
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -265,3 +263,23 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &-2986195457238110069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2953670537729376099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9cbc96890fa5523449296b53ea9a6549, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  cooldown: 0.5
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  damage: 30
+  range: 3.5
+  isHolding: 0
+  thrustRadius: 1.5

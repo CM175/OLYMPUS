@@ -132,9 +132,6 @@ public class PlayerController : MonoBehaviour
         // Zero out horizontal velocity (X and Z) so the leap momentum stops
         _velocity.x = 0f;
         _velocity.z = 0f;
-        
-        // Optional: Reset any leap-specific flags if you added them
-        Debug.Log("Landed: Resetting horizontal momentum.");
     }
 
     private void HandleMovement()
