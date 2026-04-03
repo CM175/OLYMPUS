@@ -1,9 +1,9 @@
 // CapturePoint.cs
 using UnityEngine;
 
-/*public class CapturePoint : MonoBehaviour
+public class CapturePoint : MonoBehaviour
 {
-    public float captureRadius = 8f;
+    /*public float captureRadius = 8f;
     public float captureSpeed = 10f; // points per second while held
 
     [Range(0f, 100f)]
@@ -46,5 +46,5 @@ using UnityEngine;
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, captureRadius);
-    }
-}*/
+    }*/
+}
