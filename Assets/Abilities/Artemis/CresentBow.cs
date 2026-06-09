@@ -9,10 +9,25 @@ public class CrescentBowAbility : Attack
 
     [Header("Projectile")]
     public GameObject arrowPrefab;
-    //public Transform firePoint;
+
+    // Inside CrescentBow.cs
+    private bool _isUltActive = false;
+
+    public void SetUltimateModifications(bool active)
+    {
+        _isUltActive = active;
+    }
+
 
     public override void OnPress()
     {
+        
+        if (_isUltActive)
+        {
+            FireArrow(1.0f);
+            return;
+        }
+        
         isCharging = true;
         chargeStartTime = Time.time;
     }
@@ -47,8 +62,12 @@ public class CrescentBowAbility : Attack
             Debug.Log($"Storm Arrow");
             // Pass the charge ratio (0.0 to 1.0) to the arrow
             stormArrow.SetCharge(chargePercent);
+            stormArrow.piercesTargets = _isUltActive;
         }
 
         Debug.Log($"Fired bow with {chargePercent * 100f}% charge");
     }
+
+    
+    
 }
