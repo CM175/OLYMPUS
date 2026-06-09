@@ -147,4 +147,4 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  duration: 2
+  duration: 10

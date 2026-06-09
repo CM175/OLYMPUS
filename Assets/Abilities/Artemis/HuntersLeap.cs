@@ -5,16 +5,17 @@ public class HuntersLeap : Ability, IInitializable
     public float leapForce = 10f;
     public float leapHeight = 0.5f;
     private CharacterController _controller;
+    private PlayerController pc;
 
     public void Initialize(GameObject playerRoot)
     {
-        _controller = playerRoot.GetComponent<CharacterController>();
+        pc = playerRoot.GetComponent<PlayerController>();
     }
 
     protected override void Activate()
     {
+
         GameObject player = transform.root.gameObject;
-        PlayerController pc = player.GetComponent<PlayerController>();
 
         if (pc != null)
         {

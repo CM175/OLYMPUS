@@ -4,7 +4,6 @@ using System.Collections.Generic;
 public class BarrierDamage : MonoBehaviour
 {
     public int damage = 10;
-    [HideInInspector] public PlayerStats attackerStats;
 
     private Dictionary<Collider, float> _nextHitTime = new();
 

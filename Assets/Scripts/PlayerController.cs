@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     public float crouchSpeed = 3f;
     public float gravity = -9.81f;
     public float jumpHeight = 1.8f;
+    public float horizontalDrag = 8f;
 
     [Header("Crouch")]
     public float standingHeight = 2f;
@@ -33,7 +34,7 @@ public class PlayerController : MonoBehaviour
     private bool _isGrounded;
     private bool _isCrouching;
     private bool _jumpQueued;
-
+    public bool IsDashing { get; set; } = false;
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
@@ -90,14 +91,6 @@ public class PlayerController : MonoBehaviour
         _isCrouching = false;
     }
 
-    private void Update()
-    {
-        HandleGroundCheck();
-        HandleCrouchHeight();
-        HandleMovement();
-        HandleGravityAndJump();
-    }
-
     public void ApplyImpulse(Vector3 force)
     {
         // Adding to the current velocity creates a smooth transition
@@ -130,23 +123,32 @@ public class PlayerController : MonoBehaviour
     private void OnLand()
     {
         // Zero out horizontal velocity (X and Z) so the leap momentum stops
+            
         _velocity.x = 0f;
         _velocity.z = 0f;
+        
     }
 
-    private void HandleMovement()
+    private void Update()
     {
+        HandleGroundCheck();
+        HandleCrouchHeight();
+        
+        // Process movement inputs and physics into a single frame movement vector
+        ExecuteCombinedMovement();
+    }
+
+    private void ExecuteCombinedMovement()
+    {
+        if (IsDashing) return;
+        // 1. Calculate Horizontal Movement
         float baseSpeed = _isCrouching ? crouchSpeed : walkSpeed;
         float speed = baseSpeed * Mathf.Max(0f, SpeedMultiplier);
 
-        Vector3 move = transform.right * _moveInput.x
-                     + transform.forward * _moveInput.y;
+        Vector3 moveDirection = transform.right * _moveInput.x + transform.forward * _moveInput.y;
+        Vector3 horizontalMove = moveDirection * speed;
 
-        _controller.Move(move * speed * Time.deltaTime);
-    }
-
-    private void HandleGravityAndJump()
-    {
+        // 2. Calculate Vertical Physics (Gravity & Jumping)
         if (_jumpQueued && _isGrounded)
         {
             _velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
@@ -154,7 +156,17 @@ public class PlayerController : MonoBehaviour
         }
 
         _velocity.y += gravity * Time.deltaTime;
-        _controller.Move(_velocity * Time.deltaTime);
+
+
+        // 3. Combine them into one final frame vector
+        // Horizontal uses Time.deltaTime here, vertical velocity accumulates it natively
+        Vector3 finalFrameMovement = (horizontalMove * Time.deltaTime) + (_velocity * Time.deltaTime);
+
+        // 4. Single execution call ensures CharacterController.velocity is completely stable
+        if (_controller.enabled)
+        {
+            _controller.Move(finalFrameMovement);
+        }
     }
 
     private void HandleCrouchHeight()
@@ -180,5 +192,10 @@ public class PlayerController : MonoBehaviour
         }
 
         return transform.position + _controller.center - Vector3.up * (_controller.height / 2f);
+    }
+
+    public void SetVelocity(Vector3 newVelocity)
+    {
+        _velocity = newVelocity;
     }
 }
