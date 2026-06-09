@@ -63,6 +63,7 @@
     <Compile Include="Assets\Abilities\Artemis\HuntersLeap.cs" />
     <Compile Include="Assets\Scripts\PlayerHealth.cs" />
     <Compile Include="Assets\Scripts\PlayerController.cs" />
+    <Compile Include="Assets\Abilities\Artemis\MoonlightChase.cs" />
     <Compile Include="Assets\Scripts\Ultimate.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBarrier.cs" />
     <Compile Include="Assets\Scripts\PlayerRegistry.cs" />
@@ -74,7 +75,6 @@
     <Compile Include="Assets\Scripts\PrimaryAttack.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
-    <Compile Include="Assets\Abilities\Artemis\GreatConstellation.cs" />
     <Compile Include="Assets\Scripts\CapturePoint.cs" />
     <Compile Include="Assets\Scripts\BaseProjectile.cs" />
     <Compile Include="Assets\Abilities\Hermes\BlinkDash.cs" />
@@ -85,6 +85,7 @@
     <Compile Include="Assets\Abilities\Artemis\MoonlightTrap.cs" />
     <Compile Include="Assets\Scripts\LightningShieldEffect.cs" />
     <Compile Include="Assets\Abilities\Artemis\CresentBow.cs" />
+    <Compile Include="Assets\Scripts\CharacterSelectManager.cs" />
     <Compile Include="Assets\Abilities\Artemis\MoonlightTrapAbility.cs" />
     <Compile Include="Assets\Scripts\BarrierDamage.cs" />
     <Compile Include="Assets\Abilities\Hermes\FleetFooted.cs" />
@@ -99,7 +100,9 @@
     <Compile Include="Assets\Scripts\EnemySpawner.cs" />
     <Compile Include="Assets\Scripts\EnemyHealth.cs" />
     <Compile Include="Assets\Abilities\Achillies\BattleCry.cs" />
+    <Compile Include="Assets\Scripts\CharacterDatabase.cs" />
     <Compile Include="Assets\Abilities\Achillies\SpearThrust.cs" />
+    <Compile Include="Assets\Scripts\UICharacterSelectMenu.cs" />
     <Compile Include="Assets\Abilities\Achillies\SpearThrow.cs" />
   </ItemGroup>
   <ItemGroup>

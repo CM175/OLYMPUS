@@ -18,16 +18,24 @@ public class HeroManager : MonoBehaviour
 
     private AbilityManager _abilityManager;
 
-    void Start()
+    private void Awake()
     {
         _abilityManager = GetComponent<AbilityManager>();
+    }
 
+    void Start()
+    {
         if (heroPrefab != null)
             LoadHero(heroPrefab);
     }
 
     public void LoadHero(Hero prefab)
     {
+        if (_abilityManager == null)
+        {
+            Debug.Log("Ability manager is null");
+        }
+
         if (currentHero != null && currentHero.gameObject.scene.IsValid())
             Destroy(currentHero.gameObject);
 
@@ -35,7 +43,6 @@ public class HeroManager : MonoBehaviour
         currentHero.transform.SetParent(transform);
 
         _abilityManager.primaryAttack   = currentHero.primaryAttack;
-        
         _abilityManager.primaryAbility = currentHero.primaryAbility;
         _abilityManager.secondaryAbility = currentHero.secondaryAbility;
         _abilityManager.mobilityAbility  = currentHero.mobilityAbility;
@@ -45,13 +52,26 @@ public class HeroManager : MonoBehaviour
         InitializeUltimate();
         InitializePassive();
 
-        // Notify PlayerHealth directly — it's on the same GameObject,
-        // so a GetComponent is fine here (same object, not a scene search)
         GetComponent<PlayerHealth>()?.OnHeroLoaded(currentHero);
-
-        // Notify all subscribers (HUDController, future systems) via event
-        // — HeroManager has zero knowledge of who is listening
         OnHeroLoaded?.Invoke(currentHero);
+
+        // Turn on movement loops now that the layout is completely initialized
+        if (TryGetComponent<PlayerController>(out var controller))
+        {
+            controller.enabled = true;
+        }
+
+        var mouseLook = GetComponentInChildren<MouseLook>();
+        if (mouseLook != null)
+        {
+            mouseLook.enabled = true;
+            Debug.Log("[HeroManager] MouseLook script successfully re-enabled.");
+        }
+        else
+        {
+            Debug.LogWarning("[HeroManager] Could not find a mouse look script on the player or its children.");
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         Debug.Log($"[HeroManager] Loaded hero: {currentHero.heroName}");
     }
