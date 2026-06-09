@@ -8,13 +8,13 @@ public class MoonlightChase : Ultimate, IInitializable
     public float duration = 8f;
     public float speedBuffMultiplier = 1.3f; // +30% Speed
 
-    private GameObject _playerRoot;
     private PlayerController _playerController;
+    private CrescentBow bow;
 
     public void Initialize(GameObject playerRoot)
     {
-        _playerRoot = playerRoot;
         _playerController = playerRoot.GetComponent<PlayerController>();
+        bow = playerRoot.GetComponentInChildren<CrescentBow>();
     }
 
     protected override void Activate()
@@ -40,12 +40,13 @@ public class MoonlightChase : Ultimate, IInitializable
         // 5. Cleanup & Reset when ultimate expires
         _playerController.SpeedMultiplier = originalMultiplier;
         SetHuntState(false);
+        
+        StartCooldown();
     }
 
     private void SetHuntState(bool active)
     {
         // Communicate flags to Artemis' weapon or stats handler
-        CrescentBow bow = _playerRoot.GetComponentInChildren<CrescentBow>();
         if (bow != null)
         {
             bow.SetUltimateModifications(active);

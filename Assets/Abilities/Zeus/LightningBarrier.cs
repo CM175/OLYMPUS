@@ -19,13 +19,6 @@ public class LightningBarrier : Ability
         // PARENT the barrier to the player so it follows their movement
         barrier.transform.SetParent(playerTransform);
         barrier.transform.localPosition = new Vector3(0, 1, 0);
-        
-        // FIX: Assign the attacker stats to the barrier's damage script
-        BarrierDamage damageScript = barrier.GetComponent<BarrierDamage>();
-        if (damageScript != null)
-        {
-            damageScript.attackerStats = playerTransform.GetComponent<PlayerStats>();
-        }
 
         Destroy(barrier, duration);
         Debug.Log("Lightning Barrier activated");

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CrescentBowAbility : Attack
+public class CrescentBow : Attack
 {
     [Header("Charge Settings")]
     public float maxChargeTime = 2f;

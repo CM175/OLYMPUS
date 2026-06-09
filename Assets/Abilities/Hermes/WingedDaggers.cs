@@ -2,19 +2,22 @@ using UnityEngine;
 
 public class WingedDaggers : Attack
 {
+    [Header("Hermes Velocity Damage Settings")]
+    [Tooltip("The baseline speed above which damage starts scaling up (e.g., Hermes' default walk speed).")]
+    public float baseSpeedThreshold = 6f;
+    
+    [Tooltip("How aggressively the damage scales with extra velocity. Higher = more damage per unit of speed.")]
+    public float velocityScaleFactor = 0.15f;
 
     protected override void Activate()
     {
-        // Reference the player root for position and orientation
         Transform root = transform.root;
         
-        // Find potential targets in a small sphere at the dagger's reach
         Vector3 attackPoint = root.position + root.forward * (range / 2f);
         Collider[] hitEnemies = Physics.OverlapSphere(attackPoint, range / 2f);
 
         foreach (var enemy in hitEnemies)
         {
-            // Don't hit yourself
             if (enemy.transform.root == root) continue;
 
             IDamageable target = enemy.GetComponent<IDamageable>();
@@ -24,25 +27,49 @@ public class WingedDaggers : Attack
             }
         }
 
-        // Logic to trigger a "Swing" animation would go here
         Debug.Log("[WingedDaggers] Slashed!");
     }
 
     private void ApplyDamage(IDamageable target, Transform enemyTransform)
     {
-        PlayerStats stats = transform.root.GetComponent<PlayerStats>();
+        Transform root = transform.root;
+        PlayerStats stats = root.GetComponent<PlayerStats>();
+        CharacterController cc = root.GetComponent<CharacterController>();
+        
         int finalDamage = damage;
 
-        // Apply global damage multipliers from buffs like Ultimate or Passive
+        // 1. Apply baseline system architecture modifier
         if (stats != null)
         {
-            finalDamage = Mathf.RoundToInt(damage * stats.DamageMultiplier);
+            finalDamage = Mathf.RoundToInt(finalDamage * stats.DamageMultiplier);
+        }
+
+        // 2. HERMES ACTUAL VELOCITY MECHANIC
+        if (cc != null)
+        {
+            // cc.velocity returns actual current units/second (3D vector)
+            float actualSpeed = cc.velocity.magnitude;
+
+            if (actualSpeed > baseSpeedThreshold)
+            {
+                float excessSpeed = actualSpeed - baseSpeedThreshold;
+                
+                // Linear scaling formula: Damage * (1 + (excessSpeed * scaleFactor))
+                float damageMultiplier = 1f + (excessSpeed * velocityScaleFactor);
+                
+                finalDamage = Mathf.RoundToInt(finalDamage * damageMultiplier);
+                
+                Debug.Log($"[Hermes] Actual Speed: {actualSpeed:F2} m/s | velocity scale factor {velocityScaleFactor}  | Damage Scaled up to: {finalDamage}");
+            }
+            else
+            {
+                Debug.Log($"[Hermes] Base Speed: {actualSpeed:F2} m/s | Standard Damage: {finalDamage}");
+            }
         }
 
         target.TakeDamage(finalDamage);
     }
 
-    // Visualization for the editor
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

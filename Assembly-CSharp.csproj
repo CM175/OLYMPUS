@@ -57,6 +57,7 @@
     <Compile Include="Assets\Scripts\HeroManager.cs" />
     <Compile Include="Assets\Scripts\Hero.cs" />
     <Compile Include="Assets\Scripts\MapGenerator.cs" />
+    <Compile Include="Assets\Abilities\Artemis\CrescentBow.cs" />
     <Compile Include="Assets\Scripts\EnemyAI.cs" />
     <Compile Include="Assets\Abilities\Artemis\TrackThePrey.cs" />
     <Compile Include="Assets\Scripts\MouseLook.cs" />
@@ -84,10 +85,8 @@
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
     <Compile Include="Assets\Abilities\Artemis\MoonlightTrap.cs" />
     <Compile Include="Assets\Scripts\LightningShieldEffect.cs" />
-    <Compile Include="Assets\Abilities\Artemis\CresentBow.cs" />
     <Compile Include="Assets\Scripts\CharacterSelectManager.cs" />
     <Compile Include="Assets\Abilities\Artemis\MoonlightTrapAbility.cs" />
-    <Compile Include="Assets\Scripts\BarrierDamage.cs" />
     <Compile Include="Assets\Abilities\Hermes\FleetFooted.cs" />
     <Compile Include="Assets\Scripts\AbilityHUD.cs" />
     <Compile Include="Assets\Abilities\Achillies\SlayerOfTroy.cs" />
@@ -99,6 +98,7 @@
     <Compile Include="Assets\Abilities\Zeus\SkyCharge.cs" />
     <Compile Include="Assets\Scripts\EnemySpawner.cs" />
     <Compile Include="Assets\Scripts\EnemyHealth.cs" />
+    <Compile Include="Assets\Abilities\Zeus\BarrierDamage.cs" />
     <Compile Include="Assets\Abilities\Achillies\BattleCry.cs" />
     <Compile Include="Assets\Scripts\CharacterDatabase.cs" />
     <Compile Include="Assets\Abilities\Achillies\SpearThrust.cs" />

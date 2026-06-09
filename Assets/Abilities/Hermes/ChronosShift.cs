@@ -7,6 +7,7 @@ public class ChronosShift : Ultimate
     public float duration = 6f;
     public float hyperSpeedMultiplier = 2.0f;
     public float reducedBlinkCooldown = 1.0f;
+    private float originalSpeedMultiplier;
 
     protected override void Activate()
     {
@@ -22,8 +23,11 @@ public class ChronosShift : Ultimate
         float originalBlinkCD = 0f;
 
         // Apply Hyper-Speed
-        if (controller != null) controller.SpeedMultiplier += hyperSpeedMultiplier;
-
+        if (controller != null) 
+        {
+            originalSpeedMultiplier = controller.SpeedMultiplier;
+            controller.SpeedMultiplier = hyperSpeedMultiplier;
+        }
         // Reduce Blink Dash cooldown
         if (blink != null)
         {
@@ -36,7 +40,7 @@ public class ChronosShift : Ultimate
         yield return new WaitForSeconds(duration);
 
         // Reset Stats
-        if (controller != null) controller.SpeedMultiplier -= hyperSpeedMultiplier;
+        if (controller != null) controller.SpeedMultiplier = originalSpeedMultiplier;
         if (blink != null) blink.cooldown = originalBlinkCD;
 
         Debug.Log("[ChronosShift] Time resumed.");
