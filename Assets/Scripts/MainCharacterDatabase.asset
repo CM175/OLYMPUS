@@ -12,4 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f618be2434bfb474487563860670ce2c, type: 3}
   m_Name: MainCharacterDatabase
   m_EditorClassIdentifier: Assembly-CSharp::CharacterDatabase
-  characterPrefabs: []
+  characterPrefabs:
+  - {fileID: 2458631646282970328, guid: 9726485d70d048541b68ddb357834ba1, type: 3}
+  - {fileID: 1924039878049136692, guid: 02ef36e69b97f7146a915fc5eb93f260, type: 3}
+  - {fileID: 2771590579338888618, guid: 1f7f86c1b7df0564f9162d24f8ee7151, type: 3}
+  - {fileID: 127376535958184308, guid: 725df1fb59f35354da88fb89dbd3a129, type: 3}

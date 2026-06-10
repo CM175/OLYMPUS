@@ -60,6 +60,7 @@
     <Compile Include="Assets\Abilities\Artemis\CrescentBow.cs" />
     <Compile Include="Assets\Scripts\EnemyAI.cs" />
     <Compile Include="Assets\Abilities\Artemis\TrackThePrey.cs" />
+    <Compile Include="Assets\Abilities\Apollo\HymnOfRadiance.cs" />
     <Compile Include="Assets\Scripts\MouseLook.cs" />
     <Compile Include="Assets\Abilities\Artemis\HuntersLeap.cs" />
     <Compile Include="Assets\Scripts\PlayerHealth.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="Assets\Abilities\Achillies\ShieldBash.cs" />
     <Compile Include="Assets\Scripts\HUDController.cs" />
     <Compile Include="Assets\Abilities\Achillies\AchillesFury.cs" />
+    <Compile Include="Assets\Abilities\Apollo\SolarArrow.cs" />
     <Compile Include="Assets\Scripts\PrimaryAttack.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
@@ -104,6 +106,7 @@
     <Compile Include="Assets\Abilities\Achillies\SpearThrust.cs" />
     <Compile Include="Assets\Scripts\UICharacterSelectMenu.cs" />
     <Compile Include="Assets\Abilities\Achillies\SpearThrow.cs" />
+    <Compile Include="Assets\Abilities\Apollo\GoldenBow.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
