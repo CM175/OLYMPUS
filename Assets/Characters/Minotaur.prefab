@@ -1,0 +1,127 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4368917915713340982
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4253781051978825843}
+  - component: {fileID: 8894862967266644307}
+  - component: {fileID: 1837161773370203234}
+  - component: {fileID: 5517210552183172876}
+  - component: {fileID: -3766891880228399788}
+  m_Layer: 0
+  m_Name: Minotaur
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4253781051978825843
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 60.22063, y: 1.48272, z: -55.13945}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8894862967266644307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bcba9535a02f14abb0ffd67b139122, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Hero
+  heroName: Minotaur
+  role: Vanguard
+  health: 500
+  primaryAttack: {fileID: -3766891880228399788}
+  primaryAbility: {fileID: 1837161773370203234}
+  secondaryAbility: {fileID: 5517210552183172876}
+  mobilityAbility: {fileID: 0}
+  ultimateAbility: {fileID: 0}
+  passiveAbility: {fileID: 0}
+--- !u!114 &1837161773370203234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34b21beb02225cb48a7bd0bdb1c73825, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Charge
+  cooldown: 8
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  chargeSpeed: 10
+  chargeDuration: 1.5
+  hitSweepRadius: 2
+  impactDamage: 30
+  pinWallCrushDamage: 75
+--- !u!114 &5517210552183172876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41e3da4ca54074f4fb96f2aee2842048, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GroundSlam
+  cooldown: 6
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  leapForwardSpeed: 20
+  leapUpwardVelocity: 12
+  gravityScale: 30
+  slamRadius: 6
+  slamDamage: 45
+  knockupHeight: 3.5
+  knockupDuration: 0.5
+  inwardPullDistance: 2
+--- !u!114 &-3766891880228399788
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8f0f8d4ba6d20c468289b1ce902eaeb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AxeSwing
+  cooldown: 0.9
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  damage: 35
+  range: 3.5
+  isHolding: 0
+  swingAngle: 90
+  hitFlinchDuration: 0.2
+  hitPushForce: 1.5
+  vfxSwingLeftPrefab: {fileID: 0}
+  vfxSwingRightPrefab: {fileID: 0}
