@@ -71,9 +71,16 @@ public class Charge : Ability, IInitializable
             Vector3 movementThisFrame = chargeDirection * speed * Time.deltaTime;
             movementThisFrame.y = -4f * Time.deltaTime; 
 
-            CollisionFlags flags = _characterController.Move(movementThisFrame);
+            _characterController.Move(movementThisFrame);
 
-            if ((flags & CollisionFlags.Sides) != 0 )
+            int wallMask = LayerMask.GetMask("Ground");
+
+            if (Physics.Raycast(
+                _characterController.transform.position,
+                chargeDirection,
+                out RaycastHit ray,
+                1.2f,
+                wallMask))
             {
                 if (_pinnedAgent != null) ExecuteWallCrush();
                 yield return new WaitForSeconds(0.5f);
@@ -115,7 +122,20 @@ public class Charge : Ability, IInitializable
 
                             target.TakeDamage((int)(impactDamage* 0.5f));
                             if (enemyAI != null) enemyAI.Stun(1f);
-                            BounceEnemyAside(enemyAgent);
+
+                            Vector3 forward = transform.root.forward;
+                            forward.y = 0f;
+                            forward.Normalize();
+
+                            Vector3 toEnemy = enemyAgent.transform.position - _characterController.transform.position;
+                            toEnemy.y = 0f;
+                            toEnemy.Normalize();
+
+                            Vector3 sideDir = Vector3.Cross(forward, Vector3.up).normalized;
+
+                            if (Vector3.Dot(toEnemy, sideDir) < 0)
+                                sideDir = -sideDir;
+                            StartCoroutine(AnimateChargeBounce(enemyAgent, sideDir));
                         }
                     }
                 }
@@ -147,7 +167,6 @@ public class Charge : Ability, IInitializable
         {
             IDamageable targetDamage = _pinnedAgent.GetComponentInChildren<IDamageable>();
             targetDamage?.TakeDamage(impactDamage);
-            BounceEnemyAside(_pinnedAgent, 0.1f);
             _pinnedAgent.isStopped = false;
         }
 
@@ -172,13 +191,55 @@ public class Charge : Ability, IInitializable
         _pinnedAI = null;
     }
 
-    private void BounceEnemyAside(NavMeshAgent enemyAgent, float pushMultiplier = 1.0f)
+    private IEnumerator AnimateChargeBounce(NavMeshAgent agent, Vector3 direction)
     {
-        Vector3 sidePushDir = enemyAgent.transform.position - _characterController.transform.position;
-        sidePushDir.y = 0f;
-        sidePushDir.Normalize();
+        agent.isStopped = true;
 
-        Vector3 shoveVector = sidePushDir * (6f * pushMultiplier);
-        enemyAgent.Move(shoveVector);
+        float duration = 0.35f;
+        float elapsed = 0f;
+
+        direction += Random.insideUnitSphere * 0.1f;
+        direction.y = 0;
+        direction.Normalize();
+
+        Vector3 horizontalStep = direction * 3f;
+        float arcHeight = 0.5f;
+
+        EnemyAI ai = agent.GetComponent<EnemyAI>();
+        if (ai != null)
+        {
+            ai.Stun(duration + 0.2f);
+        }
+
+        Transform t = agent.transform;
+
+        Vector3 startPos = t.position;
+
+        while (elapsed < duration)
+        {
+            float tNorm = elapsed / duration;
+
+            // smooth arc (like GroundSlam knockup)
+            float heightOffset = Mathf.Sin(tNorm * Mathf.PI) * arcHeight;
+
+            Vector3 nextPos = startPos + (horizontalStep * tNorm);
+            nextPos.y += heightOffset;
+
+            if (NavMesh.SamplePosition(nextPos, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+            {
+                t.position = hit.position + Vector3.up * heightOffset;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // snap back to ground cleanly
+        if (NavMesh.SamplePosition(t.position, out NavMeshHit finalHit, 4f, NavMesh.AllAreas))
+        {
+            t.position = finalHit.position;
+        }
+
+        agent.isStopped = false;
     }
 }

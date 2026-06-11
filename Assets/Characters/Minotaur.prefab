@@ -98,7 +98,7 @@ MonoBehaviour:
   gravityScale: 30
   slamRadius: 6
   slamDamage: 45
-  knockupHeight: 3.5
+  knockupHeight: 1.5
   knockupDuration: 0.5
   inwardPullDistance: 2
 --- !u!114 &-3766891880228399788
@@ -121,7 +121,5 @@ MonoBehaviour:
   range: 3.5
   isHolding: 0
   swingAngle: 90
-  hitFlinchDuration: 0.2
-  hitPushForce: 1.5
   vfxSwingLeftPrefab: {fileID: 0}
   vfxSwingRightPrefab: {fileID: 0}
