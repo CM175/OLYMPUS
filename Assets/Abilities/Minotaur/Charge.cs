@@ -73,9 +73,10 @@ public class Charge : Ability, IInitializable
 
             CollisionFlags flags = _characterController.Move(movementThisFrame);
 
-            if ((flags & CollisionFlags.Sides) != 0 && _pinnedAgent != null)
+            if ((flags & CollisionFlags.Sides) != 0 )
             {
-                ExecuteWallCrush();
+                if (_pinnedAgent != null) ExecuteWallCrush();
+                yield return new WaitForSeconds(0.5f);
                 break;
             }
 
@@ -122,10 +123,15 @@ public class Charge : Ability, IInitializable
 
             if (_pinnedAgent != null && _pinnedAgent.gameObject != null)
             {
-                Vector3 holdPosition = _characterController.transform.position + (chargeDirection * 1.8f);
-                holdPosition.y = _pinnedAgent.transform.position.y; 
+                // Calculate where they should look to be resting flat against your front silhouette
+                Vector3 desiredPinnedPosition = _characterController.transform.position + (chargeDirection * 1.5f);
+                desiredPinnedPosition.y = _pinnedAgent.transform.position.y;
 
-                _pinnedAgent.transform.position = Vector3.Lerp(_pinnedAgent.transform.position, holdPosition, Time.deltaTime * 30f);
+                // Frame offset vector required to close the gap cleanly
+                Vector3 frameDisplacement = desiredPinnedPosition - _pinnedAgent.transform.position;
+                
+                // Let the NavMesh logic track movement constraints step-by-step
+                _pinnedAgent.Move(frameDisplacement * (Time.deltaTime * 25f));
             }
 
             elapsedTime += Time.deltaTime;
@@ -158,12 +164,10 @@ public class Charge : Ability, IInitializable
 
         if (_pinnedAI != null)
         {
-            _pinnedAI.Stun(2.5f);
+            _pinnedAI.Stun(1f);
+            Debug.Log("stunned by wall");
         }
-
-        BounceEnemyAside(_pinnedAgent, pushMultiplier: -0.5f);
         
-        _pinnedAgent.isStopped = false;
         _pinnedAgent = null;
         _pinnedAI = null;
     }
