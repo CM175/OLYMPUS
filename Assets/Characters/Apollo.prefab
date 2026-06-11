@@ -1,0 +1,162 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7704360750510248820
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2653865123288390823}
+  - component: {fileID: 7108884323069542451}
+  - component: {fileID: 2186120518631889998}
+  - component: {fileID: 3017909404082433866}
+  - component: {fileID: 2418821714516497560}
+  - component: {fileID: 838558696938162224}
+  - component: {fileID: 2190440241144756602}
+  m_Layer: 0
+  m_Name: Apollo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2653865123288390823
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7704360750510248820}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 60.22063, y: 1.48272, z: -55.13945}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7108884323069542451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7704360750510248820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bcba9535a02f14abb0ffd67b139122, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Hero
+  heroName: Apollo
+  role: Mystic
+  health: 200
+  primaryAttack: {fileID: 2186120518631889998}
+  primaryAbility: {fileID: 3017909404082433866}
+  secondaryAbility: {fileID: 2418821714516497560}
+  mobilityAbility: {fileID: 2190440241144756602}
+  ultimateAbility: {fileID: 838558696938162224}
+  passiveAbility: {fileID: 0}
+--- !u!114 &2186120518631889998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7704360750510248820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d48c629d1a9cc2459e0780ade616d01, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GoldenBow
+  cooldown: 0.5
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  damage: 10
+  range: 100
+  isHolding: 0
+  currentMode: 0
+  maxChargeTime: 1.5
+  lightArrowPrefab: {fileID: 3150148930126200046, guid: 266d29e3b6c53ac40b2a63dae038133d, type: 3}
+  solarFlarePrefab: {fileID: 3150148930126200046, guid: 266d29e3b6c53ac40b2a63dae038133d, type: 3}
+--- !u!114 &3017909404082433866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7704360750510248820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e8f0676cb0b0a84ab77c16c9645d014, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HymnOfRadiance
+  cooldown: 5
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  burstRadius: 8
+  healAmount: 50
+  damageAmount: 20
+--- !u!114 &2418821714516497560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7704360750510248820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53b22669cab965d4693c2f397452f2a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArrowSwap
+  cooldown: 0.5
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+--- !u!114 &838558696938162224
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7704360750510248820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b42f68a29069c7429561c81e095d277, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChariotOfTheSun
+  cooldown: 0
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  cost: 100
+  duration: 5
+  beamRadius: 6
+  damagePerTick: 10
+  healPerTick: 15
+  tickRate: 0.5
+  range: 10
+--- !u!114 &2190440241144756602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7704360750510248820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f3f79bff74c65f4e95e47b1a387e2d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SolarBlind
+  cooldown: 10
+  playerCamera: {fileID: 0}
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  flashRadius: 5
+  minorBurnDamage: 15
+  movementSlowAmount: 0.5
+  utilityDuration: 2
+  range: 15
