@@ -13,7 +13,7 @@ public class GroundSlam : Ability, IInitializable
     [Header("Impact Mechanics")]
     [SerializeField] private float slamRadius = 6f;
     [SerializeField] private int slamDamage = 45;
-    [SerializeField] private float knockupHeight = 3.5f; // How high they are popped up
+    [SerializeField] private float knockupHeight = 1.5f; // How high they are popped up
     [SerializeField] private float knockupDuration = 0.5f; // Suspension time
     [SerializeField] private float inwardPullDistance = 2f; // Distance pulled toward center
 
