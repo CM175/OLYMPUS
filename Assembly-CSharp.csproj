@@ -56,6 +56,7 @@
     <Compile Include="Assets\Abilities\Achillies\SpearProjectile.cs" />
     <Compile Include="Assets\Scripts\HeroManager.cs" />
     <Compile Include="Assets\Scripts\Hero.cs" />
+    <Compile Include="Assets\Abilities\Apollo\ArrowSwap.cs" />
     <Compile Include="Assets\Scripts\MapGenerator.cs" />
     <Compile Include="Assets\Abilities\Artemis\CrescentBow.cs" />
     <Compile Include="Assets\Scripts\EnemyAI.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="Assets\Scripts\Ultimate.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBarrier.cs" />
     <Compile Include="Assets\Scripts\PlayerRegistry.cs" />
+    <Compile Include="Assets\Abilities\Apollo\ChariotOfTheSun.cs" />
     <Compile Include="Assets\Abilities\Zeus\OlympianWrath.cs" />
     <Compile Include="Assets\Scripts\KillZone.cs" />
     <Compile Include="Assets\Abilities\Achillies\ShieldBash.cs" />
@@ -77,6 +79,7 @@
     <Compile Include="Assets\Abilities\Apollo\SolarArrow.cs" />
     <Compile Include="Assets\Scripts\PrimaryAttack.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
+    <Compile Include="Assets\Abilities\Apollo\SolarBlind.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
     <Compile Include="Assets\Scripts\CapturePoint.cs" />
     <Compile Include="Assets\Scripts\BaseProjectile.cs" />

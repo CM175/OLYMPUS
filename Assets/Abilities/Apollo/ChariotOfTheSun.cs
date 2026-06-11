@@ -8,6 +8,7 @@ public class ChariotOfTheSun : Ultimate, IInitializable
     public int damagePerTick = 10;
     public int healPerTick = 15;
     public float tickRate = 0.5f;
+    public float range = 100f;
 
     private PlayerController _playerController;
 
