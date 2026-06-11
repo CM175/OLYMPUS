@@ -56,6 +56,7 @@
     <Compile Include="Assets\Abilities\Achillies\SpearProjectile.cs" />
     <Compile Include="Assets\Scripts\HeroManager.cs" />
     <Compile Include="Assets\Scripts\Hero.cs" />
+    <Compile Include="Assets\Abilities\Minotaur\AxeSwing.cs" />
     <Compile Include="Assets\Abilities\Apollo\ArrowSwap.cs" />
     <Compile Include="Assets\Scripts\MapGenerator.cs" />
     <Compile Include="Assets\Abilities\Artemis\CrescentBow.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="Assets\InputSystem_Actions.cs" />
     <Compile Include="Assets\Abilities\Achillies\FrontalArmor.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBolt.cs" />
+    <Compile Include="Assets\Abilities\Minotaur\Charge.cs" />
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
     <Compile Include="Assets\Abilities\Artemis\MoonlightTrap.cs" />
     <Compile Include="Assets\Scripts\LightningShieldEffect.cs" />
@@ -107,6 +109,7 @@
     <Compile Include="Assets\Abilities\Achillies\BattleCry.cs" />
     <Compile Include="Assets\Scripts\CharacterDatabase.cs" />
     <Compile Include="Assets\Abilities\Achillies\SpearThrust.cs" />
+    <Compile Include="Assets\Abilities\Minotaur\GroundSlam.cs" />
     <Compile Include="Assets\Scripts\UICharacterSelectMenu.cs" />
     <Compile Include="Assets\Abilities\Achillies\SpearThrow.cs" />
     <Compile Include="Assets\Abilities\Apollo\GoldenBow.cs" />
