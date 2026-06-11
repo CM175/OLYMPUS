@@ -36,6 +36,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         if (IsInvincible) return;
         int reduced = UnityEngine.Mathf.RoundToInt(damage * (1f - DamageReduction));
         currentHealth -= reduced;
+        currentHealth = Mathf.Max(currentHealth, 0);
         if (currentHealth <= 0) Die();
     }
 
