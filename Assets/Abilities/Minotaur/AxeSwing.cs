@@ -51,7 +51,12 @@ public class AxeSwing : Attack, IInitializable
 
         foreach (var col in potentialTargets)
         {
-            if (col.transform.root == _rootTransform) continue;
+            var myTeam = transform.root.GetComponent<TeamMember>();
+                
+            if (myTeam != null && !myTeam.IsEnemy(col.transform.root.gameObject))
+            {
+                continue;
+            }
 
             // Melee Angle Verification Check (Using Dot Product matching the camera gaze)
             Vector3 toTargetFlat = col.transform.position - _rootTransform.position;

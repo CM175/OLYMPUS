@@ -61,6 +61,7 @@
     <Compile Include="Assets\Scripts\MapGenerator.cs" />
     <Compile Include="Assets\Abilities\Artemis\CrescentBow.cs" />
     <Compile Include="Assets\Scripts\EnemyAI.cs" />
+    <Compile Include="Assets\Scripts\DamageProxy.cs" />
     <Compile Include="Assets\Abilities\Artemis\TrackThePrey.cs" />
     <Compile Include="Assets\Abilities\Apollo\HymnOfRadiance.cs" />
     <Compile Include="Assets\Scripts\MouseLook.cs" />

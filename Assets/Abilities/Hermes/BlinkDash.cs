@@ -47,8 +47,8 @@ public class BlinkDash : Ability, IInitializable
 
     private IEnumerator Dash()
     {
-        int playerLayer = LayerMask.NameToLayer("Player");
-        int enemyLayer = LayerMask.NameToLayer("Enemy");
+        int playerLayer = LayerMask.NameToLayer("Character");
+        int enemyLayer = LayerMask.NameToLayer("Character");
 
         // 2. TURN OFF physics contact between Player and Enemy layers
         if (playerLayer != -1 && enemyLayer != -1)
@@ -91,9 +91,12 @@ public class BlinkDash : Ability, IInitializable
             foreach (var hit in hits)
             {
                 Transform enemyRoot = hit.transform.root;
+                var myTeam = transform.root.GetComponent<TeamMember>();
                 
-                if (enemyRoot == _characterController.transform || hitTargets.Contains(enemyRoot)) 
+                if (myTeam != null && !myTeam.IsEnemy(enemyRoot.gameObject) || hitTargets.Contains(enemyRoot))
+                {
                     continue;
+                }
 
                 IDamageable target = hit.GetComponent<Collider>().GetComponent<IDamageable>();
                 if (target != null)

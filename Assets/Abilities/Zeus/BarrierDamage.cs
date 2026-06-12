@@ -7,12 +7,17 @@ public class BarrierDamage : MonoBehaviour
 
     private Dictionary<Collider, float> _nextHitTime = new();
 
-    private void OnTriggerStay(Collider other)
+    private void OnTriggerStay(Collider col)
     {
-        if (!other.CompareTag("Enemy")) return;
-        if (_nextHitTime.TryGetValue(other, out float t) && Time.time < t) return;
+        var myTeam = transform.root.GetComponent<TeamMember>();
+                
+        if (myTeam != null && !myTeam.IsEnemy(col.transform.root.gameObject))
+        {
+            return;
+        }
+        if (_nextHitTime.TryGetValue(col, out float t) && Time.time < t) return;
         
-        other.GetComponent<IDamageable>()?.TakeDamage(damage);
-        _nextHitTime[other] = Time.time + 0.5f; // hit every 0.5s
+        col.GetComponent<IDamageable>()?.TakeDamage(damage);
+        _nextHitTime[col] = Time.time + 0.5f; // hit every 0.5s
     }
 }
