@@ -14,9 +14,9 @@ public class HymnOfRadiance : Ability
         foreach (var target in targets)
         {
             if (target.transform.root == transform.root) continue;
-
+            var myTeam = transform.root.GetComponent<TeamMember>();
             // Treat AI / Enemies
-            if (target.CompareTag("Enemy"))
+            if (myTeam != null && myTeam.IsEnemy(target.gameObject))
             {
                 var dmg = target.GetComponent<IDamageable>();
                 dmg?.TakeDamage(damageAmount);
@@ -31,12 +31,12 @@ public class HymnOfRadiance : Ability
                 }
             }
             // Treat Players / Friendly Targets
-            else if (target.CompareTag("Player"))
+            else if (myTeam != null && !myTeam.IsEnemy(target.gameObject))
             {
-                var pHealth = target.GetComponent<PlayerHealth>();
+                var pHealth = target.GetComponent<IDamageable>();
                 if (pHealth != null)
                 {
-                    pHealth.currentHealth = Mathf.Min(pHealth.maxHealth, pHealth.currentHealth + healAmount);
+                    pHealth.ApplyHeal(healAmount);
                 }
             }
         }

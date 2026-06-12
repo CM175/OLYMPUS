@@ -34,7 +34,9 @@ public class SolarBlind : Ability
         Collider[] victims = Physics.OverlapSphere(strikePoint, flashRadius);
         foreach (var victim in victims)
         {
-            if (victim.CompareTag("Enemy"))
+            var myTeam = transform.root.GetComponent<TeamMember>();
+            // Treat AI / Enemies
+            if (myTeam != null && myTeam.IsEnemy(victim.gameObject))
             {
                 // Apply damage via decoupling interface
                 victim.GetComponent<IDamageable>()?.TakeDamage(minorBurnDamage);

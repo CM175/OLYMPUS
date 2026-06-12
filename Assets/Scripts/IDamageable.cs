@@ -6,4 +6,5 @@
 public interface IDamageable
 {
     void TakeDamage(int damage);
+    void ApplyHeal(int heal);
 }

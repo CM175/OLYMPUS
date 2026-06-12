@@ -45,6 +45,12 @@ public class EnemyHealth : MonoBehaviour, IDamageable
             Die(attacker);
     }
 
+    public void ApplyHeal(int heal)
+    {
+        currentHealth += heal;
+        currentHealth = Mathf.Min(currentHealth, maxHealth);
+    }
+
     private void Die(GameObject attacker)
     {
         OnDeathWithKiller?.Invoke(attacker);

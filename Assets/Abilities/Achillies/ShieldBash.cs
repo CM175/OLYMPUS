@@ -20,9 +20,15 @@ public class ShieldBash : Ability
 
         foreach (var col in colliders)
         {
+            
             Vector3 toTarget = (col.transform.position - root.position).normalized;
             if (Vector3.Dot(root.forward, toTarget) < minDotProduct) continue;
 
+            var myTeam = transform.root.GetComponent<TeamMember>();
+            if (myTeam != null && !myTeam.IsEnemy(col.gameObject))
+            {
+                continue;
+            }
             IDamageable target = col.GetComponent<IDamageable>();
             if (target == null) continue;
 
