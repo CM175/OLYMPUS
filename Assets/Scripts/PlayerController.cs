@@ -37,6 +37,7 @@ public class PlayerController : MonoBehaviour, IMovementController
     private bool _isCrouching;
     private bool _jumpQueued;
     private bool _stunned;
+    public bool IsStunned => _stunned;
     public bool IsDashing { get; set; } = false;
 
     public void ApplyImpulseForce(Vector3 force)
@@ -236,4 +237,18 @@ public class PlayerController : MonoBehaviour, IMovementController
         abilityManager.enabled = true; // Re-enable abilities after stun
         _stunned = false;
     }
+
+    // Add these public methods inside the PlayerController class to satisfy the interface expansion
+
+    public Vector3 GetAimDirection()
+    {
+        // Fall back to Camera.main if an explicit reference isn't serialized
+        Camera mainCam = Camera.main;
+        if (mainCam != null) 
+        {
+            return mainCam.transform.forward;
+        }
+        return transform.forward;
+    }
+
 }

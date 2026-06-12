@@ -81,8 +81,5 @@ public class UICharacterSelectMenu : MonoBehaviour
         // 2. Show the real gameplay HUD (Crosshair, Health, etc.)
         if (gameplayHUDRoot != null) gameplayHUDRoot.SetActive(true);
         
-        // 3. Hand control safely back to the screen
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
 }

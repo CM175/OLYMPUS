@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine.AI;
 
 public class GroundSlam : Ability, IInitializable
@@ -17,15 +16,12 @@ public class GroundSlam : Ability, IInitializable
     [SerializeField] private float knockupDuration = 0.5f; // Suspension time
     [SerializeField] private float inwardPullDistance = 2f; // Distance pulled toward center
 
-    // REFACTORED: Use decoupled abstraction here instead of PlayerController directly
     private IMovementController _movementController;
-    private CharacterController _characterController; // May be null for AI
     private Transform _rootTransform;
 
     public void Initialize(GameObject playerRoot)
     {
         _rootTransform = playerRoot.transform;
-        _characterController = playerRoot.GetComponent<CharacterController>();
         _movementController = playerRoot.GetComponent<IMovementController>();
     }
 
@@ -42,9 +38,10 @@ public class GroundSlam : Ability, IInitializable
 
     private IEnumerator SlamRoutine()
     {
+        Debug.Log($"{_rootTransform.root.name} is executing Ground Slam!");
         _movementController.IsDashing = true;
 
-        // FIXED: Safe directional fallback if playerCamera is null (for AI bots)
+        // Safe directional fallback if playerCamera is null (works perfectly for AI bots)
         Vector3 forwardDir = (playerCamera != null) ? playerCamera.transform.forward : _rootTransform.forward;
         forwardDir.y = 0f;
         forwardDir.Normalize();
@@ -52,27 +49,23 @@ public class GroundSlam : Ability, IInitializable
         Vector3 airVelocity = (forwardDir * leapForwardSpeed) + (Vector3.up * leapUpwardVelocity);
         yield return new WaitForSeconds(0.05f);
 
+        // Track the height relative to where the jump started to determine landing cleanly
+        float groundY = _rootTransform.position.y;
+        if (NavMesh.SamplePosition(_rootTransform.position, out NavMeshHit groundHit, 2f, NavMesh.AllAreas))
+        {
+            groundY = groundHit.position.y;
+        }
+
         while (true)
         {
             airVelocity.y -= gravityScale * Time.deltaTime;
             Vector3 frameMovement = airVelocity * Time.deltaTime;
 
-            // REFACTORED: Displace layout coordinates via the abstraction interface
+            // Displace layout coordinates completely via the abstraction interface
             _movementController.TeleportOrMove(frameMovement);
 
-            // Check if we've landed. CharacterController has a built-in grounded flag;
-            // AI agents (no CharacterController) use a NavMesh proximity check instead.
-            bool grounded;
-            if (_characterController != null)
-            {
-                grounded = _characterController.isGrounded;
-            }
-            else
-            {
-                grounded = airVelocity.y < 0f
-                    && NavMesh.SamplePosition(_rootTransform.position, out NavMeshHit groundHit, 0.3f, NavMesh.AllAreas)
-                    && Mathf.Abs(groundHit.position.y - _rootTransform.position.y) < 0.15f;
-            }
+            // Ground check abstracted from explicit component types
+            bool grounded = airVelocity.y < 0f && _rootTransform.position.y <= (groundY + 0.1f);
 
             if (grounded)
                 break;
@@ -101,70 +94,69 @@ public class GroundSlam : Ability, IInitializable
         
         foreach (Collider target in hitColliders)
         {
+            Transform targetRoot = target.transform.root;
             var myTeam = _rootTransform.GetComponent<TeamMember>();
                 
-            if (myTeam != null && !myTeam.IsEnemy(target.transform.root.gameObject))
+            if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject) || targetRoot == _rootTransform)
             {
                 continue;
             }
 
-            IDamageable damageable = target.transform.root.GetComponent<IDamageable>();
+            IDamageable damageable = targetRoot.GetComponent<IDamageable>() ?? targetRoot.GetComponentInChildren<IDamageable>();
             if (damageable != null)
             {
                 damageable.TakeDamage(slamDamage);
 
-                // Handle NavMeshAgent crowd control natively
-                NavMeshAgent agent = target.transform.root.GetComponent<NavMeshAgent>();
-                EnemyAI enemyAI = target.transform.root.GetComponent<EnemyAI>();
-
-                if (agent != null && agent.enabled)
+                // Dynamically route crowd control strictly using the target's controller layer
+                IMovementController targetMovement = targetRoot.GetComponent<IMovementController>();
+                if (targetMovement != null)
                 {
-                    Vector3 toCenter = impactPosition - target.transform.position;
+                    Vector3 toCenter = impactPosition - targetRoot.position;
                     toCenter.y = 0f;
                     Vector3 pullDirection = toCenter.normalized;
 
-                    if (enemyAI != null)
-                    {
-                        enemyAI.Stun(knockupDuration + 0.5f); 
-                    }
-
-                    StartCoroutine(AnimateAgentKnockup(agent, pullDirection));
+                    StartCoroutine(AnimateTargetKnockup(targetMovement, targetRoot, pullDirection));
                 }
             }
         }
     }
 
-    private IEnumerator AnimateAgentKnockup(NavMeshAgent agent, Vector3 pullDirection)
+    private IEnumerator AnimateTargetKnockup(IMovementController targetMovement, Transform targetTransform, Vector3 pullDirection)
     {
-        agent.isStopped = true;
+        targetMovement.IsDashing = true;
+        targetMovement.HaltVelocity();
 
         float elapsed = 0f;
         Vector3 pullStep = pullDirection * (inwardPullDistance / knockupDuration);
 
+        float originalY = targetTransform.position.y;
+
         while (elapsed < knockupDuration)
         {
             float normalizedTime = elapsed / knockupDuration;
-            float currentHeight = Mathf.Sin(normalizedTime * Mathf.PI) * knockupHeight;
-
-            agent.Move(pullStep * Time.deltaTime);
-
-            Transform modelTransform = agent.transform;
-            Vector3 targetPos = modelTransform.position;
             
-            if (NavMesh.SamplePosition(targetPos, out NavMeshHit hit, 2f, NavMesh.AllAreas))
-            {
-                modelTransform.position = new Vector3(targetPos.x, hit.position.y + currentHeight, targetPos.z);
-            }
+            // Calculate height via a smooth sine wave arc step
+            float desiredHeight = Mathf.Sin(normalizedTime * Mathf.PI) * knockupHeight;
+
+            // Combine horizontal pulling and target height correction into a decoupled vector displacement
+            Vector3 targetPosition = targetTransform.position + (pullStep * Time.deltaTime);
+            targetPosition.y = originalY + desiredHeight;
+
+            Vector3 displacementThisFrame = targetPosition - targetTransform.position;
+            targetMovement.TeleportOrMove(displacementThisFrame);
 
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        if (NavMesh.SamplePosition(agent.transform.position, out NavMeshHit finalFloor, 4f, NavMesh.AllAreas))
+        // Snap cleanly back to ground level definitions
+        if (NavMesh.SamplePosition(targetTransform.position, out NavMeshHit finalFloor, 4f, NavMesh.AllAreas))
         {
-            agent.transform.position = finalFloor.position;
+            Vector3 finalSnap = finalFloor.position - targetTransform.position;
+            targetMovement.TeleportOrMove(finalSnap);
         }
 
-        agent.isStopped = false;
+        targetMovement.HaltVelocity();
+        targetMovement.IsDashing = false;
     }
 }

@@ -200,6 +200,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 1
   chargeSpeed: 10
   chargeDuration: 1.5
   hitSweepRadius: 2
@@ -221,6 +222,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 1
   leapForwardSpeed: 20
   leapUpwardVelocity: 12
   gravityScale: 30
@@ -245,6 +247,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   damage: 35
   range: 3.5
   isHolding: 0

@@ -6,19 +6,41 @@ public class AIMovementController : MonoBehaviour, IMovementController
 {
     private NavMeshAgent _agent;
     private EnemyAI _enemyAI;
+    private float _baseSpeed;
 
     public bool IsDashing { get; set; } = false;
+        
+    private bool _isStunned = false;
+    public bool IsStunned => _isStunned;
+
+
+    // Track speed changes dynamically on the NavMeshAgent
+    private float _speedMultiplier = 1f;
+    public float SpeedMultiplier
+    {
+        get => _speedMultiplier;
+        set
+        {
+            _speedMultiplier = value;
+            if (_agent != null)
+            {
+                _agent.speed = _baseSpeed * _speedMultiplier;
+            }
+        }
+    }
 
     private void Awake()
     {
         _agent = GetComponent<NavMeshAgent>();
         _enemyAI = GetComponent<EnemyAI>();
+        if (_agent != null)
+        {
+            _baseSpeed = _agent.speed;
+        }
     }
 
     public void ApplyImpulseForce(Vector3 force)
     {
-        // NavMeshAgents don't use conventional physics forces. 
-        // We simulate an impulse using standard NavMeshAgent translation or an instantaneous push.
         if (_agent.enabled && _agent.isOnNavMesh)
         {
             _agent.Move(force * Time.deltaTime);
@@ -33,17 +55,38 @@ public class AIMovementController : MonoBehaviour, IMovementController
         }
         else
         {
-            // Fall back to direct transform displacement if the agent has been
-            // pushed off the NavMesh (e.g. mid-charge/slam airborne movement).
             transform.position += displacement;
         }
     }
 
     public void HaltVelocity()
     {
-        if (_agent.enabled && _agent.isOnNavMesh && !_agent.isStopped)
+        if (_agent.enabled && _agent.isOnNavMesh)
         {
             _agent.velocity = Vector3.zero;
         }
+    }
+
+    public Vector3 GetAimDirection()
+    {
+        // An AI's forward gaze vector represents its aiming direction context cleanly
+        return transform.forward;
+    }
+
+    // Add this backing field and property to your AIMovementController class
+    public void Stun(float duration)
+    {
+        if (_enemyAI != null && _enemyAI.enabled)
+        {
+            StartCoroutine(StunDurationTracker(duration));
+            _enemyAI.Stun(duration);
+        }
+    }
+
+    private System.Collections.IEnumerator StunDurationTracker(float duration)
+    {
+        _isStunned = true;
+        yield return new WaitForSeconds(duration);
+        _isStunned = false;
     }
 }

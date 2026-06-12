@@ -6,7 +6,6 @@ public class SolarBlind : Ability
     public float flashRadius = 5f;
     public int minorBurnDamage = 15;
     public float utilityDuration = 2f;
-
     public float range = 15f;
 
     protected override void Activate()
@@ -17,36 +16,32 @@ public class SolarBlind : Ability
             return;
         }
 
-        // Fire a raycast or check origin directly in front of camera sightline
         Vector3 strikePoint = playerCamera.transform.position + playerCamera.transform.forward * range;
         if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit hit, range))
         {
             strikePoint = hit.point;
         }
 
-        // Spawn visual explosion if set
         if (vfxPrefab != null)
         {
             Instantiate(vfxPrefab, strikePoint, Quaternion.identity);
         }
 
-        // Detect targets caught in the flash area
         Collider[] victims = Physics.OverlapSphere(strikePoint, flashRadius);
         foreach (var victim in victims)
         {
+            Transform victimRoot = victim.transform.root;
             var myTeam = transform.root.GetComponent<TeamMember>();
-            // Treat AI / Enemies
+            
             if (myTeam != null && myTeam.IsEnemy(victim.gameObject))
             {
-                // Apply damage via decoupling interface
-                victim.GetComponent<IDamageable>()?.TakeDamage(minorBurnDamage);
+                victimRoot.GetComponent<IDamageable>()?.TakeDamage(minorBurnDamage);
 
-                // Safe hook into NavMesh AI to simulate a disorientation stun/slow
-                var enemyAI = victim.transform.root.GetComponent<EnemyAI>();
-                if (enemyAI != null)
+                // OPTIMIZED: Replaced EnemyAI lookup with a unified generic Stun call via interface
+                IMovementController movement = victimRoot.GetComponent<IMovementController>();
+                if (movement != null)
                 {
-                    enemyAI.Stun(utilityDuration);
-                    Debug.Log($"[SolarBlind] Disoriented AI unit: {victim.name}");
+                    movement.Stun(utilityDuration);
                 }
             }
         }

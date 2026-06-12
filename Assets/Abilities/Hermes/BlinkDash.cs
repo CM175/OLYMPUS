@@ -10,7 +10,6 @@ public class BlinkDash : Ability, IInitializable
     public float hitSweepRadius = 2.5f;
     public int dashDamage = 25;
 
-    // Use decoupled abstraction here instead of PlayerController
     private IMovementController _movementController;
     private Transform _rootTransform;
 
@@ -18,11 +17,6 @@ public class BlinkDash : Ability, IInitializable
     {
         _rootTransform = playerRoot.transform;
         _movementController = playerRoot.GetComponent<IMovementController>();
-        
-        if (playerCamera == null)
-        {
-            playerCamera = playerRoot.GetComponentInChildren<Camera>();
-        }
     }
 
     protected override void Activate()
@@ -41,14 +35,13 @@ public class BlinkDash : Ability, IInitializable
         int characterLayer = LayerMask.NameToLayer("Character");
         if (characterLayer != -1)
         {
-            // Ignore collision dynamically during phase execution windows
             Physics.IgnoreLayerCollision(characterLayer, characterLayer, true);
         }
 
         _movementController.IsDashing = true;
 
-        // FIXED: Camera directional check safe fallback routine
-        Vector3 dashDirection = (playerCamera != null) ? playerCamera.transform.forward : _rootTransform.forward;
+        // OPTIMIZED: Replaced explicit camera checks with decoupled look/aim signatures
+        Vector3 dashDirection = _movementController.GetAimDirection();
 
         if (!allowVerticalDashing)
         {
@@ -67,11 +60,8 @@ public class BlinkDash : Ability, IInitializable
         while (elapsedTime < dashDuration)
         {
             Vector3 movementThisFrame = dashDirection * dashSpeed * Time.deltaTime;
-            
-            // Decoupled execution call works for both AI and Human systems seamlessly
             _movementController.TeleportOrMove(movementThisFrame);
 
-            // Dynamic Hit Detection Sweep logic safely stays intact
             Collider[] hits = Physics.OverlapSphere(_rootTransform.position, hitSweepRadius);
             foreach (var hit in hits)
             {
@@ -83,7 +73,7 @@ public class BlinkDash : Ability, IInitializable
                     continue;
                 }
 
-                IDamageable target = hit.GetComponent<Collider>()?.GetComponent<IDamageable>();
+                IDamageable target = enemyRoot.GetComponent<IDamageable>() ?? enemyRoot.GetComponentInChildren<IDamageable>();
                 if (target != null)
                 {
                     target.TakeDamage(dashDamage);
