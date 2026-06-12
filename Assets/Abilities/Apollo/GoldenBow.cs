@@ -29,26 +29,7 @@ public class GoldenBow : Attack
         float chargeTime = Time.time - _chargeStartTime;
         float chargePercent = Mathf.Clamp01(chargeTime / maxChargeTime);
 
-        
-        // Choose prefab dynamically based on active ArrowMode
-        if (currentMode == ArrowMode.Damage)
-        {
-            selectedPrefab =  lightArrowPrefab;
-            SolarArrow arrow = selectedPrefab.GetComponent<SolarArrow>();
-            arrow.SetAttacker(transform.root.gameObject);
-            arrow.isHealingArrow = false;
-        }
-        else
-        {
-            selectedPrefab = solarFlarePrefab;
-            
-            SolarArrow arrow = selectedPrefab.GetComponent<SolarArrow>();
-            
-            arrow.SetAttacker(transform.root.gameObject);
-            arrow.isHealingArrow = true;
-        }
-
-        FireArrow(selectedPrefab, chargePercent);
+        FireArrow(chargePercent, currentMode);
         StartCooldown();
         
 
@@ -67,8 +48,10 @@ public class GoldenBow : Attack
         
     }
 
-    private void FireArrow(GameObject prefab, float chargePercent)
+    private void FireArrow(float chargePercent, ArrowMode mode)
     {
+        
+        GameObject prefab = mode == ArrowMode.Healing ? solarFlarePrefab : lightArrowPrefab;
         if (prefab == null || playerCamera == null) return;
 
         Vector3 spawnPos = playerCamera.transform.position + playerCamera.transform.forward;
@@ -77,6 +60,8 @@ public class GoldenBow : Attack
         SolarArrow arrowScript = arrow.GetComponent<SolarArrow>();
         if (arrowScript != null)
         {
+            arrowScript.SetAttacker(transform.root.gameObject);
+            arrowScript.isHealingArrow = mode == ArrowMode.Healing;
             arrowScript.InitializeChargedProjectile(chargePercent);
         }
     }

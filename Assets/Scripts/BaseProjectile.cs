@@ -69,6 +69,7 @@ public class BaseProjectile : MonoBehaviour
     {
         if (attackerRoot != null)
         {
+            Debug.Log($"[BaseProjectile] Attacker: {attackerRoot.name}, Target: {other.gameObject.name}");
             var myTeam = attackerRoot.GetComponent<TeamMember>();
             if (myTeam != null && !myTeam.IsEnemy(other.gameObject))
             {
