@@ -21,9 +21,6 @@ public class CharacterSelectManager : MonoBehaviour
 
     private void Start()
     {
-        if (heroManager == null)
-            heroManager = FindFirstObjectByType<HeroManager>();
-
         if (loadDefaultOnStart && characterDatabase != null && characterDatabase.CharacterCount > 0)
         {
             SelectCharacter(defaultHeroIndex);
@@ -52,7 +49,7 @@ public class CharacterSelectManager : MonoBehaviour
         }
 
         Hero confirmedPrefab = characterDatabase.GetHeroAtIndex(_currentSelectedIndex);
-        if (confirmedPrefab != null && heroManager != null)
+        if (confirmedPrefab != null)
         {
             // Inject selection dynamically into your runtime gameplay framework
             matchManager.SpawnHumanPlayer(confirmedPrefab);
