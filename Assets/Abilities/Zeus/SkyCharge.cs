@@ -84,8 +84,12 @@ public class SkyCharge : Ability, IInitializable
             {
                 Transform enemyRoot = hit.transform.root;
                 
-                if (enemyRoot == _characterController.transform || hitTargets.Contains(enemyRoot)) 
+                var myTeam = transform.root.GetComponent<TeamMember>();
+                
+                if (myTeam != null && !myTeam.IsEnemy(enemyRoot.gameObject) || hitTargets.Contains(enemyRoot))
+                {
                     continue;
+                }
 
                 IDamageable target = hit.GetComponent<Collider>().GetComponent<IDamageable>();
                 if (target != null)

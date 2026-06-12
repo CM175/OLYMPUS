@@ -35,6 +35,7 @@ public class GoldenBow : Attack
         {
             selectedPrefab =  lightArrowPrefab;
             SolarArrow arrow = selectedPrefab.GetComponent<SolarArrow>();
+            arrow.SetAttacker(transform.root.gameObject);
             arrow.isHealingArrow = false;
         }
         else
@@ -42,6 +43,8 @@ public class GoldenBow : Attack
             selectedPrefab = solarFlarePrefab;
             
             SolarArrow arrow = selectedPrefab.GetComponent<SolarArrow>();
+            
+            arrow.SetAttacker(transform.root.gameObject);
             arrow.isHealingArrow = true;
         }
 

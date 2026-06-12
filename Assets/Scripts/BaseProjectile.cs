@@ -15,6 +15,13 @@ public class BaseProjectile : MonoBehaviour
     protected Vector3 spawnPosition;
     protected Rigidbody rb;
 
+    protected GameObject attackerRoot;
+
+    public virtual void SetAttacker(GameObject attacker)
+    {
+        attackerRoot = attacker.transform.root.gameObject;
+    }
+
     protected virtual void Start()
     {
         spawnPosition = transform.position;
@@ -60,6 +67,14 @@ public class BaseProjectile : MonoBehaviour
 
     protected void ApplyDamage(Collider other)
     {
+        if (attackerRoot != null)
+        {
+            var myTeam = attackerRoot.GetComponent<TeamMember>();
+            if (myTeam != null && !myTeam.IsEnemy(other.gameObject))
+            {
+                return; 
+            }
+        }
         var hit = other.GetComponent<IDamageable>();
         hit?.TakeDamage(damage);
     }

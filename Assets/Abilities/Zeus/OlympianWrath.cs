@@ -37,7 +37,12 @@ public class OlympianWrath : Ultimate
 
             foreach (var col in targets)
             {
-                if (col.CompareTag("Player")) continue;
+                var myTeam = transform.root.GetComponent<TeamMember>();
+                
+                if (myTeam != null && !myTeam.IsEnemy(col.transform.root.gameObject))
+                {
+                    continue;
+                }
 
                 IDamageable target = col.GetComponent<IDamageable>();
                 if (target != null)

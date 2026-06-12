@@ -45,8 +45,8 @@ public class Charge : Ability, IInitializable
         _pinnedAI = null;
         _hitSecondaryTargets.Clear(); // Reset registry at the start of the skill
 
-        int playerLayer = LayerMask.NameToLayer("Player");
-        int enemyLayer = LayerMask.NameToLayer("Enemy");
+        int playerLayer = LayerMask.NameToLayer("Character");
+        int enemyLayer = LayerMask.NameToLayer("Character");
 
         if (playerLayer != -1 && enemyLayer != -1)
         {
@@ -92,7 +92,12 @@ public class Charge : Ability, IInitializable
 
             foreach (var hit in hits)
             {
-                if (hit.transform.root == transform.root) continue;
+                var myTeam = transform.root.GetComponent<TeamMember>();
+                
+                if (myTeam != null && !myTeam.IsEnemy(hit.transform.root.gameObject))
+                {
+                    continue;
+                }
 
                 // Stop multi-frame hitting: skip if this enemy has already been swiped
                 if (_hitSecondaryTargets.Contains(hit.transform.root)) continue;

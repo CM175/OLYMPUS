@@ -56,6 +56,7 @@ public class CrescentBow : Attack
     {
         GameObject arrow = Instantiate(arrowPrefab, playerCamera.transform.position + playerCamera.transform.forward, playerCamera.transform.rotation);
         StormArrow stormArrow = arrow.GetComponent<StormArrow>();
+        stormArrow.SetAttacker(transform.root.gameObject); 
         if (stormArrow != null)
         {
             

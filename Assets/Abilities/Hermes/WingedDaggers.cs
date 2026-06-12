@@ -18,9 +18,14 @@ public class WingedDaggers : Attack
 
         foreach (var enemy in hitEnemies)
         {
-            if (enemy.transform.root == root) continue;
+            var myTeam = transform.root.GetComponent<TeamMember>();
+                
+            if (myTeam != null && !myTeam.IsEnemy(enemy.gameObject))
+            {
+                continue;
+            }
 
-            IDamageable target = enemy.GetComponentInParent<IDamageable>();
+            IDamageable target = enemy.GetComponent<IDamageable>();
             if (target != null)
             {
                 ApplyDamage(target);

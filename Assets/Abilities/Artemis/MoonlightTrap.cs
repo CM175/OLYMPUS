@@ -5,7 +5,6 @@ public class MoonlightTrap : BaseProjectile
     [Header("Trap Settings")]
     public float triggerRadius = 2f;
     public float trappedDuration = 1.5f;
-    public LayerMask enemyLayer;
     private bool _isArmed = false;
     protected override void Start()
     {
@@ -38,7 +37,7 @@ public class MoonlightTrap : BaseProjectile
         }
 
         // Manual check for enemies walking over the trap
-        Collider[] victims = Physics.OverlapSphere(transform.position, triggerRadius, enemyLayer);
+        Collider[] victims = Physics.OverlapSphere(transform.position, triggerRadius);
         if (victims.Length > 0)
         {
             TriggerTrap(victims[0]);
@@ -47,6 +46,13 @@ public class MoonlightTrap : BaseProjectile
 
     private void TriggerTrap(Collider victim)
     {
+        var myTeam = transform.root.GetComponent<TeamMember>();
+                
+        if (myTeam != null && !myTeam.IsEnemy(victim.gameObject))
+        {
+            return;
+        }
+
         ApplyDamage(victim);
         
         // Custom logic: Stop the player from moving

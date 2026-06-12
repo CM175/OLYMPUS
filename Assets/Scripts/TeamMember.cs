@@ -9,7 +9,7 @@ public class TeamMember : MonoBehaviour
     // Helper method to check if another object is an enemy
     public bool IsEnemy(GameObject other)
     {
-        if (other.TryGetComponent<TeamMember>(out var otherTeam))
+        if (other.transform.root.TryGetComponent<TeamMember>(out var otherTeam))
         {
             return otherTeam.team != this.team;
         }

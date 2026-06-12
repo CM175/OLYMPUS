@@ -80,7 +80,12 @@ public class GroundSlam : Ability, IInitializable
         
         foreach (Collider target in hitColliders)
         {
-            if (target.transform.root == transform.root) continue;
+            var myTeam = transform.root.GetComponent<TeamMember>();
+                
+            if (myTeam != null && !myTeam.IsEnemy(target.transform.root.gameObject))
+            {
+                continue;
+            }
 
             IDamageable damageable = target.GetComponent<IDamageable>();
             if (damageable != null)

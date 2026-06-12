@@ -17,10 +17,20 @@ public class LightningBolt : Attack
         if (Physics.Raycast(ray, out RaycastHit hit, range))
         {
             endPoint = hit.point;
-
-            IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
+            // ADD THIS: Validate team allocation
+            var myTeam = transform.root.GetComponent<TeamMember>();
+            Collider hitObject = hit.collider;
+            if (myTeam != null && !myTeam.IsEnemy(hitObject.transform.root.gameObject))
+            {
+                // Hit a teammate! Stop execution or draw a standard miss line
+                StartCoroutine(ShowBolt(transform.position, endPoint));
+                return;
+            }
+            
+            IDamageable target = hitObject.GetComponent<IDamageable>();
             if (target != null)
             {
+                Debug.Log($"[LightningBolt] Hit {hitObject.name} for {damage} damage!");
                 // No more PlayerStats parameter — charge awards via static event
                 target.TakeDamage(damage);
 
@@ -30,9 +40,10 @@ public class LightningBolt : Attack
 
                 foreach (var col in nearby)
                 {
-                    if (col.gameObject == hit.collider.gameObject) continue;
-                    if (col.gameObject.transform == transform.root ) continue;
-                    if (col.GetComponentInParent<IDamageable>() == null)   continue;
+                    
+                    if (!myTeam.IsEnemy(col.transform.root.gameObject)) continue;
+                    if (col.gameObject == hitObject.gameObject) continue;
+                    if (col.GetComponent<IDamageable>() == null)   continue;
 
                     float dist = Vector3.Distance(hit.point, col.transform.position);
                     if (dist < bestDist)
@@ -44,7 +55,7 @@ public class LightningBolt : Attack
 
                 if (bestTarget != null)
                 {
-                    bestTarget.GetComponentInParent<IDamageable>().TakeDamage((int)(damage * 0.5f));
+                    bestTarget.GetComponent<IDamageable>().TakeDamage((int)(damage * 0.5f));
                     StartCoroutine(ShowChainArc(hit.point, bestTarget.transform.position));
                 }
             }

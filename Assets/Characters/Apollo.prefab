@@ -172,6 +172,7 @@ GameObject:
   - component: {fileID: 4719824725035841650}
   - component: {fileID: 5874023635054581957}
   - component: {fileID: 653359409321825747}
+  - component: {fileID: 7400117135167561480}
   m_Layer: 8
   m_Name: Capsule
   m_TagString: Untagged
@@ -274,3 +275,15 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7400117135167561480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8071542630441323196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 451a25366226fcf489517fe5d99587ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DamageProxy
