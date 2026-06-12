@@ -25,6 +25,7 @@ public class LightningBarrier : Ability
         StartCoroutine(WaitToStartCooldown(duration));
     }
 
+
     private IEnumerator WaitToStartCooldown(float time)
     {
         yield return new WaitForSeconds(time);

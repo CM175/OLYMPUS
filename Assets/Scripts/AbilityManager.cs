@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class AbilityManager : MonoBehaviour
 {
-    
+    public bool isPlayer = false; 
     public Attack primaryAttack;
     
     public Ability primaryAbility;
@@ -22,6 +22,7 @@ public class AbilityManager : MonoBehaviour
 
     private void Awake()
     {
+        if (!isPlayer) return; 
         _input = new InputSystem_Actions();
         // Changed: Call StartCharging on press, but Use/Activate on release
         _onAttack = ctx =>
@@ -41,6 +42,8 @@ public class AbilityManager : MonoBehaviour
 
     private void OnEnable()
     {
+        if (!isPlayer) return; 
+
         _input.Player.Enable();
         // Changed: Subscribe to started (press) and canceled (release) as well
         _input.Player.Attack.started   += _onAttack;
@@ -56,6 +59,7 @@ public class AbilityManager : MonoBehaviour
 
     private void OnDisable()
     {
+        if (!isPlayer) return; 
         _input.Player.Attack.started   -= _onAttack;
         _input.Player.Attack.performed -= _onAttack;
         _input.Player.Attack.canceled  -= _onAttack;

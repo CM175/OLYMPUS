@@ -29,6 +29,15 @@ public class HUDController : MonoBehaviour
     [Header("Ult Ready")]
     public GameObject ultReadyIndicator;
 
+    public void Initialize(GameObject player)
+    {
+        playerHealth = player.GetComponent<PlayerHealth>();
+        abilityManager = player.GetComponent<AbilityManager>();
+        playerStats = player.GetComponent<PlayerStats>();
+        heroManager = player.GetComponent<HeroManager>();
+
+    }
+
     private void OnEnable()
     {
         if (heroManager != null)

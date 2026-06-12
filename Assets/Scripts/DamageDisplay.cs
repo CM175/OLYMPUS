@@ -15,6 +15,6 @@ public class DamageDisplay : MonoBehaviour
 
     void ShowDamage(int damage)
     {
-        Debug.Log($"{gameObject.name} took {damage} damage. Health: {_health.health}");
+        Debug.Log($"{gameObject.name} took {damage} damage. Health: {_health.currentHealth}");
     }
 }

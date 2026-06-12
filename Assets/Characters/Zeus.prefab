@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 204290176932405347}
   - component: {fileID: 4598133940750652961}
   - component: {fileID: 2604176348958728968}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Zeus
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -151,6 +151,18 @@ PrefabInstance:
     m_TransformParent: {fileID: 7108211114672188586}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 3e8eb7e1659c2ca41827aaeb8b9431b4, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3e8eb7e1659c2ca41827aaeb8b9431b4, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3e8eb7e1659c2ca41827aaeb8b9431b4, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 3e8eb7e1659c2ca41827aaeb8b9431b4, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -193,6 +205,14 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 3e8eb7e1659c2ca41827aaeb8b9431b4, type: 3}
       propertyPath: m_Name
       value: ZeusModel
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 3e8eb7e1659c2ca41827aaeb8b9431b4, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 8164078558771037576, guid: 3e8eb7e1659c2ca41827aaeb8b9431b4, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
