@@ -18,7 +18,7 @@ public class LightningBolt : Attack
         {
             endPoint = hit.point;
 
-            IDamageable target = hit.collider.GetComponent<IDamageable>();
+            IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
             if (target != null)
             {
                 // No more PlayerStats parameter — charge awards via static event
@@ -32,7 +32,7 @@ public class LightningBolt : Attack
                 {
                     if (col.gameObject == hit.collider.gameObject) continue;
                     if (col.gameObject.transform == transform.root ) continue;
-                    if (col.GetComponent<IDamageable>() == null)   continue;
+                    if (col.GetComponentInParent<IDamageable>() == null)   continue;
 
                     float dist = Vector3.Distance(hit.point, col.transform.position);
                     if (dist < bestDist)
@@ -44,7 +44,7 @@ public class LightningBolt : Attack
 
                 if (bestTarget != null)
                 {
-                    bestTarget.GetComponent<IDamageable>().TakeDamage((int)(damage * 0.5f));
+                    bestTarget.GetComponentInParent<IDamageable>().TakeDamage((int)(damage * 0.5f));
                     StartCoroutine(ShowChainArc(hit.point, bestTarget.transform.position));
                 }
             }
@@ -75,7 +75,6 @@ public class LightningBolt : Attack
                 // Add random "divine jitter" to make it look like lightning
                 float jitterAmount = 0.5f; 
                 midPoint += Random.insideUnitSphere * jitterAmount;
-                
                 arc.SetPosition(i, midPoint);
             }
 

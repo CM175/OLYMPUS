@@ -82,6 +82,7 @@
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Abilities\Apollo\SolarBlind.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
+    <Compile Include="Assets\Scripts\MatchManager.cs" />
     <Compile Include="Assets\Scripts\CapturePoint.cs" />
     <Compile Include="Assets\Scripts\BaseProjectile.cs" />
     <Compile Include="Assets\Abilities\Hermes\BlinkDash.cs" />
@@ -89,6 +90,7 @@
     <Compile Include="Assets\Abilities\Achillies\FrontalArmor.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBolt.cs" />
     <Compile Include="Assets\Abilities\Minotaur\Charge.cs" />
+    <Compile Include="Assets\Scripts\TeamMember.cs" />
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
     <Compile Include="Assets\Abilities\Artemis\MoonlightTrap.cs" />
     <Compile Include="Assets\Scripts\LightningShieldEffect.cs" />

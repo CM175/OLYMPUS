@@ -20,17 +20,17 @@ public class WingedDaggers : Attack
         {
             if (enemy.transform.root == root) continue;
 
-            IDamageable target = enemy.GetComponent<IDamageable>();
+            IDamageable target = enemy.GetComponentInParent<IDamageable>();
             if (target != null)
             {
-                ApplyDamage(target, enemy.transform);
+                ApplyDamage(target);
             }
         }
 
         Debug.Log("[WingedDaggers] Slashed!");
     }
 
-    private void ApplyDamage(IDamageable target, Transform enemyTransform)
+    private void ApplyDamage(IDamageable target)
     {
         Transform root = transform.root;
         PlayerStats stats = root.GetComponent<PlayerStats>();

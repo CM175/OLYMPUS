@@ -6,6 +6,7 @@ public class CharacterSelectManager : MonoBehaviour
     [Header("Dependencies")]
     [SerializeField] private CharacterDatabase characterDatabase;
     [SerializeField] private HeroManager heroManager;
+    [SerializeField] private MatchManager matchManager;
 
     [Header("Settings")]
     [SerializeField] private bool loadDefaultOnStart = false;
@@ -54,7 +55,7 @@ public class CharacterSelectManager : MonoBehaviour
         if (confirmedPrefab != null && heroManager != null)
         {
             // Inject selection dynamically into your runtime gameplay framework
-            heroManager.LoadHero(confirmedPrefab);
+            matchManager.SpawnHumanPlayer(confirmedPrefab);
             OnHeroConfirmed?.Invoke(confirmedPrefab);
             
             Debug.Log($"[CharSelect] Successfully confirmed and loaded: {confirmedPrefab.heroName}");

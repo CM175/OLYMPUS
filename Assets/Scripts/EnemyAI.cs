@@ -1,86 +1,123 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(AbilityManager))]
+
+[RequireComponent(typeof(TeamMember))]
+
 public class EnemyAI : MonoBehaviour
 {
     [Header("Detection")]
-    public float detectionRange = 20f;
-    public float loseRange      = 25f;
+    public float detectionRange = 25f;
+    public float loseRange      = 35f;
+    public LayerMask searchMask; // Set this to your Player/Hitbox layers
 
     [Header("Patrol")]
     public float patrolWaitTime = 2f;
-    public float patrolRadius   = 10f;
+    public float patrolRadius   = 15f;
 
-    private NavMeshAgent  _agent;
-    private Transform     _player;
-    private EnemyAttack   _attack;
-
+    private NavMeshAgent   _agent;
+    private AbilityManager _abilityManager;
+    private TeamMember     _teamMember;
+    
+    private Transform      _currentTarget;
     private enum State { Idle, Patrol, Chase, Stunned }
     private State _state = State.Idle;
 
     private float _patrolWaitTimer;
     private bool  _waitingAtPoint;
-
-    // ── Lifecycle ────────────────────────────────────────────────────────────
+    private float _targetScanTimer;
+    private const float SCAN_INTERVAL = 0.5f; // Scan for targets twice a second
 
     private void Awake()
     {
-        _agent  = GetComponent<NavMeshAgent>();
-        _attack = GetComponent<EnemyAttack>();
+        _agent          = GetComponent<NavMeshAgent>();
+        _abilityManager = GetComponent<AbilityManager>();
+        _teamMember     = GetComponent<TeamMember>();
     }
 
     private void Start()
     {
-        
-        _player = PlayerRegistry.Player;
-        if (_player == null)
-            Debug.LogError($"[{GetType().Name}] No registered player found.");
         _state = State.Patrol;
         SetNewPatrolPoint();
     }
 
-    // ── Update ───────────────────────────────────────────────────────────────
-
     private void Update()
     {
-        if (_player == null || _state == State.Stunned) return;
+        if (_state == State.Stunned) return;
 
-        float distToPlayer = Vector3.Distance(transform.position, _player.position);
+        HandleTargetScanning();
 
         switch (_state)
         {
             case State.Idle:
             case State.Patrol:
                 HandlePatrol();
-                if (distToPlayer <= detectionRange)
+                if (_currentTarget != null)
+                {
                     _state = State.Chase;
+                }
                 break;
 
             case State.Chase:
-                HandleChase();
-                if (distToPlayer > loseRange)
+                if (_currentTarget == null)
                 {
                     _state = State.Patrol;
                     SetNewPatrolPoint();
+                    break;
                 }
+                HandleChase();
                 break;
         }
     }
 
-    // ── Public API ───────────────────────────────────────────────────────────
+    // ── Target Sensing ───────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Briefly interrupts the enemy's AI and movement (called by ShieldBash).
-    /// Safe to call while already stunned — just extends the duration.
-    /// </summary>
-    public void Stun(float duration)
+    private void HandleTargetScanning()
     {
-        StartCoroutine(StunRoutine(duration));
+        _targetScanTimer += Time.deltaTime;
+        if (_targetScanTimer < SCAN_INTERVAL) return;
+        _targetScanTimer = 0f;
+
+        // If chasing, verify target isn't too far away
+        if (_currentTarget != null)
+        {
+            float dist = Vector3.Distance(transform.position, _currentTarget.position);
+            if (dist > loseRange || !_currentTarget.gameObject.activeInHierarchy)
+            {
+                _currentTarget = null;
+            }
+            return;
+        }
+
+        // Search for nearest opposing team member
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRange, searchMask);
+        float closestDist = float.MaxValue;
+        Transform bestTarget = null;
+
+        foreach (var col in colliders)
+        {
+            
+            if (col.gameObject == this.gameObject) continue;
+            
+            if (_teamMember.IsEnemy(col.gameObject))
+            {
+                float dist = Vector3.Distance(transform.position, col.transform.position);
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    bestTarget = col.transform;
+                }
+            }
+        }
+
+        _currentTarget = bestTarget;
     }
 
-    // ── Patrol ───────────────────────────────────────────────────────────────
+    // ── Patrol & Chase Movement ──────────────────────────────────────────────
 
     private void HandlePatrol()
     {
@@ -88,8 +125,8 @@ public class EnemyAI : MonoBehaviour
         {
             if (!_waitingAtPoint)
             {
-                _waitingAtPoint    = true;
-                _patrolWaitTimer   = patrolWaitTime;
+                _waitingAtPoint  = true;
+                _patrolWaitTimer = patrolWaitTime;
             }
 
             _patrolWaitTimer -= Time.deltaTime;
@@ -105,22 +142,65 @@ public class EnemyAI : MonoBehaviour
     private void SetNewPatrolPoint()
     {
         Vector3 randomDir = Random.insideUnitSphere * patrolRadius + transform.position;
-
         NavMeshHit hit;
         if (NavMesh.SamplePosition(randomDir, out hit, patrolRadius, NavMesh.AllAreas))
             _agent.SetDestination(hit.position);
     }
 
-    // ── Chase ────────────────────────────────────────────────────────────────
-
     private void HandleChase()
     {
-        float stopAt = _attack != null ? _attack.attackRange * 0.9f : 1.5f;
-        _agent.stoppingDistance = stopAt;
-        _agent.SetDestination(_player.position);
+        // Soft-coded combat ranges based on loaded primary attack settings
+        float combatRange = 10f; 
+        _agent.stoppingDistance = combatRange * 0.8f;
+        _agent.SetDestination(_currentTarget.position);
+
+        // Always face the target smoothly while fighting
+        Vector3 lookDir = (_currentTarget.position - transform.position).normalized;
+        lookDir.y = 0;
+        if (lookDir != Vector3.zero)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 10f);
+        }
+
+        // Combat logic engagement 
+        ExecuteCombatAbilities(Vector3.Distance(transform.position, _currentTarget.position));
     }
 
-    // ── Stun coroutine ───────────────────────────────────────────────────────
+    // ── AI Ability Usage Execution ───────────────────────────────────────────
+
+    private void ExecuteCombatAbilities(float distanceToTarget)
+    {
+        // 1. Primary Weapon fire condition
+        if (distanceToTarget <= 15f && _abilityManager.primaryAttack != null)
+        {
+            _abilityManager.primaryAttack.Use();
+        }
+
+        // 2. Tactical / Crowd Control Ability condition (e.g., Shield Bash / Lightning Bolt)
+        if (distanceToTarget <= 8f && _abilityManager.primaryAbility != null)
+        {
+            _abilityManager.primaryAbility.Use();
+        }
+
+        // 3. Mobility condition if the target is pulling away
+        if (distanceToTarget >= 18f && _abilityManager.mobilityAbility != null)
+        {
+            _abilityManager.mobilityAbility.Use();
+        }
+        
+        // 4. Fire Ultimate if within range
+        if (distanceToTarget <= 12f && _abilityManager.ultimateAbility != null)
+        {
+            _abilityManager.ultimateAbility.Use();
+        }
+    }
+
+    // ── Status Effects ───────────────────────────────────────────────────────
+
+    public void Stun(float duration)
+    {
+        StartCoroutine(StunRoutine(duration));
+    }
 
     private IEnumerator StunRoutine(float duration)
     {
@@ -130,11 +210,12 @@ public class EnemyAI : MonoBehaviour
 
         yield return new WaitForSeconds(duration);
 
-        _agent.isStopped = false;
-        _state           = previousState == State.Stunned ? State.Patrol : previousState;
+        if (_agent != null && gameObject.activeInHierarchy)
+        {
+            _agent.isStopped = false;
+            _state           = previousState == State.Stunned ? State.Patrol : previousState;
+        }
     }
-
-    // ── Gizmos ───────────────────────────────────────────────────────────────
 
     private void OnDrawGizmosSelected()
     {

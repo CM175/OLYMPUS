@@ -4,16 +4,12 @@ public class HeroManager : MonoBehaviour
 {
     [Header("Settings")]
     public Hero heroPrefab;
-    public Camera playerCamera;
+    public Camera playerCamera; // Can be null for AI Bots
 
     [Header("State")]
     public Hero currentHero;
+    public bool isAIControlled = false;
 
-    /// <summary>
-    /// Fired whenever a hero is fully loaded and wired up.
-    /// HUDController (and any other interested system) subscribes to this
-    /// instead of being searched for by HeroManager.
-    /// </summary>
     public event System.Action<Hero> OnHeroLoaded;
 
     private AbilityManager _abilityManager;
@@ -21,6 +17,12 @@ public class HeroManager : MonoBehaviour
     private void Awake()
     {
         _abilityManager = GetComponent<AbilityManager>();
+        
+        // Auto-detect if this root object is meant to be an AI or human
+        if (GetComponent<EnemyAI>() != null || GetComponent<PlayerController>() == null)
+        {
+            isAIControlled = true;
+        }
     }
 
     void Start()
@@ -33,7 +35,8 @@ public class HeroManager : MonoBehaviour
     {
         if (_abilityManager == null)
         {
-            Debug.Log("Ability manager is null");
+            Debug.LogError($"[HeroManager] AbilityManager missing on {gameObject.name}");
+            return;
         }
 
         if (currentHero != null && currentHero.gameObject.scene.IsValid())
@@ -42,8 +45,9 @@ public class HeroManager : MonoBehaviour
         currentHero = Instantiate(prefab, transform.position, transform.rotation);
         currentHero.transform.SetParent(transform);
 
-        _abilityManager.primaryAttack   = currentHero.primaryAttack;
-        _abilityManager.primaryAbility = currentHero.primaryAbility;
+        // Map Hero prefab abilities to the runtime AbilityManager
+        _abilityManager.primaryAttack    = currentHero.primaryAttack;
+        _abilityManager.primaryAbility   = currentHero.primaryAbility;
         _abilityManager.secondaryAbility = currentHero.secondaryAbility;
         _abilityManager.mobilityAbility  = currentHero.mobilityAbility;
         _abilityManager.ultimateAbility  = currentHero.ultimateAbility;
@@ -52,51 +56,56 @@ public class HeroManager : MonoBehaviour
         InitializeUltimate();
         InitializePassive();
 
+        // Support health tracking dynamically
         GetComponent<PlayerHealth>()?.OnHeroLoaded(currentHero);
+        GetComponent<EnemyHealth>()?.OnHeroLoaded(currentHero); // Add hook if your AI uses a separate script
+
         OnHeroLoaded?.Invoke(currentHero);
 
-        // Turn on movement loops now that the layout is completely initialized
-        if (TryGetComponent<PlayerController>(out var controller))
+        // Human-only initialization
+        if (!isAIControlled)
         {
-            controller.enabled = true;
-        }
+            if (TryGetComponent<PlayerController>(out var controller))
+            {
+                controller.enabled = true;
+            }
 
-        var mouseLook = GetComponentInChildren<MouseLook>();
-        if (mouseLook != null)
-        {
-            mouseLook.enabled = true;
-            Debug.Log("[HeroManager] MouseLook script successfully re-enabled.");
+            var mouseLook = GetComponentInChildren<MouseLook>();
+            if (mouseLook != null)
+            {
+                mouseLook.enabled = true;
+            }
         }
         else
         {
-            Debug.LogWarning("[HeroManager] Could not find a mouse look script on the player or its children.");
+            // Enable AI loops once hero layout is completely set up
+            if (TryGetComponent<EnemyAI>(out var ai))
+            {
+                ai.enabled = true;
+            }
         }
-        // ─────────────────────────────────────────────────────────────────────
 
-        Debug.Log($"[HeroManager] Loaded hero: {currentHero.heroName}");
+        Debug.Log($"[HeroManager] Loaded hero: {currentHero.heroName} (AI: {isAIControlled})");
     }
-
-    // ── Private helpers ───────────────────────────────────────────────────────
 
     private void GiveCameraToAbilities()
     {
+        // For human players, provide the camera; for AIs, it safely remains null
         InitializeAbility(_abilityManager.primaryAttack);
-        
         InitializeAbility(_abilityManager.primaryAbility);
         InitializeAbility(_abilityManager.secondaryAbility);
         InitializeAbility(_abilityManager.mobilityAbility);
         InitializeAbility(_abilityManager.ultimateAbility);
     }
 
-    /// <summary>
-    /// Gives every ability its camera reference, and calls Initialize()
-    /// on any ability that needs player root access (e.g. SkyCharge).
-    /// </summary>
     private void InitializeAbility(Ability ability)
     {
         if (ability == null) return;
 
-        ability.playerCamera = playerCamera;
+        if (!isAIControlled)
+        {
+            ability.playerCamera = playerCamera;
+        }
 
         if (ability is IInitializable init)
             init.Initialize(gameObject);
@@ -107,24 +116,17 @@ public class HeroManager : MonoBehaviour
         if (_abilityManager.ultimateAbility == null) return;
 
         PlayerStats stats = GetComponent<PlayerStats>();
-        if (stats == null)
-        {
-            Debug.LogError("[HeroManager] No PlayerStats found — ultimate will not function.");
-            return;
-        }
+        if (stats == null) return; // AIs can utilize a simplified stats block or bypass
 
         _abilityManager.ultimateAbility.Initialize(stats);
     }
 
     private void InitializePassive()
     {
-        
-        Debug.Log("Init Passive");
         if (currentHero.passiveAbility == null) return;
 
         if (currentHero.passiveAbility is IInitializable init)
         {
-            Debug.Log("Passive Initialized");
             init.Initialize(gameObject);
         }
         
