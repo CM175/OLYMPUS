@@ -10,6 +10,8 @@ public class AbilityManager : MonoBehaviour
     public Ability secondaryAbility;
     public Ability mobilityAbility;
     public Ultimate ultimateAbility;
+
+    private Ability[] abilities => new[] { primaryAbility, secondaryAbility, mobilityAbility, ultimateAbility };
     private InputSystem_Actions _input;
 
     // Store references so we can unsubscribe correctly
@@ -69,5 +71,28 @@ public class AbilityManager : MonoBehaviour
         _input.Player.Mobility.performed  -= _onMobility;
         _input.Player.Ultimate.performed  -= _onUltimate;
         _input.Player.Disable();
+    }
+
+    public bool HasActiveExclusiveAbility()
+    {
+        // Check primary weapon attacks
+        if (primaryAttack != null && primaryAttack.isExecuting && primaryAttack.exclusiveState) return true;
+
+        // Loop through standard utility/mobility ability arrays safely
+        if (abilities != null)
+        {
+            foreach (var ability in abilities)
+            {
+                if (ability != null && ability.isExecuting && ability.exclusiveState)
+                {
+                    return true;
+                }
+            }
+        }
+
+        // Check ultimate active window states
+        if (ultimateAbility != null && ultimateAbility.isExecuting && ultimateAbility.exclusiveState) return true;
+
+        return false;
     }
 }

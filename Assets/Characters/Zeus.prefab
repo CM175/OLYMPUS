@@ -74,8 +74,9 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   damage: 40
-  range: 30
+  range: 15
   isHolding: 0
   chainRange: 15
   boltLine: {fileID: 1296805581021919717, guid: 8401c1cf4a97053448e1ef8c8e2ab404, type: 3}
@@ -96,6 +97,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 9032819149719097012, guid: 02b75287dd698614f99816a27e8c329a, type: 3}
   sprite: {fileID: 21300000, guid: f68e3626cf1c7c34ab1064c4dba43755, type: 3}
+  exclusiveState: 0
   cost: 5000
   radius: 15
   duration: 6
@@ -119,6 +121,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 4259436044319103786, guid: a91c56ed49e736f4ba8f61e4ed848614, type: 3}
   sprite: {fileID: 21300000, guid: 6868b430b09f9bf41bc59369f818063a, type: 3}
+  exclusiveState: 1
   duration: 4
   contactDamage: 10
 --- !u!114 &2604176348958728968
@@ -137,6 +140,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 21300000, guid: 21a8a9158a0a9de41a4e644dddcff575, type: 3}
+  exclusiveState: 0
   dashSpeed: 50
   dashDuration: 0.15
   allowVerticalDashing: 1

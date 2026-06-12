@@ -13,31 +13,31 @@ public class HymnOfRadiance : Ability
 
         foreach (var target in targets)
         {
-            if (target.transform.root == transform.root) continue;
+            Transform targetRoot = target.transform.root;
+            if (targetRoot == transform.root) continue;
+            
             var myTeam = transform.root.GetComponent<TeamMember>();
-            // Treat AI / Enemies
+            
+            // Handle opposing targets
             if (myTeam != null && myTeam.IsEnemy(target.gameObject))
             {
-                var dmg = target.transform.root.GetComponent<IDamageable>();
+                var dmg = targetRoot.GetComponent<IDamageable>();
                 dmg?.TakeDamage(damageAmount);
                 
-                // Add minor knockback impulse using the AI routing definitions if present
-                var navAI = target.transform.root.GetComponent<UnityEngine.AI.NavMeshAgent>();
-                if (navAI != null && navAI.enabled)
+                // OPTIMIZED: Use interface impulses instead of tight NavMeshAgent coupling
+                IMovementController movement = targetRoot.GetComponent<IMovementController>();
+                if (movement != null)
                 {
-                    Vector3 pushDir = (target.transform.position - origin).normalized;
+                    Vector3 pushDir = (targetRoot.position - origin).normalized;
                     pushDir.y = 0;
-                    navAI.Move(pushDir * 2.5f);
+                    movement.ApplyImpulseForce(pushDir * 150f); // Scale force up contextually for continuous calculations
                 }
             }
-            // Treat Players / Friendly Targets
+            // Handle friendly targets
             else if (myTeam != null && !myTeam.IsEnemy(target.gameObject))
             {
-                var pHealth = target.transform.root.GetComponent<IDamageable>();
-                if (pHealth != null)
-                {
-                    pHealth.ApplyHeal(healAmount);
-                }
+                var pHealth = targetRoot.GetComponent<IDamageable>();
+                pHealth?.ApplyHeal(healAmount);
             }
         }
 
@@ -46,7 +46,6 @@ public class HymnOfRadiance : Ability
             Instantiate(vfxPrefab, origin, Quaternion.identity);
         }
 
-        Debug.Log("[HymnOfRadiance] Concordant melody resonated.");
         StartCooldown();
     }
 }

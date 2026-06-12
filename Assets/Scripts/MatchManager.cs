@@ -32,7 +32,7 @@ public class MatchManager : MonoBehaviour
         int totalAvailableHeroes = characterDatabase.CharacterCount;
 
         // ── TEAM A (Human Player + 4 AI Companions) ──
-        for (int i = 1; i < 1; i++)
+        for (int i = 1; i < 5; i++)
         {
             GameObject characterRoot = Instantiate(aiBotRootPrefab, teamASpawns[i].position, teamASpawns[i].rotation);
             if (characterRoot.TryGetComponent<EnemyHealth>(out var eHealth))
@@ -47,7 +47,7 @@ public class MatchManager : MonoBehaviour
             manager.heroPrefab = characterDatabase.GetHeroAtIndex(i % totalAvailableHeroes);
         }
         // ── TEAM B (5 AI Competitors) ──
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 5; i++)
         {
             GameObject characterRoot = Instantiate(aiBotRootPrefab, teamBSpawns[i].position, teamBSpawns[i].rotation);
             
@@ -61,7 +61,7 @@ public class MatchManager : MonoBehaviour
 
             // Offset selection sequence (e.g., i + 2) so Team B gets a different composition variance than Team A
             var manager = characterRoot.GetComponent<HeroManager>();
-            manager.heroPrefab = characterDatabase.GetHeroAtIndex(/*(i + 2) % totalAvailableHeroes*/ 5);
+            manager.heroPrefab = characterDatabase.GetHeroAtIndex((i ) % totalAvailableHeroes );
         }
     }
 

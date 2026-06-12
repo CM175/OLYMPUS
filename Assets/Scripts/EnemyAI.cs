@@ -184,6 +184,11 @@ public class EnemyAI : MonoBehaviour
             _abilityManager.primaryAbility.Use();
         }
 
+        if (distanceToTarget <= 10f && _abilityManager.secondaryAbility != null)
+        {
+            _abilityManager.secondaryAbility.Use();
+        }
+
         // 3. Mobility condition if the target is pulling away
         if (distanceToTarget >= 18f && _abilityManager.mobilityAbility != null)
         {
@@ -206,6 +211,7 @@ public class EnemyAI : MonoBehaviour
 
     private IEnumerator StunRoutine(float duration)
     {
+        if (!_agent.enabled) yield break;
         State previousState = _state;
         _state           = State.Stunned;
         _agent.isStopped = true;

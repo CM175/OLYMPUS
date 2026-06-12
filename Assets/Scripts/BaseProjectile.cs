@@ -14,7 +14,6 @@ public class BaseProjectile : MonoBehaviour
 
     protected Vector3 spawnPosition;
     protected Rigidbody rb;
-
     protected GameObject attackerRoot;
 
     public virtual void SetAttacker(GameObject attacker)
@@ -26,12 +25,10 @@ public class BaseProjectile : MonoBehaviour
     {
         spawnPosition = transform.position;
         rb = GetComponent<Rigidbody>(); 
-        // We removed InitializeMovement() from here so it doesn't fire prematurely
     }
 
     protected virtual void InitializeMovement()
     {
-        // Default straight-line movement
         if (rb != null)
         {
             rb.useGravity = gravityScale > 0;
@@ -41,14 +38,12 @@ public class BaseProjectile : MonoBehaviour
 
     protected virtual void Update()
     {
-        // Self-destruct if out of range
         if (Vector3.Distance(spawnPosition, transform.position) >= maxRange)
         {
             Destroy(gameObject);
         }
     }
 
-    // This is called by Unity Physics (Ensure Collider is a Trigger)
     protected virtual void OnTriggerEnter(Collider other)
     {
         OnImpact(other);
@@ -67,16 +62,19 @@ public class BaseProjectile : MonoBehaviour
 
     protected void ApplyDamage(Collider other)
     {
+        Transform targetRoot = other.transform.root;
+
         if (attackerRoot != null)
         {
-            Debug.Log($"[BaseProjectile] Attacker: {attackerRoot.name}, Target: {other.gameObject.name}");
             var myTeam = attackerRoot.GetComponent<TeamMember>();
-            if (myTeam != null && !myTeam.IsEnemy(other.gameObject))
+            if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject))
             {
                 return; 
             }
         }
-        var hit = other.GetComponent<IDamageable>();
+
+        // OPTIMIZED: Adaptive interface resolution across both primary objects and layout children proxies
+        IDamageable hit = other.GetComponent<IDamageable>() ?? targetRoot.GetComponent<IDamageable>();
         hit?.TakeDamage(damage);
     }
 

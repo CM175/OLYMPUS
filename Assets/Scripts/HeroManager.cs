@@ -75,6 +75,9 @@ public class HeroManager : MonoBehaviour
             {
                 mouseLook.enabled = true;
             }
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
         else
         {
@@ -102,11 +105,21 @@ public class HeroManager : MonoBehaviour
     {
         if (ability == null) return;
 
-        ability.playerCamera = playerCamera;
+        ability.playerCamera = playerCamera; //
         
+        if (TryGetComponent<IMovementController>(out var controller))
+        {
+            ability.SetMovementController(controller);
+        }
 
-        if (ability is IInitializable init)
-            init.Initialize(gameObject);
+        // ADDED HERE: Provide the ability with its sibling manager context link
+        if (TryGetComponent<AbilityManager>(out var manager))
+        {
+            ability.SetAbilityManager(manager);
+        }
+
+        if (ability is IInitializable init) //
+            init.Initialize(gameObject); //
     }
 
     private void InitializeUltimate()

@@ -77,6 +77,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 1
   bashRange: 4
   damage: 20
   stunDuration: 1.5
@@ -97,6 +98,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 1
   spearPrefab: {fileID: 4986571318311556195, guid: 71e7570cf4627904d8c3f1ffb3123a2c, type: 3}
   damage: 35
 --- !u!114 &3960189197151477339
@@ -115,6 +117,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   damageReduction: 0.25
 --- !u!114 &691462736097353240
 MonoBehaviour:
@@ -132,6 +135,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   duration: 5
   damageMultiplier: 1.75
 --- !u!114 &8444528355459521143
@@ -150,6 +154,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   cost: 5000
   duration: 6
   speedMultiplier: 1.6
@@ -280,6 +285,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 1
   damage: 30
   range: 3.5
   isHolding: 0

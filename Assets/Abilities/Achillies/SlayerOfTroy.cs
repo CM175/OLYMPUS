@@ -5,23 +5,20 @@ public class SlayerOfTroy : PassiveAbility
     public float killSpeedBoost = 1.5f;
     public float duration = 3f;
     private float _timer = 0f;
-    private PlayerController _controller;
+    private IMovementController _movementController; // OPTIMIZED: Swapped from PlayerController
 
     void Start()
     {
-        _controller = GetComponentInParent<PlayerController>();
+        _movementController = GetComponentInParent<IMovementController>();
     }
 
-    // Call this whenever Achilles hits an enemy
     public void RegisterEnemy(EnemyHealth enemy)
     {
-        // Subscribe to the death event: "Tell me when you die"
         enemy.OnDeathWithKiller.AddListener(CheckIfIKilledIt);
     }
 
     private void CheckIfIKilledIt(GameObject killer)
     {
-        // Only trigger if the person who dealt the final blow is THIS player
         if (killer == transform.root.gameObject)
         {
             _timer = duration;
@@ -30,16 +27,16 @@ public class SlayerOfTroy : PassiveAbility
 
     void Update()
     {
-        if (_controller == null) return;
+        if (_movementController == null) return;
 
         if (_timer > 0)
         {
             _timer -= Time.deltaTime;
-            _controller.SpeedMultiplier = killSpeedBoost;
+            _movementController.SpeedMultiplier = killSpeedBoost;
         }
         else
         {
-            _controller.SpeedMultiplier = 1f;
+            _movementController.SpeedMultiplier = 1f;
         }
     }
 
