@@ -19,6 +19,7 @@ public class SpearThrow : Ability
         SpearProjectile projectile = spearObj.GetComponent<SpearProjectile>();
         if (projectile != null)
         {
+            projectile.SetAttacker(transform.root.gameObject); 
             PlayerStats stats = transform.root.GetComponent<PlayerStats>();
             
             // Apply Damage Multiplier from PlayerStats

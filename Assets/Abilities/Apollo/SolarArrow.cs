@@ -34,11 +34,11 @@ public class SolarArrow : BaseProjectile
         if (isHealingArrow)
         {
             // Custom Support Interface Logic
-            var health = other.GetComponent<PlayerHealth>();
+            var health = other.GetComponent<IDamageable>();
             if (health != null)
             {
                 // Inverting the damage framework natively into a healing addition safely
-                health.currentHealth = Mathf.Min(health.maxHealth, health.currentHealth + damage);
+                health.ApplyHeal(damage);
                 Debug.Log($"[SolarArrow] Healed teammate {other.name} for {damage} points.");
             }
         }

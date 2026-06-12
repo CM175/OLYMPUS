@@ -40,6 +40,12 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         if (currentHealth <= 0) Die();
     }
 
+    public void ApplyHeal(int heal)
+    {
+        currentHealth += heal;
+        currentHealth = Mathf.Min(currentHealth, maxHealth);
+    }
+
     void Die()
     {
         StartCoroutine(Respawn());

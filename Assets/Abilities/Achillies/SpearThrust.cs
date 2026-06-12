@@ -17,6 +17,12 @@ public class SpearThrust : Attack
         // 3. Use SphereCast to detect enemies in a line (gives the spear some "thickness")
         if (Physics.SphereCast(origin, thrustRadius, direction, out RaycastHit hit, range))
         {
+            var myTeam = transform.root.GetComponent<TeamMember>();
+            if (myTeam != null && !myTeam.IsEnemy(hit.collider.gameObject))
+            {
+                return;
+            }
+            
             IDamageable target = hit.collider.GetComponent<IDamageable>();
             
             if (target != null)

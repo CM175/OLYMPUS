@@ -13,4 +13,9 @@ public class DamageProxy : MonoBehaviour, IDamageable
     {
         _parentDamageable?.TakeDamage(damage);
     }
+
+    public void ApplyHeal(int heal)
+    {
+        _parentDamageable?.ApplyHeal(heal);
+    }
 }

@@ -49,16 +49,18 @@ public class ChariotOfTheSun : Ultimate, IInitializable
                 Collider[] entities = Physics.OverlapSphere(hit.point, beamRadius);
                 foreach (var col in entities)
                 {
-                    if (col.CompareTag("Enemy"))
+                    var myTeam = transform.root.GetComponent<TeamMember>();
+                    // Treat AI / Enemies
+                    if (myTeam != null && myTeam.IsEnemy(col.gameObject))
                     {
                         col.GetComponent<IDamageable>()?.TakeDamage(damagePerTick);
                     }
-                    else if (col.CompareTag("Player"))
+                    else if (myTeam != null && !myTeam.IsEnemy(col.gameObject))
                     {
-                        var pH = col.GetComponent<PlayerHealth>();
-                        if (pH != null)
+                        var pHealth = col.GetComponent<IDamageable>();
+                        if (pHealth != null)
                         {
-                            pH.currentHealth = Mathf.Min(pH.maxHealth, pH.currentHealth + healPerTick);
+                            pHealth.ApplyHeal(healPerTick);
                         }
                     }
                 }
