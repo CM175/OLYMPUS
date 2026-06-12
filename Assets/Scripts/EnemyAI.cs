@@ -47,7 +47,9 @@ public class EnemyAI : MonoBehaviour
 
     private void Update()
     {
+        if (!_agent.enabled) return;
         if (_state == State.Stunned) return;
+        
 
         HandleTargetScanning();
 
@@ -150,7 +152,7 @@ public class EnemyAI : MonoBehaviour
     private void HandleChase()
     {
         // Soft-coded combat ranges based on loaded primary attack settings
-        float combatRange = 10f; 
+        float combatRange = _abilityManager.primaryAttack.range;
         _agent.stoppingDistance = combatRange * 0.8f;
         _agent.SetDestination(_currentTarget.position);
 
@@ -171,12 +173,12 @@ public class EnemyAI : MonoBehaviour
     private void ExecuteCombatAbilities(float distanceToTarget)
     {
         // 1. Primary Weapon fire condition
-        if (distanceToTarget <= 15f && _abilityManager.primaryAttack != null)
+        if (distanceToTarget <= _abilityManager.primaryAttack.range && _abilityManager.primaryAttack != null)
         {
-            _abilityManager.primaryAttack.Use();
+            _abilityManager.primaryAttack.OnPress();
         }
 
-        // 2. Tactical / Crowd Control Ability condition (e.g., Shield Bash / Lightning Bolt)
+        // 2. Tactical / Crowd Control Ability condition
         if (distanceToTarget <= 8f && _abilityManager.primaryAbility != null)
         {
             _abilityManager.primaryAbility.Use();

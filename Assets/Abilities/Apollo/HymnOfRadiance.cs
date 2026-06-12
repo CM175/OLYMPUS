@@ -18,11 +18,11 @@ public class HymnOfRadiance : Ability
             // Treat AI / Enemies
             if (myTeam != null && myTeam.IsEnemy(target.gameObject))
             {
-                var dmg = target.GetComponent<IDamageable>();
+                var dmg = target.transform.root.GetComponent<IDamageable>();
                 dmg?.TakeDamage(damageAmount);
                 
                 // Add minor knockback impulse using the AI routing definitions if present
-                var navAI = target.GetComponentInParent<UnityEngine.AI.NavMeshAgent>();
+                var navAI = target.transform.root.GetComponent<UnityEngine.AI.NavMeshAgent>();
                 if (navAI != null && navAI.enabled)
                 {
                     Vector3 pushDir = (target.transform.position - origin).normalized;
@@ -33,7 +33,7 @@ public class HymnOfRadiance : Ability
             // Treat Players / Friendly Targets
             else if (myTeam != null && !myTeam.IsEnemy(target.gameObject))
             {
-                var pHealth = target.GetComponent<IDamageable>();
+                var pHealth = target.transform.root.GetComponent<IDamageable>();
                 if (pHealth != null)
                 {
                     pHealth.ApplyHeal(healAmount);

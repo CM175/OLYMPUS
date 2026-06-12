@@ -73,7 +73,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e8cc0da677021a4eb5187d249f3b0ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldBash
-  cooldown: 5
+  cooldown: 8
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -93,7 +93,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 377573bfd1373474b854d287b719cb4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpearThrow
-  cooldown: 5
+  cooldown: 10
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -150,7 +150,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  cost: 100
+  cost: 5000
   duration: 6
   speedMultiplier: 1.6
   damageMultiplier: 2

@@ -17,18 +17,21 @@ public class GroundSlam : Ability, IInitializable
     [SerializeField] private float knockupDuration = 0.5f; // Suspension time
     [SerializeField] private float inwardPullDistance = 2f; // Distance pulled toward center
 
-    private PlayerController _playerController;
-    private CharacterController _characterController;
+    // REFACTORED: Use decoupled abstraction here instead of PlayerController directly
+    private IMovementController _movementController;
+    private CharacterController _characterController; // May be null for AI
+    private Transform _rootTransform;
 
     public void Initialize(GameObject playerRoot)
     {
-        _playerController = playerRoot.GetComponent<PlayerController>();
+        _rootTransform = playerRoot.transform;
         _characterController = playerRoot.GetComponent<CharacterController>();
+        _movementController = playerRoot.GetComponent<IMovementController>();
     }
 
     protected override void Activate()
     {
-        if (_playerController == null || _characterController == null)
+        if (_movementController == null)
         {
             isExecuting = false;
             return;
@@ -39,21 +42,39 @@ public class GroundSlam : Ability, IInitializable
 
     private IEnumerator SlamRoutine()
     {
-        _playerController.IsDashing = true;
+        _movementController.IsDashing = true;
 
-        Vector3 forwardDir = transform.root.forward;
+        // FIXED: Safe directional fallback if playerCamera is null (for AI bots)
+        Vector3 forwardDir = (playerCamera != null) ? playerCamera.transform.forward : _rootTransform.forward;
         forwardDir.y = 0f;
         forwardDir.Normalize();
 
         Vector3 airVelocity = (forwardDir * leapForwardSpeed) + (Vector3.up * leapUpwardVelocity);
-        yield return new WaitForSeconds(0.05f); 
+        yield return new WaitForSeconds(0.05f);
 
         while (true)
         {
             airVelocity.y -= gravityScale * Time.deltaTime;
-            CollisionFlags flags = _characterController.Move(airVelocity * Time.deltaTime);
-            
-            if ((flags & CollisionFlags.Below) != 0)
+            Vector3 frameMovement = airVelocity * Time.deltaTime;
+
+            // REFACTORED: Displace layout coordinates via the abstraction interface
+            _movementController.TeleportOrMove(frameMovement);
+
+            // Check if we've landed. CharacterController has a built-in grounded flag;
+            // AI agents (no CharacterController) use a NavMesh proximity check instead.
+            bool grounded;
+            if (_characterController != null)
+            {
+                grounded = _characterController.isGrounded;
+            }
+            else
+            {
+                grounded = airVelocity.y < 0f
+                    && NavMesh.SamplePosition(_rootTransform.position, out NavMeshHit groundHit, 0.3f, NavMesh.AllAreas)
+                    && Mathf.Abs(groundHit.position.y - _rootTransform.position.y) < 0.15f;
+            }
+
+            if (grounded)
                 break;
 
             yield return null;
@@ -61,15 +82,15 @@ public class GroundSlam : Ability, IInitializable
 
         ExecuteImpactEffects();
 
-        _playerController.SetVelocity(Vector3.zero);
-        _playerController.IsDashing = false;
+        _movementController.HaltVelocity();
+        _movementController.IsDashing = false;
 
         StartCooldown();
     }
 
     private void ExecuteImpactEffects()
     {
-        Vector3 impactPosition = _characterController.transform.position;
+        Vector3 impactPosition = _rootTransform.position;
 
         if (vfxPrefab != null)
         {
@@ -80,36 +101,33 @@ public class GroundSlam : Ability, IInitializable
         
         foreach (Collider target in hitColliders)
         {
-            var myTeam = transform.root.GetComponent<TeamMember>();
+            var myTeam = _rootTransform.GetComponent<TeamMember>();
                 
             if (myTeam != null && !myTeam.IsEnemy(target.transform.root.gameObject))
             {
                 continue;
             }
 
-            IDamageable damageable = target.GetComponent<IDamageable>();
+            IDamageable damageable = target.transform.root.GetComponent<IDamageable>();
             if (damageable != null)
             {
                 damageable.TakeDamage(slamDamage);
 
                 // Handle NavMeshAgent crowd control natively
-                NavMeshAgent agent = target.GetComponentInParent<NavMeshAgent>();
-                EnemyAI enemyAI = target.GetComponentInParent<EnemyAI>();
+                NavMeshAgent agent = target.transform.root.GetComponent<NavMeshAgent>();
+                EnemyAI enemyAI = target.transform.root.GetComponent<EnemyAI>();
 
                 if (agent != null && agent.enabled)
                 {
-                    // Calculate pull direction toward the center point
                     Vector3 toCenter = impactPosition - target.transform.position;
                     toCenter.y = 0f;
                     Vector3 pullDirection = toCenter.normalized;
 
-                    // Stun the AI mind so it stops pathfinding tracking loops
                     if (enemyAI != null)
                     {
-                        enemyAI.Stun(knockupDuration + 0.5f); // Stun stays slightly longer than airtime
+                        enemyAI.Stun(knockupDuration + 0.5f); 
                     }
 
-                    // Suspend them into the air safely via NavMesh Agent separation overriding
                     StartCoroutine(AnimateAgentKnockup(agent, pullDirection));
                 }
             }
@@ -118,7 +136,6 @@ public class GroundSlam : Ability, IInitializable
 
     private IEnumerator AnimateAgentKnockup(NavMeshAgent agent, Vector3 pullDirection)
     {
-        // Stop pathfinding tracking entirely
         agent.isStopped = true;
 
         float elapsed = 0f;
@@ -127,17 +144,13 @@ public class GroundSlam : Ability, IInitializable
         while (elapsed < knockupDuration)
         {
             float normalizedTime = elapsed / knockupDuration;
-            // Parabolic curve arc height for visual tracking lift
             float currentHeight = Mathf.Sin(normalizedTime * Mathf.PI) * knockupHeight;
 
-            // Move the agent horizontally along the NavMesh layout floor plane
             agent.Move(pullStep * Time.deltaTime);
 
-            // Directly displace transform rendering vertically to simulate air suspension visually
             Transform modelTransform = agent.transform;
             Vector3 targetPos = modelTransform.position;
             
-            // Sample standard NavMesh height position, then stack upward height offset rendering
             if (NavMesh.SamplePosition(targetPos, out NavMeshHit hit, 2f, NavMesh.AllAreas))
             {
                 modelTransform.position = new Vector3(targetPos.x, hit.position.y + currentHeight, targetPos.z);
@@ -147,7 +160,6 @@ public class GroundSlam : Ability, IInitializable
             yield return null;
         }
 
-        // Snap cleanly back onto layout geometry floor safely before handing controls back
         if (NavMesh.SamplePosition(agent.transform.position, out NavMeshHit finalFloor, 4f, NavMesh.AllAreas))
         {
             agent.transform.position = finalFloor.position;

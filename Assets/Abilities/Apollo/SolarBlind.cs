@@ -42,7 +42,7 @@ public class SolarBlind : Ability
                 victim.GetComponent<IDamageable>()?.TakeDamage(minorBurnDamage);
 
                 // Safe hook into NavMesh AI to simulate a disorientation stun/slow
-                var enemyAI = victim.GetComponentInParent<EnemyAI>();
+                var enemyAI = victim.transform.root.GetComponent<EnemyAI>();
                 if (enemyAI != null)
                 {
                     enemyAI.Stun(utilityDuration);

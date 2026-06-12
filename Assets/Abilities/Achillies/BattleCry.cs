@@ -24,12 +24,12 @@ public class BattleCry : Ability
     private IEnumerator ApplyBuff(PlayerStats stats)
     {
         stats.DamageMultiplier = damageMultiplier;
-        Debug.Log($"[BattleCry] Active — {damageMultiplier}x damage for {duration}s");
+        //Debug.Log($"[BattleCry] Active — {damageMultiplier}x damage for {duration}s");
 
         yield return new WaitForSeconds(duration);
 
         stats.DamageMultiplier = 1f;
-        Debug.Log("[BattleCry] Expired.");
+        //Debug.Log("[BattleCry] Expired.");
 
         StartCooldown();
     }

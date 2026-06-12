@@ -102,10 +102,8 @@ public class HeroManager : MonoBehaviour
     {
         if (ability == null) return;
 
-        if (!isAIControlled)
-        {
-            ability.playerCamera = playerCamera;
-        }
+        ability.playerCamera = playerCamera;
+        
 
         if (ability is IInitializable init)
             init.Initialize(gameObject);
