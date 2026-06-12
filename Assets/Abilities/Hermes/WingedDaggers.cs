@@ -32,7 +32,7 @@ public class WingedDaggers : Attack
             }
         }
 
-        Debug.Log("[WingedDaggers] Slashed!");
+        //Debug.Log("[WingedDaggers] Slashed!");
     }
 
     private void ApplyDamage(IDamageable target)

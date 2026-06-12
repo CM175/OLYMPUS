@@ -29,7 +29,7 @@ public class ShieldBash : Ability
             {
                 continue;
             }
-            IDamageable target = col.GetComponent<IDamageable>();
+            IDamageable target = col.transform.root.GetComponent<IDamageable>();
             if (target == null) continue;
 
             // DamageMultiplier still applied here — it's about outgoing damage scaling
@@ -40,7 +40,7 @@ public class ShieldBash : Ability
 
             target.TakeDamage(finalDamage);
 
-            EnemyAI ai = col.GetComponentInParent<EnemyAI>();
+            EnemyAI ai = col.transform.root.GetComponent<EnemyAI>();
             if (ai != null) ai.Stun(stunDuration);
         }
 

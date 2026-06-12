@@ -69,6 +69,7 @@
     <Compile Include="Assets\Scripts\PlayerHealth.cs" />
     <Compile Include="Assets\Scripts\PlayerController.cs" />
     <Compile Include="Assets\Abilities\Artemis\MoonlightChase.cs" />
+    <Compile Include="Assets\Scripts\Attack.cs" />
     <Compile Include="Assets\Scripts\Ultimate.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBarrier.cs" />
     <Compile Include="Assets\Scripts\PlayerRegistry.cs" />
@@ -76,10 +77,10 @@
     <Compile Include="Assets\Abilities\Zeus\OlympianWrath.cs" />
     <Compile Include="Assets\Scripts\KillZone.cs" />
     <Compile Include="Assets\Abilities\Achillies\ShieldBash.cs" />
+    <Compile Include="Assets\Scripts\IMovementController.cs" />
     <Compile Include="Assets\Scripts\HUDController.cs" />
     <Compile Include="Assets\Abilities\Achillies\AchillesFury.cs" />
     <Compile Include="Assets\Abilities\Apollo\SolarArrow.cs" />
-    <Compile Include="Assets\Scripts\PrimaryAttack.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Abilities\Apollo\SolarBlind.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
     <Compile Include="Assets\Abilities\Artemis\MoonlightTrap.cs" />
     <Compile Include="Assets\Scripts\LightningShieldEffect.cs" />
+    <Compile Include="Assets\Scripts\AIMovementController.cs" />
     <Compile Include="Assets\Scripts\CharacterSelectManager.cs" />
     <Compile Include="Assets\Abilities\Artemis\MoonlightTrapAbility.cs" />
     <Compile Include="Assets\Abilities\Hermes\FleetFooted.cs" />

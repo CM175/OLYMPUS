@@ -5,6 +5,8 @@ public class MoonlightTrap : BaseProjectile
     [Header("Trap Settings")]
     public float triggerRadius = 2f;
     public float trappedDuration = 1.5f;
+
+    public LayerMask searchMask; 
     private bool _isArmed = false;
     protected override void Start()
     {
@@ -25,7 +27,7 @@ public class MoonlightTrap : BaseProjectile
         _isArmed = true;
         rb.linearVelocity = Vector3.zero;
         rb.isKinematic = true; // Stop moving
-        Debug.Log("Moonlight Trap Armed and Waiting...");
+        //Debug.Log("Moonlight Trap Armed and Waiting...");
     }
 
     protected override void Update()
@@ -37,7 +39,8 @@ public class MoonlightTrap : BaseProjectile
         }
 
         // Manual check for enemies walking over the trap
-        Collider[] victims = Physics.OverlapSphere(transform.position, triggerRadius);
+        searchMask = LayerMask.GetMask("Character"); // Ensure this is set to the correct layers in the Inspector
+        Collider[] victims = Physics.OverlapSphere(transform.position, triggerRadius, searchMask);
         if (victims.Length > 0)
         {
             TriggerTrap(victims[0]);
@@ -46,7 +49,7 @@ public class MoonlightTrap : BaseProjectile
 
     private void TriggerTrap(Collider victim)
     {
-        var myTeam = transform.root.GetComponent<TeamMember>();
+        var myTeam = attackerRoot.GetComponent<TeamMember>();
                 
         if (myTeam != null && !myTeam.IsEnemy(victim.gameObject))
         {
@@ -56,8 +59,10 @@ public class MoonlightTrap : BaseProjectile
         ApplyDamage(victim);
         
         // Custom logic: Stop the player from moving
-        EnemyAI ea = victim.GetComponent<EnemyAI>();
+        EnemyAI ea = victim.transform.root.GetComponent<EnemyAI>();
+        PlayerController pc = victim.transform.root.GetComponent<PlayerController>();
         if (ea != null) ea.Stun(trappedDuration);
+        if (pc != null) pc.Stun(trappedDuration);
 
         SpawnImpactVisuals(victim);
         Destroy(gameObject);

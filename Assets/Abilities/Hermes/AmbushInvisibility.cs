@@ -14,12 +14,12 @@ public class AmbushInvisibility : Ability
     {
         // Toggle invisibility logic (e.g., changing layers or shaders)
         SetInvisibility(true);
-        Debug.Log("[AmbushInvisibility] Hidden.");
+        //Debug.Log("[AmbushInvisibility] Hidden.");
 
         yield return new WaitForSeconds(duration);
 
         SetInvisibility(false);
-        Debug.Log("[AmbushInvisibility] Revealed.");
+        //Debug.Log("[AmbushInvisibility] Revealed.");
         StartCooldown();
     }
 
@@ -30,7 +30,6 @@ public class AmbushInvisibility : Ability
         MeshRenderer[] renderers = transform.root.GetComponentsInChildren<MeshRenderer>();
         foreach (var r in renderers) 
         {
-            Debug.Log(r);
             r.enabled = !state;
         }
     }

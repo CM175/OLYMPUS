@@ -16,6 +16,8 @@ public class MoonlightTrapAbility : Ability
         spawnedTrap = Instantiate(trapPrefab, 
             playerCamera.transform.position + playerCamera.transform.forward,
             transform.rotation);
+        MoonlightTrap trap = spawnedTrap.GetComponent<MoonlightTrap>();
+        trap.SetAttacker(transform.root.gameObject);
 
         StartCooldown();
     }

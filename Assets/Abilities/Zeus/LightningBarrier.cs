@@ -21,7 +21,6 @@ public class LightningBarrier : Ability
         barrier.transform.localPosition = new Vector3(0, 1, 0);
 
         Destroy(barrier, duration);
-        Debug.Log("Lightning Barrier activated");
         StartCoroutine(WaitToStartCooldown(duration));
     }
 

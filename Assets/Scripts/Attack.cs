@@ -4,7 +4,7 @@ public abstract class Attack : Ability
 {
     [Header("Primary Attack")]
     public int damage = 10;
-    public float range = 100f;
+    public float range = 30f;
 
     public bool isHolding;
 

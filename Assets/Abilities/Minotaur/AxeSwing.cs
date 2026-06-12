@@ -80,7 +80,7 @@ public class AxeSwing : Attack, IInitializable
         }
 
         // 4. Log development hooks to the frame pipeline
-        Debug.Log($"[MinotaurMelee] Cleaved arc direction! Next swing is left: {_isLeftSwing}");
+        //Debug.Log($"[MinotaurMelee] Cleaved arc direction! Next swing is left: {_isLeftSwing}");
     }
 
     // Draws the melee range and cleave angle visualizer inside the Unity scene pane editor

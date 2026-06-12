@@ -9,7 +9,7 @@ public class FrontalArmor : PassiveAbility, IInitializable
 
     public void Initialize(GameObject playerRoot)
     {
-        PlayerHealth ph = playerRoot.GetComponent<PlayerHealth>();
+        /*PlayerHealth ph = playerRoot.GetComponent<>();
         if (ph == null)
         {
             Debug.LogError("[FrontalArmor] No PlayerHealth found on player root.");
@@ -17,6 +17,7 @@ public class FrontalArmor : PassiveAbility, IInitializable
         }
         ph.DamageReduction = damageReduction;
         Debug.Log($"[FrontalArmor] Damage reduction set to {damageReduction * 100f}%");
+        */
     }
 
     protected override void Activate() { }

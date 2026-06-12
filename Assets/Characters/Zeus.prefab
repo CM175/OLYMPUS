@@ -96,7 +96,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 9032819149719097012, guid: 02b75287dd698614f99816a27e8c329a, type: 3}
   sprite: {fileID: 21300000, guid: f68e3626cf1c7c34ab1064c4dba43755, type: 3}
-  cost: 100000
+  cost: 5000
   radius: 15
   duration: 6
   strikeInterval: 0.5
@@ -115,7 +115,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97979cceda6759c4dbac3c08278b11f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightningBarrier
-  cooldown: 3
+  cooldown: 10
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 4259436044319103786, guid: a91c56ed49e736f4ba8f61e4ed848614, type: 3}
   sprite: {fileID: 21300000, guid: 6868b430b09f9bf41bc59369f818063a, type: 3}
@@ -133,7 +133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca2d743a692eb9d4db4ff8427fcc36c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkyCharge
-  cooldown: 3
+  cooldown: 6
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 21300000, guid: 21a8a9158a0a9de41a4e644dddcff575, type: 3}

@@ -220,7 +220,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f45e0ff8404476c4fbe1cd87ef9eda3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoonlightTrap
-  cooldown: 5
+  cooldown: 12
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -238,7 +238,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 814664d49b34f1e438010aeadfdfc66e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HuntersLeap
-  cooldown: 3
+  cooldown: 6
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -260,7 +260,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  cost: 100
+  cost: 5000
   duration: 8
   speedBuffMultiplier: 1.3
 --- !u!114 &3248273820284310416

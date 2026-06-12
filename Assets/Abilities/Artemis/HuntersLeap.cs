@@ -4,28 +4,27 @@ public class HuntersLeap : Ability, IInitializable
 {
     public float leapForce = 10f;
     public float leapHeight = 0.5f;
-    private CharacterController _controller;
-    private PlayerController pc;
+    private IMovementController _movementController;
+    private Transform _rootTransform;
 
     public void Initialize(GameObject playerRoot)
     {
-        pc = playerRoot.GetComponent<PlayerController>();
+        
+        _rootTransform = playerRoot.transform;
+        _movementController = playerRoot.GetComponent<IMovementController>();
     }
 
     protected override void Activate()
     {
-
-        GameObject player = transform.root.gameObject;
-
-        if (pc != null)
+        if (_movementController != null)
         {
-            // 1. Calculate the direction (Backwards and slightly Up)
-            Vector3 leapDirection = -player.transform.forward;
-            leapDirection.y = leapHeight; // Add upward tilt for the "leap" feel
-            
+            // Calculate direction using character root transform forward 
+            // completely bypassing the camera view calculations!
+            Vector3 leapDirection = -_rootTransform.forward;
+            leapDirection.y = leapHeight; 
+            leapDirection.Normalize();
 
-            // 2. Call a function on the PC to apply this force
-            pc.ApplyImpulse(leapDirection * leapForce);
+            _movementController.ApplyImpulseForce(leapDirection * leapForce);
         }
 
         StartCooldown();

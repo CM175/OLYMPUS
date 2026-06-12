@@ -14,23 +14,26 @@ public class Charge : Ability, IInitializable
     [SerializeField] private int impactDamage = 30; 
     [SerializeField] private int pinWallCrushDamage = 75; 
 
-    private PlayerController _playerController;
-    private CharacterController _characterController;
+    // REFACTORED: Use decoupled abstraction interface here instead of PlayerController
+    private IMovementController _movementController;
+    private CharacterController _characterController; // May be null for AI
+    private Transform _rootTransform;
+    
     private NavMeshAgent _pinnedAgent = null;
     private EnemyAI _pinnedAI = null;
 
-    // Registry to track who we have already side-swiped
     private HashSet<Transform> _hitSecondaryTargets = new HashSet<Transform>();
 
     public void Initialize(GameObject playerRoot)
     {
-        _playerController = playerRoot.GetComponent<PlayerController>();
+        _rootTransform = playerRoot.transform;
         _characterController = playerRoot.GetComponent<CharacterController>();
+        _movementController = playerRoot.GetComponent<IMovementController>();
     }
 
     protected override void Activate()
     {
-        if (_playerController == null || _characterController == null)
+        if (_movementController == null)
         {
             isExecuting = false;
             return;
@@ -39,31 +42,47 @@ public class Charge : Ability, IInitializable
         StartCoroutine(ChargeRoutine());
     }
 
+    // Position of the charging entity. Falls back to the root transform
+    // for AI agents that don't have a CharacterController.
+    private Vector3 GetCurrentPosition()
+    {
+        return _characterController != null
+            ? _characterController.transform.position
+            : _rootTransform.position;
+    }
+
+    // Collider center offset, used for sweep positioning. Falls back to
+    // a generic "chest height" offset for AI agents.
+    private Vector3 GetCenterOffset()
+    {
+        return _characterController != null
+            ? _characterController.center
+            : Vector3.up;
+    }
+
     private IEnumerator ChargeRoutine()
     {
         _pinnedAgent = null;
         _pinnedAI = null;
-        _hitSecondaryTargets.Clear(); // Reset registry at the start of the skill
+        _hitSecondaryTargets.Clear(); 
 
-        int playerLayer = LayerMask.NameToLayer("Character");
-        int enemyLayer = LayerMask.NameToLayer("Character");
-
-        if (playerLayer != -1 && enemyLayer != -1)
+        int characterLayer = LayerMask.NameToLayer("Character");
+        if (characterLayer != -1)
         {
-            Physics.IgnoreLayerCollision(playerLayer, enemyLayer, true);
+            Physics.IgnoreLayerCollision(characterLayer, characterLayer, true);
         }
 
-        _playerController.IsDashing = true;
+        _movementController.IsDashing = true;
         float speed = chargeSpeed;
 
         float elapsedTime = 0f;
-        Vector3 chargeDirection = transform.root.forward;
+        Vector3 chargeDirection = _rootTransform.forward;
         chargeDirection.y = 0f;
         chargeDirection.Normalize();
 
         if (vfxPrefab != null)
         {
-            Instantiate(vfxPrefab, _characterController.transform.position, Quaternion.LookRotation(chargeDirection));
+            Instantiate(vfxPrefab, GetCurrentPosition(), Quaternion.LookRotation(chargeDirection));
         }
 
         while (elapsedTime < chargeDuration)
@@ -71,12 +90,13 @@ public class Charge : Ability, IInitializable
             Vector3 movementThisFrame = chargeDirection * speed * Time.deltaTime;
             movementThisFrame.y = -4f * Time.deltaTime; 
 
-            _characterController.Move(movementThisFrame);
+            // REFACTORED: Displace frame positions natively via the interface controller
+            _movementController.TeleportOrMove(movementThisFrame);
 
             int wallMask = LayerMask.GetMask("Ground");
 
             if (Physics.Raycast(
-                _characterController.transform.position,
+                GetCurrentPosition(),
                 chargeDirection,
                 out RaycastHit ray,
                 1.2f,
@@ -87,26 +107,25 @@ public class Charge : Ability, IInitializable
                 break;
             }
 
-            Vector3 sweepCenter = _characterController.transform.position + _characterController.center + (chargeDirection * 0.5f);
+            Vector3 sweepCenter = GetCurrentPosition() + GetCenterOffset() + (chargeDirection * 0.5f);
             Collider[] hits = Physics.OverlapSphere(sweepCenter, hitSweepRadius);
 
             foreach (var hit in hits)
             {
-                var myTeam = transform.root.GetComponent<TeamMember>();
+                var myTeam = _rootTransform.GetComponent<TeamMember>();
                 
                 if (myTeam != null && !myTeam.IsEnemy(hit.transform.root.gameObject))
                 {
                     continue;
                 }
 
-                // Stop multi-frame hitting: skip if this enemy has already been swiped
                 if (_hitSecondaryTargets.Contains(hit.transform.root)) continue;
 
-                IDamageable target = hit.GetComponent<IDamageable>();
+                IDamageable target = hit.transform.root.GetComponent<IDamageable>();
                 if (target != null)
                 {
-                    NavMeshAgent enemyAgent = hit.GetComponentInParent<NavMeshAgent>();
-                    EnemyAI enemyAI = hit.GetComponentInParent<EnemyAI>();
+                    NavMeshAgent enemyAgent = hit.transform.root.GetComponent<NavMeshAgent>();
+                    EnemyAI enemyAI = hit.transform.root.GetComponent<EnemyAI>();
 
                     if (enemyAgent != null && enemyAgent.enabled)
                     {
@@ -122,17 +141,16 @@ public class Charge : Ability, IInitializable
                         }
                         else if (enemyAgent != _pinnedAgent)
                         {
-                            // Register them immediately so they don't take damage again next frame
                             _hitSecondaryTargets.Add(hit.transform.root);
 
-                            target.TakeDamage((int)(impactDamage* 0.5f));
+                            target.TakeDamage((int)(impactDamage * 0.5f));
                             if (enemyAI != null) enemyAI.Stun(1f);
 
-                            Vector3 forward = transform.root.forward;
+                            Vector3 forward = _rootTransform.forward;
                             forward.y = 0f;
                             forward.Normalize();
 
-                            Vector3 toEnemy = enemyAgent.transform.position - _characterController.transform.position;
+                            Vector3 toEnemy = enemyAgent.transform.position - GetCurrentPosition();
                             toEnemy.y = 0f;
                             toEnemy.Normalize();
 
@@ -148,14 +166,10 @@ public class Charge : Ability, IInitializable
 
             if (_pinnedAgent != null && _pinnedAgent.gameObject != null)
             {
-                // Calculate where they should look to be resting flat against your front silhouette
-                Vector3 desiredPinnedPosition = _characterController.transform.position + (chargeDirection * 1.5f);
+                Vector3 desiredPinnedPosition = GetCurrentPosition() + (chargeDirection * 1.5f);
                 desiredPinnedPosition.y = _pinnedAgent.transform.position.y;
 
-                // Frame offset vector required to close the gap cleanly
                 Vector3 frameDisplacement = desiredPinnedPosition - _pinnedAgent.transform.position;
-                
-                // Let the NavMesh logic track movement constraints step-by-step
                 _pinnedAgent.Move(frameDisplacement * (Time.deltaTime * 25f));
             }
 
@@ -163,9 +177,9 @@ public class Charge : Ability, IInitializable
             yield return null;
         }
         
-        if (playerLayer != -1 && enemyLayer != -1)
+        if (characterLayer != -1)
         {
-            Physics.IgnoreLayerCollision(playerLayer, enemyLayer, false);
+            Physics.IgnoreLayerCollision(characterLayer, characterLayer, false);
         }
 
         if (_pinnedAgent != null && _pinnedAgent.gameObject != null)
@@ -175,8 +189,8 @@ public class Charge : Ability, IInitializable
             _pinnedAgent.isStopped = false;
         }
 
-        _playerController.SetVelocity(Vector3.zero);
-        _playerController.IsDashing = false;
+        _movementController.HaltVelocity();
+        _movementController.IsDashing = false;
 
         StartCooldown();
     }
@@ -189,7 +203,6 @@ public class Charge : Ability, IInitializable
         if (_pinnedAI != null)
         {
             _pinnedAI.Stun(1f);
-            Debug.Log("stunned by wall");
         }
         
         _pinnedAgent = null;
@@ -217,14 +230,11 @@ public class Charge : Ability, IInitializable
         }
 
         Transform t = agent.transform;
-
         Vector3 startPos = t.position;
 
         while (elapsed < duration)
         {
             float tNorm = elapsed / duration;
-
-            // smooth arc (like GroundSlam knockup)
             float heightOffset = Mathf.Sin(tNorm * Mathf.PI) * arcHeight;
 
             Vector3 nextPos = startPos + (horizontalStep * tNorm);
@@ -239,7 +249,6 @@ public class Charge : Ability, IInitializable
             yield return null;
         }
 
-        // snap back to ground cleanly
         if (NavMesh.SamplePosition(t.position, out NavMeshHit finalHit, 4f, NavMesh.AllAreas))
         {
             t.position = finalHit.position;

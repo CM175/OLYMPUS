@@ -94,7 +94,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e8f0676cb0b0a84ab77c16c9645d014, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HymnOfRadiance
-  cooldown: 5
+  cooldown: 8
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -133,7 +133,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  cost: 100
+  cost: 5000
   duration: 5
   beamRadius: 6
   damagePerTick: 10

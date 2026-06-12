@@ -9,6 +9,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     public bool IsInvincible { get; set; } = false;
     public float DamageReduction { get; set; } = 0f;
+    private bool respawning = false;
 
     CharacterController _controller;
     MeshRenderer _mesh;
@@ -42,6 +43,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     public void ApplyHeal(int heal)
     {
+        if (respawning) return;
         currentHealth += heal;
         currentHealth = Mathf.Min(currentHealth, maxHealth);
     }
@@ -53,7 +55,10 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     IEnumerator Respawn()
     {
+        respawning = true;
         _controller.enabled = false;
+        IsInvincible = true;
+
         if (_mesh != null) _mesh.enabled = false;
 
         yield return new WaitForSeconds(3f);
@@ -65,5 +70,6 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         currentHealth   = maxHealth;
         IsInvincible    = false;
         DamageReduction = 0f;
+        respawning = false;
     }
 }

@@ -1,8 +1,10 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IMovementController
 {
     [Header("Movement")]
     public float walkSpeed = 6f;
@@ -34,7 +36,26 @@ public class PlayerController : MonoBehaviour
     private bool _isGrounded;
     private bool _isCrouching;
     private bool _jumpQueued;
+    private bool _stunned;
     public bool IsDashing { get; set; } = false;
+
+    public void ApplyImpulseForce(Vector3 force)
+    {
+        ApplyImpulse(force); // Calls your existing impulse calculation logic
+    }
+
+    public void TeleportOrMove(Vector3 displacement)
+    {
+        if (_controller.enabled)
+        {
+            _controller.Move(displacement);
+        }
+    }
+
+    public void HaltVelocity()
+    {
+        SetVelocity(Vector3.zero);
+    }
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
@@ -141,6 +162,7 @@ public class PlayerController : MonoBehaviour
     private void ExecuteCombinedMovement()
     {
         if (IsDashing) return;
+        if (_stunned) return;
         // 1. Calculate Horizontal Movement
         float baseSpeed = _isCrouching ? crouchSpeed : walkSpeed;
         float speed = baseSpeed * Mathf.Max(0f, SpeedMultiplier);
@@ -197,5 +219,21 @@ public class PlayerController : MonoBehaviour
     public void SetVelocity(Vector3 newVelocity)
     {
         _velocity = newVelocity;
+    }
+
+    public void Stun(float duration)
+    {
+        StartCoroutine(StunRoutine(duration));
+    }
+
+    private IEnumerator StunRoutine(float duration)
+    {
+        _stunned = true; 
+        AbilityManager abilityManager = GetComponent<AbilityManager>();
+        abilityManager.enabled = false; // Disable abilities while stunned
+        yield return new WaitForSeconds(duration);
+
+        abilityManager.enabled = true; // Re-enable abilities after stun
+        _stunned = false;
     }
 }

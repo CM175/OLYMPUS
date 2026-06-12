@@ -60,7 +60,7 @@ public class CrescentBow : Attack
         if (stormArrow != null)
         {
             
-            Debug.Log($"Storm Arrow");
+            //Debug.Log($"Storm Arrow");
             // Pass the charge ratio (0.0 to 1.0) to the arrow
             stormArrow.SetCharge(chargePercent);
             stormArrow.piercesTargets = _isUltActive;

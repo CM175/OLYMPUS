@@ -50,8 +50,7 @@ public class OlympianWrath : Ultimate
                     Vector3 enemyPos = col.transform.position;
                     target.TakeDamage(damagePerStrike);
                     StartCoroutine(AnimateSkyBolt(enemyPos));
-                    Debug.Log($"[OlympianWrath] Struck {col.name} for {damagePerStrike}");
-                }
+                    }
             }
 
             yield return new WaitForSeconds(strikeInterval);
