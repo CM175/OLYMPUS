@@ -39,7 +39,6 @@ public class SolarArrow : BaseProjectile
             {
                 // Inverting the damage framework natively into a healing addition safely
                 health.ApplyHeal(damage);
-                Debug.Log($"[SolarArrow] Healed teammate {other.name} for {damage} points.");
             }
         }
         else

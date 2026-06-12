@@ -49,6 +49,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable
     {
         currentHealth += heal;
         currentHealth = Mathf.Min(currentHealth, maxHealth);
+        
+        Debug.Log($"[EnemyHealth] Health after heal: {currentHealth}/{maxHealth}");
     }
 
     private void Die(GameObject attacker)
