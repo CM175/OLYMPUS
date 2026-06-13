@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class ChariotOfTheSun : Ultimate, IInitializable
+public class ChariotOfTheSun : Ultimate
 {
     public float duration = 5f;
     public float beamRadius = 6f;
@@ -9,13 +9,6 @@ public class ChariotOfTheSun : Ultimate, IInitializable
     public int healPerTick = 15;
     public float tickRate = 0.5f;
     public float range = 100f;
-
-    private PlayerController _playerController;
-
-    public void Initialize(GameObject playerRoot)
-    {
-        _playerController = playerRoot.GetComponent<PlayerController>();
-    }
 
     protected override void Activate()
     {
@@ -28,7 +21,7 @@ public class ChariotOfTheSun : Ultimate, IInitializable
         Debug.Log("[Ultimate] Apollo takes to the sky in his Chariot!");
 
         // Brief tactical logic adjustment: apply temporary invincibility or speed while channeling from overhead views
-        PlayerHealth health = transform.root.GetComponent<PlayerHealth>();
+        IDamageable health = transform.root.GetComponent<IDamageable>();
         if (health != null) health.IsInvincible = true;
 
         float elapsed = 0f;

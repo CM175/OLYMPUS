@@ -5,6 +5,7 @@
 /// </summary>
 public interface IDamageable
 {
+    bool IsInvincible { get; set; }
     void TakeDamage(int damage);
     void ApplyHeal(int heal);
 }

@@ -36,7 +36,7 @@ public class PlayerController : MonoBehaviour, IMovementController
     private bool _isGrounded;
     private bool _isCrouching;
     private bool _jumpQueued;
-    private bool _stunned;
+    private bool _stunned = false;
     public bool IsStunned => _stunned;
     public bool IsDashing { get; set; } = false;
 
@@ -61,6 +61,7 @@ public class PlayerController : MonoBehaviour, IMovementController
     {
         _controller = GetComponent<CharacterController>();
         _input = new InputSystem_Actions();
+
     }
 
     private void OnEnable()
@@ -73,6 +74,9 @@ public class PlayerController : MonoBehaviour, IMovementController
         _input.Player.Jump.performed += OnJump;
         _input.Player.Crouch.performed += OnCrouch;
         _input.Player.Crouch.canceled += OnCrouchReleased;
+
+        IsDashing = false;
+        _stunned = false;
     }
 
     private void OnDisable()
@@ -162,30 +166,46 @@ public class PlayerController : MonoBehaviour, IMovementController
 
     private void ExecuteCombinedMovement()
     {
+        // If dashing under their own power, completely bypass standard loop updates
         if (IsDashing) return;
-        if (_stunned) return;
-        // 1. Calculate Horizontal Movement
-        float baseSpeed = _isCrouching ? crouchSpeed : walkSpeed;
-        float speed = baseSpeed * Mathf.Max(0f, SpeedMultiplier);
 
-        Vector3 moveDirection = transform.right * _moveInput.x + transform.forward * _moveInput.y;
-        Vector3 horizontalMove = moveDirection * speed;
-
-        // 2. Calculate Vertical Physics (Gravity & Jumping)
-        if (_jumpQueued && _isGrounded)
+        // 1. Calculate Horizontal WASD Movement (Gated by Stun Status)
+        Vector3 horizontalMove = Vector3.zero;
+        
+        if (!_stunned) // OPTIMIZED: Stun only blocks input controls, not the whole physics pipeline!
         {
-            _velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            float baseSpeed = _isCrouching ? crouchSpeed : walkSpeed;
+            float speed = baseSpeed * Mathf.Max(0f, SpeedMultiplier);
+            Vector3 moveDirection = transform.right * _moveInput.x + transform.forward * _moveInput.y;
+            horizontalMove = moveDirection * speed;
+
+            // Process Vertical Jumping input safely inside the active control window
+            if (_jumpQueued && _isGrounded)
+            {
+                _velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                _jumpQueued = false;
+            }
+        }
+        else
+        {
+            // Safety: Clear out queued inputs if the player gets stunned mid-jump frame
             _jumpQueued = false;
         }
 
+        // 2. Calculate Continuous Environmental Physics (Gravity & Decelerating Friction Drag)
         _velocity.y += gravity * Time.deltaTime;
 
+        // Apply horizontal air resistance drag over time so knockbacks smoothly decay instead of sliding forever
+        float currentY = _velocity.y;
+        _velocity.y = 0f; // Temporarily isolate horizontal components for friction calculation
+        _velocity = Vector3.Lerp(_velocity, Vector3.zero, horizontalDrag * Time.deltaTime);
+        _velocity.y = currentY; // Restore falling gravity gravity velocity context
 
-        // 3. Combine them into one final frame vector
-        // Horizontal uses Time.deltaTime here, vertical velocity accumulates it natively
+        // 3. Combine Vectors into a Single Translation Step
+        // Horizontal input uses Time.deltaTime here; vertical/external velocity accumulates it natively
         Vector3 finalFrameMovement = (horizontalMove * Time.deltaTime) + (_velocity * Time.deltaTime);
 
-        // 4. Single execution call ensures CharacterController.velocity is completely stable
+        // 4. Execute stable character movement updates uniformly across states
         if (_controller.enabled)
         {
             _controller.Move(finalFrameMovement);

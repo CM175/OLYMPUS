@@ -95,7 +95,6 @@ GameObject:
   - component: {fileID: 5334175574349613341}
   - component: {fileID: 2693273557935024900}
   - component: {fileID: 5601654663081600227}
-  - component: {fileID: 4379061914881502853}
   - component: {fileID: 4635832211684307665}
   - component: {fileID: 7041905091508465698}
   - component: {fileID: 5719533210736259854}
@@ -184,21 +183,7 @@ MonoBehaviour:
     m_Bits: 256
   patrolWaitTime: 2
   patrolRadius: 10
---- !u!114 &4379061914881502853
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2391148793557673702}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: daf54c947b8cad845b2ae71de1a5d4d7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyAttack
-  damage: 10
-  attackRange: 2
-  attackCooldown: 2
+  _aiMaxChargeHoldTime: 1.5
 --- !u!114 &4635832211684307665
 MonoBehaviour:
   m_ObjectHideFlags: 0

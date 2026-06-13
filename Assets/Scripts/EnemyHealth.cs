@@ -15,10 +15,16 @@ public class EnemyHealth : MonoBehaviour, IDamageable
     public static event System.Action<int> OnAnyEnemyDamaged;
 
     private UnityEngine.AI.NavMeshAgent _agent;
+    
+    private AbilityManager abilityManager;
+
+    public bool IsInvincible { get; set; } = false;
 
     private void Awake()
     {
         _agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        
+        abilityManager = GetComponent<AbilityManager>();
     }
 
     // This satisfies the hook called by HeroManager when the AI loads a Hero
@@ -35,6 +41,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damage, GameObject attacker)
     {
+        if (IsInvincible) return;
         currentHealth -= damage;
         currentHealth = Mathf.Max(currentHealth, 0);
         
@@ -62,8 +69,9 @@ public class EnemyHealth : MonoBehaviour, IDamageable
     private System.Collections.IEnumerator RespawnRoutine()
     {
         // Disable AI processing and navigation while dead
-        if (_agent != null) _agent.enabled = false;
+        if (_agent != null) _agent.enabled = false; 
         
+        abilityManager.enabled = false;
         // Hide character models (nested inside the runtime hero child object)
         var renderers = GetComponentsInChildren<Renderer>();
         foreach (var r in renderers) r.enabled = false;
@@ -80,7 +88,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable
         // Re-enable graphics and AI systems
         foreach (var r in renderers) r.enabled = true;
         if (_agent != null) _agent.enabled = true;
-
+        abilityManager.enabled = true;
         currentHealth = maxHealth;
     }
 }

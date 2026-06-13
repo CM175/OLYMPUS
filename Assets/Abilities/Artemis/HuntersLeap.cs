@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class HuntersLeap : Ability, IInitializable
 {
-    public float leapForce = 10f;
+    public float leapForce = 100000f;
     public float leapHeight = 0.5f;
     private IMovementController _movementController;
     private Transform _rootTransform;
