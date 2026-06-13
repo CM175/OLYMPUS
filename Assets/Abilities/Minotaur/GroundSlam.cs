@@ -56,7 +56,7 @@ public class GroundSlam : Ability, IInitializable
             groundY = groundHit.position.y;
         }
 
-        while (true)
+        while (isExecuting)
         {
             airVelocity.y -= gravityScale * Time.deltaTime;
             Vector3 frameMovement = airVelocity * Time.deltaTime;

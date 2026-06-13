@@ -75,6 +75,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShieldBash
   cooldown: 8
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 1
@@ -96,6 +97,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpearThrow
   cooldown: 10
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 1
@@ -115,6 +117,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FrontalArmor
   cooldown: 0
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
@@ -133,6 +136,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BattleCry
   cooldown: 8
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
@@ -152,10 +156,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AchillesFury
   cooldown: 0
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
-  cost: 5000
+  cost: 300
   duration: 6
   speedMultiplier: 1.6
   damageMultiplier: 2
@@ -283,6 +288,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   cooldown: 0.5
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 1

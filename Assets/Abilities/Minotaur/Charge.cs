@@ -42,7 +42,6 @@ public class Charge : Ability, IInitializable
 
     private IEnumerator ChargeRoutine()
     {
-        Debug.Log($"{_rootTransform.root.name} is executing charge!");
         _pinnedMovement = null;
         _pinnedTransform = null;
         _hitSecondaryTargets.Clear(); 
@@ -66,7 +65,7 @@ public class Charge : Ability, IInitializable
             Instantiate(vfxPrefab, _rootTransform.position, Quaternion.LookRotation(chargeDirection));
         }
 
-        while (elapsedTime < chargeDuration)
+        while (elapsedTime < chargeDuration && isExecuting)
         {
             Vector3 movementThisFrame = chargeDirection * speed * Time.deltaTime;
             movementThisFrame.y = -4f * Time.deltaTime; 

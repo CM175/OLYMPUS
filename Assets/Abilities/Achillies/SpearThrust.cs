@@ -34,7 +34,7 @@ public class SpearThrust : Attack
                     : damage;
 
                 target.TakeDamage(finalDamage);
-                Debug.Log($"[SpearThrust] Hit {hit.collider.name} for {finalDamage} damage.");
+                //Debug.Log($"[SpearThrust] Hit {hit.collider.name} for {finalDamage} damage.");
             }
         }
 

@@ -67,7 +67,7 @@ public class CrescentBow : Attack
             stormArrow.piercesTargets = _isUltActive;
         }
 
-        Debug.Log($"Fired bow with {chargePercent * 100f}% charge");
+        //Debug.Log($"Fired bow with {chargePercent * 100f}% charge");
     }
 
     

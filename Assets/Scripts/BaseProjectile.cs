@@ -15,7 +15,6 @@ public class BaseProjectile : MonoBehaviour
     protected Vector3 spawnPosition;
     protected Rigidbody rb;
     protected GameObject attackerRoot;
-
     public virtual void SetAttacker(GameObject attacker)
     {
         attackerRoot = attacker.transform.root.gameObject;
@@ -51,6 +50,15 @@ public class BaseProjectile : MonoBehaviour
 
     protected virtual void OnImpact(Collider other)
     {
+        if (attackerRoot != null)
+        {
+            var myTeam = attackerRoot.GetComponent<TeamMember>();
+            if (myTeam != null && !myTeam.IsEnemy(other.transform.root.gameObject))
+            {
+                return; 
+            }
+        }
+        
         SpawnImpactVisuals(other);
         ApplyDamage(other);
 
@@ -62,19 +70,8 @@ public class BaseProjectile : MonoBehaviour
 
     protected void ApplyDamage(Collider other)
     {
-        Transform targetRoot = other.transform.root;
-
-        if (attackerRoot != null)
-        {
-            var myTeam = attackerRoot.GetComponent<TeamMember>();
-            if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject))
-            {
-                return; 
-            }
-        }
-
         // OPTIMIZED: Adaptive interface resolution across both primary objects and layout children proxies
-        IDamageable hit = other.GetComponent<IDamageable>() ?? targetRoot.GetComponent<IDamageable>();
+        IDamageable hit = other.GetComponent<IDamageable>();
         hit?.TakeDamage(damage);
     }
 
