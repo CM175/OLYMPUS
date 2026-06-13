@@ -25,6 +25,7 @@ public class HuntersLeap : Ability, IInitializable
             leapDirection.Normalize();
 
             _movementController.ApplyImpulseForce(leapDirection * leapForce);
+            
         }
 
         StartCooldown();
