@@ -32,6 +32,11 @@ public class EnemyAI : MonoBehaviour
     private float _targetScanTimer;
     private const float SCAN_INTERVAL = 0.5f; // Scan for targets twice a second
 
+    // State tracking for charging abilities
+    [SerializeField] private float _aiMaxChargeHoldTime = 1.5f;
+    private Ability _currentlyChargingAbility = null;
+    private float _aiAttackStartTime = 0f;
+
     private void Awake()
     {
         _agent          = GetComponent<NavMeshAgent>();
@@ -172,33 +177,87 @@ public class EnemyAI : MonoBehaviour
 
     private void ExecuteCombatAbilities(float distanceToTarget)
     {
-        // 1. Primary Weapon fire condition
-        if (distanceToTarget <= _abilityManager.primaryAttack.range && _abilityManager.primaryAttack != null)
-        {
-            _abilityManager.primaryAttack.OnPress();
-        }
+        // 1. Primary Weapon Evaluation
+        bool canFirePrimary = _abilityManager.primaryAttack != null && distanceToTarget <= _abilityManager.primaryAttack.range;
+        HandleAbilityExecution(_abilityManager.primaryAttack, canFirePrimary);
 
-        // 2. Tactical / Crowd Control Ability condition
-        if (distanceToTarget <= 8f && _abilityManager.primaryAbility != null)
-        {
-            _abilityManager.primaryAbility.Use();
-        }
+        // 2. Tactical / Crowd Control Ability Evaluation
+        bool canUsePrimaryAbility = _abilityManager.primaryAbility != null && distanceToTarget <= 8f;
+        HandleAbilityExecution(_abilityManager.primaryAbility, canUsePrimaryAbility);
 
-        if (distanceToTarget <= 10f && _abilityManager.secondaryAbility != null)
-        {
-            _abilityManager.secondaryAbility.Use();
-        }
+        bool canUseSecondaryAbility = _abilityManager.secondaryAbility != null && distanceToTarget <= 10f;
+        HandleAbilityExecution(_abilityManager.secondaryAbility, canUseSecondaryAbility);
 
-        // 3. Mobility condition if the target is pulling away
-        if (distanceToTarget >= 18f && _abilityManager.mobilityAbility != null)
+        // 3. Mobility Evaluation (e.g., target pulling away)
+        bool canUseMobility = _abilityManager.mobilityAbility != null && distanceToTarget >= 18f;
+        HandleAbilityExecution(_abilityManager.mobilityAbility, canUseMobility);
+
+        // 4. Ultimate Evaluation
+        bool canUseUltimate = _abilityManager.ultimateAbility != null && distanceToTarget <= 12f;
+        HandleAbilityExecution(_abilityManager.ultimateAbility, canUseUltimate);
+    }
+
+    private void HandleAbilityExecution(Ability ability, bool shouldTrigger)
+    {
+        if (ability == null) return;
+
+        // Handle Chargeable Abilities (e.g., Crescent Bow, Heavy Spells)
+        if (ability.isChargeable)
         {
-            _abilityManager.mobilityAbility.Use();
+            if (shouldTrigger)
+            {
+                // If we haven't started charging this specific ability yet, press it down
+                if (_currentlyChargingAbility != ability)
+                {
+                    // Safety: If we were somehow charging something else, release it first
+                    if (_currentlyChargingAbility != null) HandleAbilityRelease(_currentlyChargingAbility);
+
+                    _currentlyChargingAbility = ability;
+                    _aiAttackStartTime = Time.time;
+                    
+                    // If it's a weapon, use weapon hooks; otherwise use standard ability hooks
+                    if (ability is Attack weapon) weapon.OnPress();
+                    else ability.Use(); // Or your base charge initiation method if separate
+                }
+                else
+                {
+                    // It is already charging. Check if it's time to release!
+                    if (Time.time - _aiAttackStartTime >= _aiMaxChargeHoldTime)
+                    {
+                        HandleAbilityRelease(ability);
+                    }
+                }
+            }
+            else
+            {
+                // Target moved away or died while we were charging
+                if (_currentlyChargingAbility == ability)
+                {
+                    HandleAbilityRelease(ability);
+                }
+            }
         }
-        
-        // 4. Fire Ultimate if within range
-        if (distanceToTarget <= 12f && _abilityManager.ultimateAbility != null)
+        // Handle Standard Instant/Automatic Abilities
+        else
         {
-            _abilityManager.ultimateAbility.Use();
+            if (shouldTrigger)
+            {
+                if (ability is Attack weapon) weapon.OnPress();
+                else ability.Use();
+                
+            }
+        }
+    }
+
+    private void HandleAbilityRelease(Ability ability)
+    {
+        if (ability is Attack weapon) weapon.OnRelease();
+        // If your non-weapon abilities need an explicit Release() hook in the future, add it here:
+        // else ability.OnRelease(); 
+
+        if (_currentlyChargingAbility == ability)
+        {
+            _currentlyChargingAbility = null;
         }
     }
 

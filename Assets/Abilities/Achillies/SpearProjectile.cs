@@ -22,12 +22,14 @@ public class SpearProjectile : BaseProjectile
     protected override void OnImpact(Collider other)
     {
         // Check if we hit a damageable target
-        IDamageable target = other.GetComponent<IDamageable>();
-        if (target != null)
-        {
-            // Apply damage from the base class stats
-            target.TakeDamage(damage);
-        }
+        IDamageable target = other.transform.root.GetComponent<IDamageable>();
+        IMovementController targetController = other.transform.root.GetComponent<IMovementController>();
+        
+        target?.TakeDamage(damage);
+        targetController?.Stun(0.5f);
+        targetController?.ApplyImpulseForce(transform.forward*5f);
+            
+
 
         // Logic for piercing or destroying is handled by base.OnImpact
         base.OnImpact(other);

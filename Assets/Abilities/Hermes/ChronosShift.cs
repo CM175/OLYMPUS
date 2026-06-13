@@ -17,7 +17,7 @@ public class ChronosShift : Ultimate
 
     private IEnumerator ChronosRoutine()
     {
-        PlayerController controller = transform.root.GetComponent<PlayerController>();
+        IMovementController controller = transform.root.GetComponent<IMovementController>();
         BlinkDash blink = transform.root.GetComponentInChildren<BlinkDash>();
 
         float originalBlinkCD = 0f;

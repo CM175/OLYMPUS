@@ -16,6 +16,7 @@ public class CrescentBow : Attack
     public void SetUltimateModifications(bool active)
     {
         _isUltActive = active;
+        isChargeable = !active; 
     }
 
 

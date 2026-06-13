@@ -27,9 +27,11 @@ public abstract class Ultimate : Ability
     // ── Override CanUse() to gate on charge ────────────────────────────────────
 
     protected override bool CanUse()
-        => base.CanUse()
+    {
+        return base.CanUse()
            && playerStats != null
            && playerStats.currentUltimateCharge >= cost;
+    }
 
     protected override void Activate() { playerStats.ConsumeCharge(cost); }
 }

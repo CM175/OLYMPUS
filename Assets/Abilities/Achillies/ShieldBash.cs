@@ -40,8 +40,8 @@ public class ShieldBash : Ability
 
             target.TakeDamage(finalDamage);
 
-            EnemyAI ai = col.transform.root.GetComponent<EnemyAI>();
-            if (ai != null) ai.Stun(stunDuration);
+            IMovementController targetController = col.transform.root.GetComponent<IMovementController>();
+            if (targetController != null) targetController.Stun(stunDuration);
         }
 
         StartCooldown();
