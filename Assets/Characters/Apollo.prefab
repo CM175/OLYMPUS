@@ -73,10 +73,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GoldenBow
   cooldown: 0.5
   playerCamera: {fileID: 0}
+  isChargeable: 1
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   damage: 10
-  range: 100
+  range: 30
   isHolding: 0
   currentMode: 0
   maxChargeTime: 1.5
@@ -96,8 +98,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HymnOfRadiance
   cooldown: 8
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   burstRadius: 8
   healAmount: 50
   damageAmount: 20
@@ -115,8 +119,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ArrowSwap
   cooldown: 0.5
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
 --- !u!114 &838558696938162224
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -131,8 +137,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChariotOfTheSun
   cooldown: 0
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   cost: 5000
   duration: 5
   beamRadius: 6
@@ -154,8 +162,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SolarBlind
   cooldown: 10
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   flashRadius: 5
   minorBurnDamage: 15
   utilityDuration: 2

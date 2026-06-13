@@ -7,6 +7,7 @@ public abstract class Ability : MonoBehaviour
     
     [System.NonSerialized] public float lastUsedTime = -999f;
     [System.NonSerialized] public bool isExecuting = false;
+    public bool isChargeable = false; // Added here
 
     public GameObject vfxPrefab;
     public Sprite sprite;

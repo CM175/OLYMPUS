@@ -17,9 +17,9 @@ public class AchillesFury : Ultimate
     private IEnumerator FuryRoutine()
     {
         // Cache components — they live on the Player root, not the hero child
-        PlayerHealth health         = transform.root.GetComponent<PlayerHealth>();
+        IDamageable health         = transform.root.GetComponent<IDamageable>();
         PlayerStats stats           = transform.root.GetComponent<PlayerStats>();
-        PlayerController controller = transform.root.GetComponent<PlayerController>();
+        IMovementController controller = transform.root.GetComponent<IMovementController>();
 
         // Apply buffs
         if (health     != null) health.IsInvincible          = true;

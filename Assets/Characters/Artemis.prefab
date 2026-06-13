@@ -201,10 +201,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   cooldown: 0.5
   playerCamera: {fileID: 0}
+  isChargeable: 1
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   damage: 10
-  range: 100
+  range: 30
   isHolding: 0
   maxChargeTime: 0.8
   arrowPrefab: {fileID: 7647197124771894346, guid: 5268b13d70d812e48b4eafe296c33393, type: 3}
@@ -222,8 +224,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoonlightTrap
   cooldown: 12
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   trapPrefab: {fileID: 4427847545636997538, guid: d5ec8d98cf2ef754d9fbefda9bc6a84e, type: 3}
   spawnedTrap: {fileID: 0}
 --- !u!114 &8508789301366446286
@@ -240,8 +244,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HuntersLeap
   cooldown: 6
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
   leapForce: 12.5
   leapHeight: 0.5
 --- !u!114 &8500216837366833214
@@ -258,9 +264,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GreatConstellation
   cooldown: 0
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  cost: 5000
+  exclusiveState: 0
+  cost: 10
   duration: 8
   speedBuffMultiplier: 1.3
 --- !u!114 &3248273820284310416
@@ -277,8 +285,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TrackThePrey
   cooldown: 0
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
+  exclusiveState: 0
 --- !u!1 &5118594110050019796
 GameObject:
   m_ObjectHideFlags: 0

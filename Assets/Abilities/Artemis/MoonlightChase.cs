@@ -1,19 +1,18 @@
 using UnityEngine;
 using System.Collections;
 
-[CreateAssetMenu(fileName = "MoonlightChase", menuName = "Olympus/Abilities/Moonlight Chase")]
 public class MoonlightChase : Ultimate, IInitializable
 {
     [Header("Moonlight Chase Settings")]
     public float duration = 8f;
     public float speedBuffMultiplier = 1.3f; // +30% Speed
 
-    private PlayerController _playerController;
+    private IMovementController controller;
     private CrescentBow bow;
 
     public void Initialize(GameObject playerRoot)
     {
-        _playerController = playerRoot.GetComponent<PlayerController>();
+        controller = playerRoot.GetComponent<IMovementController>();
         bow = playerRoot.GetComponentInChildren<CrescentBow>();
     }
 
@@ -27,9 +26,9 @@ public class MoonlightChase : Ultimate, IInitializable
         // 1. Play Voice Lines & FX
         Debug.Log("Artemis: 'The hunt begins!'");
 
-        // 2. Apply Speed Buff via PlayerController's SpeedMultiplier
-        float originalMultiplier = _playerController.SpeedMultiplier;
-        _playerController.SpeedMultiplier *= speedBuffMultiplier;
+        // 2. Apply Speed Buff via IMovementController's SpeedMultiplier
+        float originalMultiplier = controller.SpeedMultiplier;
+        controller.SpeedMultiplier *= speedBuffMultiplier;
 
         // 3. Enable Infinite Ammo / Arrow Piercing / Wall-Hacks
         SetHuntState(true);
@@ -38,7 +37,7 @@ public class MoonlightChase : Ultimate, IInitializable
         yield return new WaitForSeconds(duration);
 
         // 5. Cleanup & Reset when ultimate expires
-        _playerController.SpeedMultiplier = originalMultiplier;
+        controller.SpeedMultiplier = originalMultiplier;
         SetHuntState(false);
         
         StartCooldown();

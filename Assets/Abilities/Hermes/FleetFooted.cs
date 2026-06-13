@@ -3,11 +3,11 @@ using UnityEngine;
 public class FleetFooted : PassiveAbility, IInitializable
 {
     public float movementSpeedBonus = 1.25f; // 25% faster movement
-    private PlayerController _controller;
+    private IMovementController _controller;
 
     public void Initialize(GameObject playerRoot)
     {
-        _controller = playerRoot.GetComponent<PlayerController>();
+        _controller = playerRoot.GetComponent<IMovementController>();
     }
 
     protected override void Activate()
