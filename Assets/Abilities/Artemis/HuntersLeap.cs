@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class HuntersLeap : Ability, IInitializable
 {
-    public float leapForce = 100000f;
+    public float leapForce = 10f;
     public float leapHeight = 0.5f;
     private IMovementController _movementController;
     private Transform _rootTransform;
@@ -22,7 +22,7 @@ public class HuntersLeap : Ability, IInitializable
             // completely bypassing the camera view calculations!
             Vector3 leapDirection = -_rootTransform.forward;
             leapDirection.y = leapHeight; 
-            leapDirection.Normalize();
+            //leapDirection.Normalize();
 
             _movementController.ApplyImpulseForce(leapDirection * leapForce);
             
