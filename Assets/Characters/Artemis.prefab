@@ -248,7 +248,7 @@ MonoBehaviour:
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
-  leapForce: 20
+  leapForce: 10
   leapHeight: 0.5
 --- !u!114 &8500216837366833214
 MonoBehaviour:
