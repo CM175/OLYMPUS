@@ -1,10 +1,13 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class AIMovementController : MonoBehaviour, IMovementController
 {
     private NavMeshAgent _agent;
+    private float _originalAcceleration;
+    private Coroutine _impulseCoroutine;
     private EnemyAI _enemyAI;
     private float _baseSpeed;
 
@@ -41,27 +44,60 @@ public class AIMovementController : MonoBehaviour, IMovementController
         _enemyAI = GetComponent<EnemyAI>();
         if (_agent != null)
         {
+            
+            _originalAcceleration = _agent.acceleration;
             _baseSpeed = _agent.speed;
         }
     }
-    private void Update()
-    {
-        HandleGroundCheck();
-        ExecuteMovement();
-    }
-
-    public void ExecuteMovement()
-    {
-
-        _velocity.y += gravity * Time.deltaTime;
-
-        _agent.Move(_velocity * Time.deltaTime);
-
-    }
-
     public void ApplyImpulseForce(Vector3 force)
     {
-        _agent.velocity += force;
+        // If an impulse is already acting on this character, override it cleanly
+        if (_impulseCoroutine != null) 
+            StopCoroutine(_impulseCoroutine);
+        
+        _impulseCoroutine = StartCoroutine(ImpulseRoutine(force));
+    }
+
+    private IEnumerator ImpulseRoutine(Vector3 initialForce)
+    {
+
+        // 1. DYNAMICALLY SPLIT THE FORCE
+        // Isolate the horizontal plane (X and Z) for actual NavMesh movement
+        Vector3 horizontalForce = new Vector3(initialForce.x, 0f, initialForce.z);
+        float horizontalMagnitude = horizontalForce.magnitude;
+        Vector3 horizontalDirection = horizontalForce.normalized;
+
+        // Isolate the vertical component (Y) for visual height
+        float verticalInitialVelocity = initialForce.y;
+
+        // 2. DYNAMICALLY CALCULATE DURATION BASED ON FORCE
+        // No hardcoded timers. More force = longer slide/hangtime, using a standard drag simulation.
+        float drag = 5f; 
+        float duration = horizontalMagnitude / drag;
+        // Clamp duration so small impulses don't snap instantly, and massive ones don't slide forever
+        duration = Mathf.Clamp(duration, 0.15f, 0.7f); 
+
+        float timer = 0f;
+        _agent.acceleration = 10000f; // Max out acceleration so response is instant
+
+        while (timer < duration)
+        {
+            float t = timer / duration;
+
+            // --- DECAYING HORIZONTAL VELOCITY ---
+            // Uses an ease-out curve (Fast start, aggressive deceleration friction)
+            float speedDecay = Mathf.Lerp(horizontalMagnitude, 0f, 1f - (1f - t) * (1f - t));
+            _agent.velocity = horizontalDirection * speedDecay;
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        // 3. CLEAN UP AND RESET
+        _agent.velocity = Vector3.zero;
+        _agent.acceleration = _originalAcceleration;
+
+        _impulseCoroutine = null;
     }
 
     public void TeleportOrMove(Vector3 displacement)
@@ -96,37 +132,7 @@ public class AIMovementController : MonoBehaviour, IMovementController
         }
         return false;
     }
-    private void HandleGroundCheck()
-    {
-        bool wasGrounded = _isGrounded; // Store the state from last frame
-        _isGrounded = IsAgentGrounded();
 
-        if (_isGrounded)
-        {
-            // If we just landed this frame...
-            if (!wasGrounded)
-            {
-                OnLand();
-            }
-
-            if (_agent.velocity.y < 0f)
-            {
-                Vector3 vel = _agent.velocity;
-                vel.y = -2f; 
-                _agent.velocity =vel; 
-            }
-        }
-    }
-
-    private void OnLand()
-    {
-        // Zero out horizontal velocity (X and Z) so the leap momentum stops
-        Vector3 vel = _agent.velocity;
-        vel.x = 0f;
-        vel.z = 0f;
-        _agent.velocity = vel;
-        
-    }
 
     public Vector3 GetAimDirection()
     {
