@@ -225,13 +225,13 @@ MonoBehaviour:
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 1
-  leapForwardSpeed: 20
+  leapForwardSpeed: 5
   leapUpwardVelocity: 12
   gravityScale: 30
   slamRadius: 6
   slamDamage: 45
-  knockupHeight: 100
-  knockupDuration: 100
+  knockupHeight: 30
+  knockupDuration: 0.5
   inwardPullDistance: 2
 --- !u!114 &-3766891880228399788
 MonoBehaviour:

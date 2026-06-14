@@ -60,7 +60,7 @@ public class SkyCharge : Ability, IInitializable
         while (elapsedTime < dashDuration)
         {
             Vector3 movementThisFrame = dashDirection * dashSpeed * Time.deltaTime;
-            _movementController.TeleportOrMove(movementThisFrame);
+            _movementController.Move(movementThisFrame);
 
             Collider[] hits = Physics.OverlapSphere(_rootTransform.position, hitSweepRadius);
             foreach (var hit in hits)

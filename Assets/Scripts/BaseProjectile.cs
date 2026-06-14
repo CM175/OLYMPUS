@@ -50,14 +50,6 @@ public class BaseProjectile : MonoBehaviour
 
     protected virtual void OnImpact(Collider other)
     {
-        if (attackerRoot != null)
-        {
-            var myTeam = attackerRoot.GetComponent<TeamMember>();
-            if (myTeam != null && !myTeam.IsEnemy(other.transform.root.gameObject))
-            {
-                return; 
-            }
-        }
         
         SpawnImpactVisuals(other);
         ApplyDamage(other);
@@ -70,6 +62,14 @@ public class BaseProjectile : MonoBehaviour
 
     protected void ApplyDamage(Collider other)
     {
+        if (attackerRoot != null)
+        {
+            var myTeam = attackerRoot.GetComponent<TeamMember>();
+            if (myTeam != null && !myTeam.IsEnemy(other.transform.root.gameObject))
+            {
+                return; 
+            }
+        }
         // OPTIMIZED: Adaptive interface resolution across both primary objects and layout children proxies
         IDamageable hit = other.GetComponent<IDamageable>();
         hit?.TakeDamage(damage);

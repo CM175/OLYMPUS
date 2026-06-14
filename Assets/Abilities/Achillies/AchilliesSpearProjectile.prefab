@@ -48,11 +48,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpearProjectile
   speed: 50
-  gravityScale: 1
+  gravityScale: 0
   maxRange: 100
   damage: 20
   piercesTargets: 0
   impactEffect: {fileID: 0}
+  knockbackForce: 50
 --- !u!54 &5837125268486669363
 Rigidbody:
   m_ObjectHideFlags: 0

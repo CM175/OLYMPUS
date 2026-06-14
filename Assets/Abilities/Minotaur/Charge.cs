@@ -70,7 +70,7 @@ public class Charge : Ability, IInitializable
             Vector3 movementThisFrame = chargeDirection * speed * Time.deltaTime;
             movementThisFrame.y = -4f * Time.deltaTime; 
 
-            _movementController.TeleportOrMove(movementThisFrame);
+            _movementController.Move(movementThisFrame);
 
             int wallMask = LayerMask.GetMask("Ground");
 
@@ -130,7 +130,7 @@ public class Charge : Ability, IInitializable
                 desiredPinnedPosition.y = _pinnedTransform.position.y;
 
                 Vector3 frameDisplacement = desiredPinnedPosition - _pinnedTransform.position;
-                _pinnedMovement.TeleportOrMove(frameDisplacement * (Time.deltaTime * 25f));
+                _pinnedMovement.Move(frameDisplacement * (Time.deltaTime * 25f));
             }
 
             elapsedTime += Time.deltaTime;
@@ -218,7 +218,7 @@ public class Charge : Ability, IInitializable
             float verticalSpeed = Mathf.Sin(tNorm * Mathf.PI) * 4f; 
 
             Vector3 stepMove = (direction * horizontalSpeed) + (Vector3.up * verticalSpeed);
-            targetMovement.TeleportOrMove(stepMove * Time.deltaTime);
+            targetMovement.ApplyImpulseForce(stepMove);
 
             elapsed += Time.deltaTime;
             yield return null;

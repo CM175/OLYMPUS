@@ -28,7 +28,7 @@ public class HymnOfRadiance : Ability
                 IMovementController movement = targetRoot.GetComponent<IMovementController>();
                 if (movement != null)
                 {
-                    Vector3 pushDir = (targetRoot.position - origin).normalized;
+                    Vector3 pushDir = (targetRoot.position - origin);//.normalized;
                     pushDir.y = 0;
                     movement.ApplyImpulseForce(pushDir * 150f); // Scale force up contextually for continuous calculations
                 }

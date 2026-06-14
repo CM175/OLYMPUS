@@ -39,44 +39,38 @@ public class GroundSlam : Ability, IInitializable
     private IEnumerator SlamRoutine()
     {
         Debug.Log($"{_rootTransform.root.name} is executing Ground Slam!");
-        _movementController.IsDashing = true;
+        _movementController.HaltVelocity();
 
         // Safe directional fallback if playerCamera is null (works perfectly for AI bots)
         Vector3 forwardDir = (playerCamera != null) ? playerCamera.transform.forward : _rootTransform.forward;
         forwardDir.y = 0f;
-        forwardDir.Normalize();
+        //forwardDir.Normalize();
 
         Vector3 airVelocity = (forwardDir * leapForwardSpeed) + (Vector3.up * leapUpwardVelocity);
         yield return new WaitForSeconds(0.05f);
 
-        // Track the height relative to where the jump started to determine landing cleanly
-        float groundY = _rootTransform.position.y;
-        if (NavMesh.SamplePosition(_rootTransform.position, out NavMeshHit groundHit, 2f, NavMesh.AllAreas))
-        {
-            groundY = groundHit.position.y;
-        }
 
         while (isExecuting)
         {
-            airVelocity.y -= gravityScale * Time.deltaTime;
+            //airVelocity.y -= gravityScale * Time.deltaTime;
             Vector3 frameMovement = airVelocity * Time.deltaTime;
 
             // Displace layout coordinates completely via the abstraction interface
-            _movementController.TeleportOrMove(frameMovement);
+            _movementController.Move(frameMovement);
 
-            // Ground check abstracted from explicit component types
-            bool grounded = airVelocity.y < 0f && _rootTransform.position.y <= (groundY + 0.1f);
+            // Ground check abstracted from explicit component type
 
-            if (grounded)
+            if (_movementController.IsGrounded)
+            {
+                ExecuteImpactEffects();
                 break;
+            }
 
             yield return null;
         }
-
-        ExecuteImpactEffects();
+        
 
         _movementController.HaltVelocity();
-        _movementController.IsDashing = false;
 
         StartCooldown();
     }
@@ -111,52 +105,22 @@ public class GroundSlam : Ability, IInitializable
                 IMovementController targetMovement = targetRoot.GetComponent<IMovementController>();
                 if (targetMovement != null)
                 {
+                    // Inside GroundSlam.cs Impact Effects:
                     Vector3 toCenter = impactPosition - targetRoot.position;
                     toCenter.y = 0f;
                     Vector3 pullDirection = toCenter.normalized;
 
-                    StartCoroutine(AnimateTargetKnockup(targetMovement, targetRoot, pullDirection));
+                    // 1. Calculate inward pull force + upward launch force
+                    Vector3 liftImpulse = Vector3.up * Mathf.Sqrt( knockupHeight); // Using your custom gravity scale
+                    Vector3 pullImpulse = pullDirection * (inwardPullDistance * 2f); 
+
+                    // 2. Inject directly into the target controller layer
+                    targetMovement.HaltVelocity();
+                    targetMovement.Stun(knockupDuration); 
+                    targetMovement.ApplyImpulseForce(liftImpulse + pullImpulse);
                 }
             }
         }
     }
 
-    private IEnumerator AnimateTargetKnockup(IMovementController targetMovement, Transform targetTransform, Vector3 pullDirection)
-    {
-        targetMovement.IsDashing = true;
-        targetMovement.HaltVelocity();
-
-        float elapsed = 0f;
-        Vector3 pullStep = pullDirection * (inwardPullDistance / knockupDuration);
-
-        float originalY = targetTransform.position.y;
-
-        while (elapsed < knockupDuration)
-        {
-            float normalizedTime = elapsed / knockupDuration;
-            
-            // Calculate height via a smooth sine wave arc step
-            float desiredHeight = Mathf.Sin(normalizedTime * Mathf.PI) * knockupHeight;
-
-            // Combine horizontal pulling and target height correction into a decoupled vector displacement
-            Vector3 targetPosition = targetTransform.position + (pullStep * Time.deltaTime);
-            targetPosition.y = originalY + desiredHeight;
-
-            Vector3 displacementThisFrame = targetPosition - targetTransform.position;
-            targetMovement.TeleportOrMove(displacementThisFrame);
-
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        // Snap cleanly back to ground level definitions
-        if (NavMesh.SamplePosition(targetTransform.position, out NavMeshHit finalFloor, 4f, NavMesh.AllAreas))
-        {
-            Vector3 finalSnap = finalFloor.position - targetTransform.position;
-            targetMovement.TeleportOrMove(finalSnap);
-        }
-
-        targetMovement.HaltVelocity();
-        targetMovement.IsDashing = false;
-    }
 }

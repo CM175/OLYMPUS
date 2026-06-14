@@ -37,6 +37,15 @@ public class SolarArrow : BaseProjectile
             var health = other.GetComponent<IDamageable>();
             if (health != null)
             {
+                
+                if (attackerRoot != null)
+                {
+                    var myTeam = attackerRoot.GetComponent<TeamMember>();
+                    if (myTeam != null && myTeam.IsEnemy(other.transform.root.gameObject))
+                    {
+                        return; 
+                    }
+                }
                 // Inverting the damage framework natively into a healing addition safely
                 health.ApplyHeal(damage);
             }
