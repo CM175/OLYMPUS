@@ -39,12 +39,15 @@ public class EnemyAI : MonoBehaviour
     // Exposes stun state to AIMovementController so it can delegate IsStunned
     // without running its own duplicate stun coroutine
     public bool IsStunned => _state == State.Stunned;
+    
+    private AIMovementController movement;
 
     private void Awake()
     {
         _agent          = GetComponent<NavMeshAgent>();
         _abilityManager = GetComponent<AbilityManager>();
         _teamMember     = GetComponent<TeamMember>();
+        movement = GetComponent<AIMovementController>();
     }
 
     private void Start()
@@ -57,6 +60,8 @@ public class EnemyAI : MonoBehaviour
     {
         if (!_agent.enabled) return;
         if (_state == State.Stunned) return;
+        if (movement.IsUnderExternalForce)
+            return;
 
         HandleTargetScanning();
 

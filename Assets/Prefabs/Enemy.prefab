@@ -271,3 +271,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8884f680e76613b429b31351c0073d34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AIMovementController
+  horizontalDrag: 0
+  gravity: -30

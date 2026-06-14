@@ -33,7 +33,7 @@ public class PlayerController : MonoBehaviour, IMovementController
     private InputSystem_Actions _input;
     private Vector2 _moveInput;
     private Vector3 _velocity;
-    private bool _isGrounded;
+    public bool IsGrounded { get; set; }
     private bool _isCrouching;
     private bool _jumpQueued;
     private bool _stunned = false;
@@ -45,11 +45,18 @@ public class PlayerController : MonoBehaviour, IMovementController
         _velocity += force; 
     }
 
-    public void TeleportOrMove(Vector3 displacement)
+    public void Move(Vector3 displacement)
     {
         if (_controller.enabled)
         {
             _controller.Move(displacement);
+        }
+    }
+    public void Teleport(Vector3 position)
+    {
+        if (_controller.enabled)
+        {
+            _controller.Move(position);
         }
     }
 
@@ -101,7 +108,7 @@ public class PlayerController : MonoBehaviour, IMovementController
 
     private void OnJump(InputAction.CallbackContext ctx)
     {
-        if (_isGrounded)
+        if (IsGrounded)
         {
             _jumpQueued = true;
         }
@@ -121,10 +128,10 @@ public class PlayerController : MonoBehaviour, IMovementController
 
     private void HandleGroundCheck()
     {
-        bool wasGrounded = _isGrounded; // Store the state from last frame
-        _isGrounded = Physics.CheckSphere(GetGroundCheckPosition(), groundDistance, groundMask);
+        bool wasGrounded = IsGrounded; // Store the state from last frame
+        IsGrounded = Physics.CheckSphere(GetGroundCheckPosition(), groundDistance, groundMask);
 
-        if (_isGrounded)
+        if (IsGrounded)
         {
             // If we just landed this frame...
             if (!wasGrounded)
@@ -159,37 +166,37 @@ public class PlayerController : MonoBehaviour, IMovementController
 
     private void ExecuteCombinedMovement()
     {
-        if (IsDashing) return;
-        // 1. Calculate Horizontal Movement
-        float baseSpeed = _isCrouching ? crouchSpeed : walkSpeed;
-        float speed = baseSpeed * Mathf.Max(0f, SpeedMultiplier);
-        Vector3 moveDirection;
-        Vector3 horizontalMove;
-        if (!IsStunned) // Only process movement if not stunned
+        // 1. Calculate Horizontal Input Movement
+        Vector3 horizontalInputMove = Vector3.zero;
+        if (!IsStunned && !IsDashing) 
         {
-            moveDirection = transform.right * _moveInput.x + transform.forward * _moveInput.y;
-            horizontalMove = moveDirection * speed;
-        }
-        else
-        {
-            // If stunned, ignore player input and set horizontal movement to zero
-            horizontalMove = Vector3.zero;
+            float baseSpeed = _isCrouching ? crouchSpeed : walkSpeed;
+            float speed = baseSpeed * Mathf.Max(0f, SpeedMultiplier);
+            Vector3 moveDirection = transform.right * _moveInput.x + transform.forward * _moveInput.y;
+            horizontalInputMove = moveDirection * speed;
         }
 
-        // 2. Calculate Vertical Physics (Gravity & Jumping)
-        if (_jumpQueued && _isGrounded && !IsStunned)
+        // 2. Apply Gravity to our Physics Velocity tracking vector
+        if (!IsGrounded)
+        {
+            _velocity.y += gravity * Time.deltaTime;
+        }
+
+        // 3. Smoothly Decay Physics Impulse Forces (X & Z)
+        Vector3 horizontalPhysicsVelocity = new Vector3(_velocity.x, 0f, _velocity.z);
+        horizontalPhysicsVelocity = Vector3.Lerp(horizontalPhysicsVelocity, Vector3.zero, horizontalDrag * Time.deltaTime);
+        _velocity = new Vector3(horizontalPhysicsVelocity.x, _velocity.y, horizontalPhysicsVelocity.z);
+
+        // 4. Handle Jump Input
+        if (_jumpQueued && IsGrounded && !IsStunned)
         {
             _velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             _jumpQueued = false;
         }
 
-        _velocity.y += gravity * Time.deltaTime;
+        // 5. Combine Input (m/s) and Physics Velocity (m/s) into final frame displacement
+        Vector3 finalFrameMovement = (horizontalInputMove * Time.deltaTime) + (_velocity * Time.deltaTime);
 
-
-        // 3. Combine them into one final frame vector
-        Vector3 finalFrameMovement = (horizontalMove * Time.deltaTime) + (_velocity * Time.deltaTime);
-
-        // 4. Single execution call ensures CharacterController.velocity is completely stable
         if (_controller.enabled)
         {
             _controller.Move(finalFrameMovement);
@@ -233,6 +240,7 @@ public class PlayerController : MonoBehaviour, IMovementController
 
     private IEnumerator StunRoutine(float duration)
     {
+        HaltVelocity(); // Stop any current movement
         _stunned = true; 
         AbilityManager abilityManager = GetComponent<AbilityManager>();
         abilityManager.enabled = false; // Disable abilities while stunned

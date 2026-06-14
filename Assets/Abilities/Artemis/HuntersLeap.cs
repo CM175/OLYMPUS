@@ -1,9 +1,12 @@
 using UnityEngine;
+using System.Collections;
 
 public class HuntersLeap : Ability, IInitializable
 {
-    public float leapForce = 10f;
-    public float leapHeight = 0.5f;
+    public float leapForce = 20f;
+    public float leapHeight = 12f;
+    
+    [SerializeField] private float gravityScale = 30f;
     private IMovementController _movementController;
     private Transform _rootTransform;
 
@@ -18,15 +21,39 @@ public class HuntersLeap : Ability, IInitializable
     {
         if (_movementController != null)
         {
-            // Calculate direction using character root transform forward 
-            // completely bypassing the camera view calculations!
-            Vector3 leapDirection = -_rootTransform.forward;
-            leapDirection.y = leapHeight; 
-            //leapDirection.Normalize();
-
-            _movementController.ApplyImpulseForce(leapDirection * leapForce);
+            StartCoroutine(LeapRoutine());
             
         }
+
+    }
+
+    private IEnumerator LeapRoutine()
+    {
+        Vector3 leapDirection = -_rootTransform.forward;
+        leapDirection.y = 0f;
+        leapDirection.Normalize();
+
+        Vector3 airVelocity = (leapDirection * leapForce) + (Vector3.up * leapHeight);
+
+        while (isExecuting)
+        {
+            airVelocity.y -= gravityScale * Time.deltaTime;
+            Vector3 frameMovement = airVelocity * Time.deltaTime;
+
+            // Displace layout coordinates completely via the abstraction interface
+            _movementController.Move(frameMovement);
+
+            // Ground check abstracted from explicit component type
+            if (_movementController.IsGrounded)
+            {
+                break;
+            }
+
+            yield return null;
+        }
+        
+        _movementController.HaltVelocity();
+        _movementController.IsDashing = false;
 
         StartCooldown();
     }

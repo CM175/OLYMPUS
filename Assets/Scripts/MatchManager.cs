@@ -61,7 +61,7 @@ public class MatchManager : MonoBehaviour
 
             // Offset selection sequence (e.g., i + 2) so Team B gets a different composition variance than Team A
             var manager = characterRoot.GetComponent<HeroManager>();
-            manager.heroPrefab = characterDatabase.GetHeroAtIndex(/*(i ) % totalAvailableHeroes */ 2);
+            manager.heroPrefab = characterDatabase.GetHeroAtIndex(/*(i ) % totalAvailableHeroes */ 3);
         }
     }
 

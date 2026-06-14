@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class SpearProjectile : BaseProjectile
 {
+    public float knockbackForce = 10f;
     // Override start to ensure we don't fire movement until instructed or ready
     protected override void Start()
     {
@@ -33,8 +34,10 @@ public class SpearProjectile : BaseProjectile
         // Check if we hit a damageable target
         IMovementController targetController = other.transform.root.GetComponent<IMovementController>();
         
-        targetController?.Stun(0.5f);
-        targetController?.ApplyImpulseForce(transform.forward*50f);        
+        targetController.Stun(0.5f);
+        Vector3 impactDirection = transform.forward;
+        impactDirection.y = 0f; // Keep the knockback horizontal
+        targetController.ApplyImpulseForce(impactDirection * knockbackForce);      
     }
 
     private void FixedUpdate()
