@@ -19,8 +19,6 @@ public class HUDController : MonoBehaviour
     public TextMeshProUGUI heroRoleText;
 
     [Header("Ability HUD Elements")]
-    // Assign these in the Inspector to GameObjects that have the AbilityHUD script
-    
     public AbilityHUD primaryHUD;
     public AbilityHUD secondaryHUD;
     public AbilityHUD mobilityHUD;
@@ -29,25 +27,48 @@ public class HUDController : MonoBehaviour
     [Header("Ult Ready")]
     public GameObject ultReadyIndicator;
 
+    [Header("Death & Respawn Overlay")]
+    public GameObject deathScreenPanel;
+    public TextMeshProUGUI respawnTimerText;
+
     public void Initialize(GameObject player)
     {
+        // Unsubscribe old HeroManager if present
+        if (heroManager != null)
+            heroManager.OnHeroLoaded -= OnHeroLoaded;
+
         playerHealth = player.GetComponent<PlayerHealth>();
         abilityManager = player.GetComponent<AbilityManager>();
         playerStats = player.GetComponent<PlayerStats>();
         heroManager = player.GetComponent<HeroManager>();
 
-    }
-
-    private void OnEnable()
-    {
         if (heroManager != null)
             heroManager.OnHeroLoaded += OnHeroLoaded;
+
+        HideDeathScreen();
     }
 
-    private void OnDisable()
+    public void ShowDeathScreen()
     {
-        if (heroManager != null)
-            heroManager.OnHeroLoaded -= OnHeroLoaded;
+        // Force health display to zero upon death
+        if (healthBarFill != null) healthBarFill.fillAmount = 0f;
+        if (healthText != null && playerHealth != null)
+            healthText.text = $"0 / {playerHealth.maxHealth}";
+
+        if (deathScreenPanel != null)
+            deathScreenPanel.SetActive(true);
+    }
+
+    public void HideDeathScreen()
+    {
+        if (deathScreenPanel != null)
+            deathScreenPanel.SetActive(false);
+    }
+
+    public void UpdateRespawnTimer(float remainingTime)
+    {
+        if (respawnTimerText != null)
+            respawnTimerText.text = $"RESPAWNING IN {Mathf.CeilToInt(remainingTime)}...";
     }
 
     private void OnHeroLoaded(Hero hero)
@@ -59,6 +80,9 @@ public class HUDController : MonoBehaviour
 
     private void Update()
     {
+        
+        if (playerHealth == null) return;
+        
         UpdateHealth();
         UpdateUltCharge();
         UpdateCooldowns();
@@ -67,7 +91,6 @@ public class HUDController : MonoBehaviour
     private void UpdateHealth()
     {
         if (playerHealth == null || playerHealth.maxHealth == 0) return;
-
         float fraction = (float)playerHealth.currentHealth / playerHealth.maxHealth;
         healthBarFill.fillAmount = fraction;
         
@@ -78,15 +101,10 @@ public class HUDController : MonoBehaviour
     private void UpdateUltCharge()
     {
         if (playerStats == null || ultimateHUD == null) return;
-
-        // Use the new UpdateCharge method for the Ultimate specifically
         ultimateHUD.UpdateCharge(playerStats.currentUltimateCharge, playerStats.maxUltimateCharge);
-
         bool isReady = playerStats.currentUltimateCharge >= playerStats.maxUltimateCharge;
         
-        // Visual feedback for being ready (like the yellow glow mentioned in your script)
         ultimateHUD.icon.color = isReady ? Color.yellow : Color.gray;
-
         if (ultReadyIndicator != null)
             ultReadyIndicator.SetActive(isReady);
     }
@@ -94,9 +112,6 @@ public class HUDController : MonoBehaviour
     private void UpdateCooldowns()
     {
         if (abilityManager == null) return;
-
-        // Use the AbilityHUD's internal logic to update overlays and fills
-        
         if (primaryHUD != null) primaryHUD.UpdateStatus(abilityManager.primaryAbility);
         if (secondaryHUD != null) secondaryHUD.UpdateStatus(abilityManager.secondaryAbility);
         if (mobilityHUD != null) mobilityHUD.UpdateStatus(abilityManager.mobilityAbility);
@@ -106,8 +121,6 @@ public class HUDController : MonoBehaviour
     private void SetupAbilityIcons()
     {
         if (abilityManager == null) return;
-
-        // Helper function to handle the logic cleanly for all slots
         SetupSingleHUD(primaryHUD, abilityManager.primaryAbility);
         SetupSingleHUD(secondaryHUD, abilityManager.secondaryAbility);
         SetupSingleHUD(mobilityHUD, abilityManager.mobilityAbility);
@@ -117,17 +130,14 @@ public class HUDController : MonoBehaviour
     private void SetupSingleHUD(AbilityHUD hud, Ability ability)
     {
         if (hud == null) return;
-
         if (ability != null)
         {
-            Debug.Log("ability successfully shown");
-            hud.gameObject.SetActive(true); // Show the UI container
+            hud.gameObject.SetActive(true);
             hud.icon.sprite = ability.sprite;
         }
         else
         {
-            Debug.Log("ability Failed");
-            hud.gameObject.SetActive(false); // Hide the entire UI element if ability is null
+            hud.gameObject.SetActive(false);
         }
     }
 }

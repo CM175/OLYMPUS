@@ -42,7 +42,6 @@ public class SpearProjectile : BaseProjectile
 
     private void FixedUpdate()
     {
-        // Make the arrow "swivel" to face its travel direction
         if (rb != null && rb.linearVelocity.sqrMagnitude > 0.1f)
         {
             transform.rotation = Quaternion.LookRotation(rb.linearVelocity);

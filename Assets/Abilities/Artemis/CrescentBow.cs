@@ -3,73 +3,67 @@ using UnityEngine;
 public class CrescentBow : Attack
 {
     [Header("Charge Settings")]
-    public float maxChargeTime = 2f;
-    private float chargeStartTime;
-    private bool isCharging;
+    public float maxChargeTime = 1.5f;
+    private float _chargeStartTime;
+    private bool _isCharging;
 
     [Header("Projectile")]
     public GameObject arrowPrefab;
 
-    // Inside CrescentBow.cs
     private bool _isUltActive = false;
+    private float _ultChargeSpeedMultiplier = 1f;
 
-    public void SetUltimateModifications(bool active)
+    public void SetUltimateModifications(bool active, float chargeSpeedMultiplier = 2.5f)
     {
         _isUltActive = active;
-        isChargeable = !active; 
+        _ultChargeSpeedMultiplier = active ? chargeSpeedMultiplier : 1f;
     }
-
 
     public override void OnPress()
     {
-        
-        if (_isUltActive)
-        {
-            FireArrow(1.0f);
-            return;
-        }
-        
-        isCharging = true;
-        chargeStartTime = Time.time;
+        if (!CanUse()) return;
+        _isCharging = true;
+        _chargeStartTime = Time.time;
     }
 
     public override void OnRelease()
     {
-        if (!isCharging) return;
+        if (!_isCharging) return;
 
-        float chargeTime = Time.time - chargeStartTime;
-        float chargePercent = Mathf.Clamp01(chargeTime / maxChargeTime);
+        float heldDuration = Time.time - _chargeStartTime;
+        // Accelerate the effective charge accumulation during ultimate
+        float effectiveChargeTime = heldDuration * _ultChargeSpeedMultiplier;
+        float chargePercent = Mathf.Clamp01(effectiveChargeTime / maxChargeTime);
 
         TryFireCharged(chargePercent);
-
-        isCharging = false;
+        _isCharging = false;
     }
 
     private void TryFireCharged(float chargePercent)
     {
-        if (!CanUse()) return;
-
         FireArrow(chargePercent);
         StartCooldown();
     }
 
     private void FireArrow(float chargePercent)
     {
-        GameObject arrow = Instantiate(arrowPrefab, playerCamera.transform.position + playerCamera.transform.forward, playerCamera.transform.rotation);
+        if (playerCamera == null) return;
+
+        Vector3 spawnPos = playerCamera.transform.position + playerCamera.transform.forward;
+        GameObject arrow = Instantiate(arrowPrefab, spawnPos, playerCamera.transform.rotation);
+        
         StormArrow stormArrow = arrow.GetComponent<StormArrow>();
-        stormArrow.SetAttacker(transform.root.gameObject); 
         if (stormArrow != null)
         {
-            
-            //Debug.Log($"Storm Arrow");
-            // Pass the charge ratio (0.0 to 1.0) to the arrow
+            stormArrow.SetAttacker(transform.root.gameObject);
             stormArrow.SetCharge(chargePercent);
             stormArrow.piercesTargets = _isUltActive;
         }
-
-        //Debug.Log($"Fired bow with {chargePercent * 100f}% charge");
     }
 
-    
-    
+    public override void Cancel()
+    {
+        base.Cancel();
+        _isCharging = false;
+    }
 }

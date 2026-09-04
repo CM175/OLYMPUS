@@ -69,4 +69,20 @@ public abstract class Ability : MonoBehaviour
     {
         abilityManager = manager;
     }
+
+    public virtual void Cancel()
+    {
+        if (isExecuting)
+        {
+            isExecuting = false;
+            StopAllCoroutines();
+            StartCooldown();
+        }
+
+        if (movementController != null)
+        {
+            movementController.IsDashing = false;
+            movementController.HaltVelocity();
+        }
+    }
 }

@@ -12,11 +12,16 @@ public class Charge : Ability, IInitializable
     [Header("Damage Profile")]
     [SerializeField] private int impactDamage = 30; 
     [SerializeField] private int pinWallCrushDamage = 75; 
+    [SerializeField] private float horizontalImpulse = 20f;
+    [SerializeField] private float verticalImpulse = 5f;
+    [SerializeField] private float turnRate = 45f; // Max turning speed in degrees per second
+    [SerializeField] private float wallCrushStunDuration = 0.5f; // Duration of stun when crushed against a hard wall
 
     private IMovementController _movementController;
     private Transform _rootTransform;
     
     private IMovementController _pinnedMovement = null;
+    private IDamageable pinnedDamageable = null;
     private Transform _pinnedTransform = null;
 
     private HashSet<Transform> _hitSecondaryTargets = new HashSet<Transform>();
@@ -42,6 +47,8 @@ public class Charge : Ability, IInitializable
 
     private IEnumerator ChargeRoutine()
     {
+        
+        Debug.Log($"{transform.root.name} is Executing charge ");
         _pinnedMovement = null;
         _pinnedTransform = null;
         _hitSecondaryTargets.Clear(); 
@@ -56,9 +63,9 @@ public class Charge : Ability, IInitializable
         float speed = chargeSpeed;
 
         float elapsedTime = 0f;
-        Vector3 chargeDirection = _rootTransform.forward;
+        Vector3 chargeDirection = _movementController.GetAimDirection();
         chargeDirection.y = 0f;
-        chargeDirection.Normalize();
+        chargeDirection = chargeDirection.sqrMagnitude > 0.001f ? chargeDirection.normalized : _rootTransform.forward;
 
         if (vfxPrefab != null)
         {
@@ -67,10 +74,33 @@ public class Charge : Ability, IInitializable
 
         while (elapsedTime < chargeDuration && isExecuting)
         {
-            Vector3 movementThisFrame = chargeDirection * speed * Time.deltaTime;
-            movementThisFrame.y = -4f * Time.deltaTime; 
+            if (HasPinnedTarget && pinnedDamageable.IsDead)
+            {
+                
+                speed = chargeSpeed;
+                pinnedDamageable = null;
+                _pinnedMovement = null;
+                _pinnedTransform = null;
+            }
 
+            Vector3 targetDirection = _movementController.GetAimDirection();
+            targetDirection.y = 0f;
+
+            if (targetDirection.sqrMagnitude > 0.001f)
+            {
+                targetDirection.Normalize();
+
+                // 3. Slerp/Rotate toward the target direction by a maximum degree angle per second
+                float step = turnRate * Mathf.Deg2Rad * Time.deltaTime;
+                chargeDirection = Vector3.RotateTowards(chargeDirection, targetDirection, step, 0.0f);
+            }
+
+            // 4. Move forward using the clamped charge direction
+            Vector3 movementThisFrame = chargeDirection * speed * Time.deltaTime;
             _movementController.Move(movementThisFrame);
+
+            // Optional: Align the player model to face the actual charge direction
+            _rootTransform.rotation = Quaternion.LookRotation(chargeDirection);
 
             int wallMask = LayerMask.GetMask("Ground");
 
@@ -87,6 +117,7 @@ public class Charge : Ability, IInitializable
             foreach (var hit in hits)
             {
                 Transform targetRoot = hit.transform.root;
+                
                 var myTeam = _rootTransform.GetComponent<TeamMember>();
                 
                 if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject) || targetRoot == _rootTransform)
@@ -99,14 +130,15 @@ public class Charge : Ability, IInitializable
 
                 IMovementController targetMovement = targetRoot.GetComponent<IMovementController>();
                 if (targetMovement == null) continue;
-
+                
                 if (!HasPinnedTarget)
                 {
                     _pinnedMovement = targetMovement;
                     _pinnedTransform = targetRoot;
 
                     _pinnedMovement.HaltVelocity();
-
+                    pinnedDamageable = _pinnedTransform.GetComponent<IDamageable>() ?? _pinnedTransform.GetComponentInChildren<IDamageable>();
+                    pinnedDamageable?.TakeDamage(impactDamage);
                     // OPTIMIZED: Stun the target for the remaining duration of the charge ride
                     float remainingChargeTime = chargeDuration - elapsedTime;
                     _pinnedMovement.Stun(remainingChargeTime + 0.5f); 
@@ -145,8 +177,7 @@ public class Charge : Ability, IInitializable
         // Open Ground release: target takes normal impact damage and comes out of stun naturally
         if (_pinnedTransform != null)
         {
-            IDamageable playerDamage = _pinnedTransform.GetComponent<IDamageable>() ?? _pinnedTransform.GetComponentInChildren<IDamageable>();
-            playerDamage?.TakeDamage(impactDamage);
+            
 
             if (_pinnedMovement != null)
             {
@@ -154,7 +185,8 @@ public class Charge : Ability, IInitializable
                 
             }
         }
-
+        
+        yield return new WaitForSeconds(0.5f);
         _movementController.HaltVelocity();
         _movementController.IsDashing = false;
 
@@ -173,8 +205,7 @@ public class Charge : Ability, IInitializable
                 _pinnedMovement.HaltVelocity();
                 
                 
-                // OPTIMIZED: Apply an extra 1.5-second impact stun when crushed against a hard wall
-                _pinnedMovement.Stun(1.5f);
+                _pinnedMovement.Stun(wallCrushStunDuration);
             }
 
             _pinnedMovement = null;
@@ -190,41 +221,17 @@ public class Charge : Ability, IInitializable
 
         Vector3 toEnemy = targetTransform.position - _rootTransform.position;
         toEnemy.y = 0f;
-        toEnemy.Normalize();
 
         Vector3 sideDir = Vector3.Cross(forward, Vector3.up).normalized;
 
-        if (Vector3.Dot(toEnemy, sideDir) < 0)
-            sideDir = -sideDir;
-
-        StartCoroutine(AnimateSideBounceRoutine(targetMovement, sideDir));
-    }
-
-    private IEnumerator AnimateSideBounceRoutine(IMovementController targetMovement, Vector3 direction)
-    {
-        targetMovement.IsDashing = true;
-        targetMovement.HaltVelocity();
-
-        float duration = 0.35f;
-        float elapsed = 0f;
-
-        direction.y = 0;
-        direction.Normalize();
-
-        while (elapsed < duration)
+        if (toEnemy.sqrMagnitude > 0.001f && Vector3.Dot(toEnemy.normalized, sideDir) < 0)
         {
-            float tNorm = elapsed / duration;
-            float horizontalSpeed = Mathf.Lerp(12f, 2f, tNorm); 
-            float verticalSpeed = Mathf.Sin(tNorm * Mathf.PI) * 4f; 
-
-            Vector3 stepMove = (direction * horizontalSpeed) + (Vector3.up * verticalSpeed);
-            targetMovement.ApplyImpulseForce(stepMove);
-
-            elapsed += Time.deltaTime;
-            yield return null;
+            sideDir = -sideDir;
         }
 
+        // Single impulse: 14 horizontal, 5 vertical launch
+        Vector3 impulse = (sideDir * horizontalImpulse) + (Vector3.up * verticalImpulse);
         targetMovement.HaltVelocity();
-        targetMovement.IsDashing = false;
+        targetMovement.ApplyImpulseForce(impulse);
     }
 }

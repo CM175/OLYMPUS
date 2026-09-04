@@ -62,6 +62,10 @@ public class HeroManager : MonoBehaviour
 
         OnHeroLoaded?.Invoke(currentHero);
 
+        if (TryGetComponent<TeamColorVisuals>(out var teamVisuals))
+        {
+            teamVisuals.ApplyVisuals();
+        }
         // Human-only initialization
         if (!isAIControlled)
         {

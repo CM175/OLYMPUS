@@ -58,11 +58,6 @@ public class AbilityManager : MonoBehaviour
         _input.Player.Mobility.performed  += _onMobility;
         _input.Player.Ultimate.performed  += _onUltimate;
 
-        foreach (var ability in abilities)
-        {
-            if (!ability) continue;
-            ability.lastUsedTime = Time.time - ability.cooldown; // Ensure all abilities are canceled when the manager is disabled
-        }
     }
 
     private void OnDisable()
@@ -78,11 +73,6 @@ public class AbilityManager : MonoBehaviour
         _input.Player.Ultimate.performed  -= _onUltimate;
         _input.Player.Disable();
 
-        foreach (var ability in abilities)
-        {
-            if (!ability) continue;
-            ability.StartCooldown(); 
-        }
     }
 
     public bool HasActiveExclusiveAbility()
@@ -106,5 +96,17 @@ public class AbilityManager : MonoBehaviour
         if (ultimateAbility != null && ultimateAbility.isExecuting && ultimateAbility.exclusiveState) return true;
 
         return false;
+    }
+
+    public void InterruptAllAbilities()
+    {
+        if (primaryAttack != null) primaryAttack.Cancel();
+        if (abilities != null)
+        {
+            foreach (var ability in abilities)
+            {
+                if (ability != null) ability.Cancel();
+            }
+        }
     }
 }

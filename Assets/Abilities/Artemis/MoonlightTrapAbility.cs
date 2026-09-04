@@ -21,4 +21,12 @@ public class MoonlightTrapAbility : Ability
 
         StartCooldown();
     }
+
+    private void OnDestroy()
+    {
+        if (spawnedTrap != null)
+        {
+            Destroy(spawnedTrap.gameObject);
+        }
+    }
 }

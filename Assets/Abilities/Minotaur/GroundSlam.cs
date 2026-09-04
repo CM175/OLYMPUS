@@ -14,7 +14,8 @@ public class GroundSlam : Ability, IInitializable
     [SerializeField] private int slamDamage = 45;
     [SerializeField] private float knockupHeight = 1.5f; // How high they are popped up
     [SerializeField] private float knockupDuration = 0.5f; // Suspension time
-    [SerializeField] private float inwardPullDistance = 2f; // Distance pulled toward center
+    [SerializeField] private float inwardPullForce = 2f; // Distance pulled toward center
+    private bool hasLeftGround = false;
 
     private IMovementController _movementController;
     private Transform _rootTransform;
@@ -41,26 +42,31 @@ public class GroundSlam : Ability, IInitializable
         Debug.Log($"{_rootTransform.root.name} is executing Ground Slam!");
         _movementController.HaltVelocity();
 
+        _movementController.IsDashing = true;
+
         // Safe directional fallback if playerCamera is null (works perfectly for AI bots)
         Vector3 forwardDir = (playerCamera != null) ? playerCamera.transform.forward : _rootTransform.forward;
         forwardDir.y = 0f;
-        //forwardDir.Normalize();
+        forwardDir.Normalize();
 
         Vector3 airVelocity = (forwardDir * leapForwardSpeed) + (Vector3.up * leapUpwardVelocity);
         yield return new WaitForSeconds(0.05f);
-
+        hasLeftGround = false;
 
         while (isExecuting)
         {
-            //airVelocity.y -= gravityScale * Time.deltaTime;
+            airVelocity.y -= gravityScale * Time.deltaTime;
             Vector3 frameMovement = airVelocity * Time.deltaTime;
 
             // Displace layout coordinates completely via the abstraction interface
             _movementController.Move(frameMovement);
 
-            // Ground check abstracted from explicit component type
-
-            if (_movementController.IsGrounded)
+            if (!_movementController.IsGrounded)
+            {
+               hasLeftGround = true;
+            }
+            // Ground check abstracted from explicit component type 
+            if (hasLeftGround && _movementController.IsGrounded)
             {
                 ExecuteImpactEffects();
                 break;
@@ -68,10 +74,10 @@ public class GroundSlam : Ability, IInitializable
 
             yield return null;
         }
-        
 
+        _movementController.IsDashing = false;
         _movementController.HaltVelocity();
-
+        
         StartCooldown();
     }
 
@@ -111,8 +117,9 @@ public class GroundSlam : Ability, IInitializable
                     Vector3 pullDirection = toCenter.normalized;
 
                     // 1. Calculate inward pull force + upward launch force
-                    Vector3 liftImpulse = Vector3.up * Mathf.Sqrt( knockupHeight); // Using your custom gravity scale
-                    Vector3 pullImpulse = pullDirection * (inwardPullDistance * 2f); 
+                    float gravityMagnitude = 9.81f; 
+                    Vector3 liftImpulse = Vector3.up * Mathf.Sqrt(2f * gravityMagnitude * knockupHeight);
+                    Vector3 pullImpulse = pullDirection * inwardPullForce;
 
                     // 2. Inject directly into the target controller layer
                     targetMovement.HaltVelocity();

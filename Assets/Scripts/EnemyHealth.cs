@@ -5,90 +5,147 @@ public class EnemyHealth : MonoBehaviour, IDamageable
 {
     public int maxHealth = 100;
     public int currentHealth;
-    
-    [HideInInspector]
-    public Transform spawnPoint; // Assigned by MatchManager during generation
+
+    [HideInInspector] public Transform spawnPoint;
+    [HideInInspector] public MatchManager matchManager;
+    [HideInInspector] public Hero heroPrefab;
+    [HideInInspector] public Team team;
 
     public UnityEvent<GameObject> OnDeathWithKiller;
-
     public event System.Action<int> OnDamageDealt;
     public static event System.Action<int> OnAnyEnemyDamaged;
 
-    private UnityEngine.AI.NavMeshAgent _agent;
-    
-    private AbilityManager abilityManager;
-
     public bool IsInvincible { get; set; } = false;
+    public bool IsDead { get; set; } = false;
 
-    private void Awake()
-    {
-        _agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
-        
-        abilityManager = GetComponent<AbilityManager>();
-    }
-
-    // This satisfies the hook called by HeroManager when the AI loads a Hero
     public void OnHeroLoaded(Hero hero)
     {
         maxHealth = hero.health;
         currentHealth = maxHealth;
+        IsDead = false;
     }
 
-    public void TakeDamage(int damage)
-    {
-        TakeDamage(damage, null);
-    }
+    public void TakeDamage(int damage) => TakeDamage(damage, null);
 
     public void TakeDamage(int damage, GameObject attacker)
     {
-        if (IsInvincible) return;
+        if (IsInvincible || IsDead) return;
         currentHealth -= damage;
         currentHealth = Mathf.Max(currentHealth, 0);
-        
+
         OnDamageDealt?.Invoke(damage);
         OnAnyEnemyDamaged?.Invoke(damage);
-        
-        if (currentHealth <= 0) 
+
+        if (currentHealth <= 0)
             Die(attacker);
     }
 
     public void ApplyHeal(int heal)
     {
+        if (IsDead) return;
         currentHealth += heal;
         currentHealth = Mathf.Min(currentHealth, maxHealth);
-        
-        Debug.Log($"[EnemyHealth] Health after heal: {currentHealth}/{maxHealth}");
+    }
+
+    public void HealOverTime(int totalHeal, float duration)
+    {
+        if (IsDead) return;
+
+        if (duration <= 0f)
+        {
+            ApplyHeal(totalHeal);
+            return;
+        }
+
+        StartCoroutine(SmoothHealRoutine(totalHeal, duration));
+    }
+
+    private System.Collections.IEnumerator SmoothHealRoutine(int totalHeal, float duration)
+    {
+        float elapsed = 0f;
+        float accumulatedHeal = 0f;
+        float healRate = totalHeal / duration;
+
+        while (elapsed < duration)
+        {
+            if (IsDead) yield break;
+
+            elapsed += Time.deltaTime;
+            accumulatedHeal += healRate * Time.deltaTime;
+
+            if (accumulatedHeal >= 1f)
+            {
+                int healAmount = Mathf.FloorToInt(accumulatedHeal);
+                ApplyHeal(healAmount);
+                accumulatedHeal -= healAmount;
+            }
+
+            yield return null;
+        }
+
+        if (accumulatedHeal > 0f)
+        {
+            ApplyHeal(Mathf.RoundToInt(accumulatedHeal));
+        }
+    }
+
+    public void DamageOverTime(int totalDamage, float duration)
+    {
+        if (IsDead) return;
+
+        if (duration <= 0f)
+        {
+            TakeDamage(totalDamage);
+            return;
+        }
+
+        StartCoroutine(SmoothDamageRoutine(totalDamage, duration));
+    }
+
+    private System.Collections.IEnumerator SmoothDamageRoutine(int totalDamage, float duration)
+    {
+        float elapsed = 0f;
+        float accumulatedDamage = 0f;
+        float damageRate = totalDamage / duration;
+
+        while (elapsed < duration)
+        {
+            if (IsDead) yield break;
+
+            elapsed += Time.deltaTime;
+            accumulatedDamage += damageRate * Time.deltaTime;
+
+            if (accumulatedDamage >= 1f)
+            {
+                int damageAmount = Mathf.FloorToInt(accumulatedDamage);
+                TakeDamage(damageAmount);
+                accumulatedDamage -= damageAmount;
+            }
+
+            yield return null;
+        }
+
+        if (accumulatedDamage > 0f)
+        {
+            TakeDamage(Mathf.RoundToInt(accumulatedDamage));
+        }
     }
 
     private void Die(GameObject attacker)
     {
+        if (IsDead) return;
+        IsDead = true;
+
         OnDeathWithKiller?.Invoke(attacker);
-        StartCoroutine(RespawnRoutine());
-    }
 
-    private System.Collections.IEnumerator RespawnRoutine()
-    {
-        // Disable AI processing and navigation while dead
-        if (_agent != null) _agent.enabled = false; 
-        
-        abilityManager.enabled = false;
-        // Hide character models (nested inside the runtime hero child object)
-        var renderers = GetComponentsInChildren<Renderer>();
-        foreach (var r in renderers) r.enabled = false;
+        if (matchManager == null)
+            matchManager = FindFirstObjectByType<MatchManager>();
 
-        yield return new WaitForSeconds(5f); // 5-second respawn timer
-
-        // Relocate back to the team base spawn pad
-        if (spawnPoint != null)
+        if (matchManager != null && heroPrefab != null && spawnPoint != null)
         {
-            transform.position = spawnPoint.position;
-            transform.rotation = spawnPoint.rotation;
+            matchManager.RespawnAI(heroPrefab, team, spawnPoint);
         }
 
-        // Re-enable graphics and AI systems
-        foreach (var r in renderers) r.enabled = true;
-        if (_agent != null) _agent.enabled = true;
-        abilityManager.enabled = true;
-        currentHealth = maxHealth;
+        Destroy(gameObject);
     }
 }

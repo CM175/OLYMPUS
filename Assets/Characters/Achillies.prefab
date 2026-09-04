@@ -160,7 +160,7 @@ MonoBehaviour:
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
-  cost: 300
+  cost: 5000
   duration: 6
   speedMultiplier: 1.6
   damageMultiplier: 2

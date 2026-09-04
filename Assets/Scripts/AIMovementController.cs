@@ -1,25 +1,72 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class AIMovementController : MonoBehaviour, IMovementController
 {
+    [Header("Physics & Gravity")]
+    [SerializeField] private float gravity = -20f;
+    [SerializeField] private float horizontalDrag = 8f;
+    [SerializeField] private LayerMask obstacleMask = ~0;
+
+    [Header("NavMesh Recovery")]
+    [SerializeField] private float navMeshRecoveryRadius = 1.0f;
+    [SerializeField] private float groundCheckTolerance = 0.25f;
+    [SerializeField] private float aimErrorAngle = 5f;
+
     private NavMeshAgent _agent;
     private EnemyAI _enemyAI;
     private float _baseSpeed;
-    public float horizontalDrag = 8f; // Decay rate for horizontal velocity when under external force
-    private Vector3 _velocity; // Tracks internal physics forces (including vertical velocity)
+    private Vector3 _velocity;
+    private Coroutine _stunCoroutine;
 
+    private bool _isDashing;
+    private bool _isStunned;
+    private bool _isUnderExternalForce;
 
-    public bool IsDashing { get; set; } = false;
-    public bool IsUnderExternalForce { get; private set; }
-    
-    private bool _isStunned = false;
+    public bool IsDashing
+    {
+        get => _isDashing;
+        set
+        {
+            if (_isDashing == value) return;
+            _isDashing = value;
+
+            if (!_isDashing)
+            {
+                SyncAgentToTransform();
+            }
+
+            EvaluateAgentControl();
+        }
+    }
+
+    public bool IsUnderExternalForce
+    {
+        get => _isUnderExternalForce;
+        set
+        {
+            if (_isUnderExternalForce == value) return;
+            _isUnderExternalForce = value;
+
+            if (_isUnderExternalForce)
+            {
+                _agent.enabled = false;
+            }
+            else
+            {
+                EndExternalForce();
+            }
+        }
+    }
+
     public bool IsStunned => _isStunned;
-
-    public float gravity = -9.81f; // Adjusted to match your high-gravity gameplay feel
+    public bool IsGrounded => CheckGrounded();
 
     private float _speedMultiplier = 1f;
+    
+    private float _gravityMultiplier = 1f;
     public float SpeedMultiplier
     {
         get => _speedMultiplier;
@@ -33,92 +80,56 @@ public class AIMovementController : MonoBehaviour, IMovementController
         }
     }
 
-    public bool IsGrounded => IsAgentGrounded();
-
     private void Awake()
     {
         _agent = GetComponent<NavMeshAgent>();
         _enemyAI = GetComponent<EnemyAI>();
+
         if (_agent != null)
         {
             _baseSpeed = _agent.speed;
         }
     }
 
+    private Coroutine _slowCoroutine;
+    private float _preSlowMultiplier = 1f;
+
     private void Update()
     {
-        if (IsStunned && _agent.enabled && !_agent.isStopped)
+        if (_isUnderExternalForce)
         {
-            _agent.isStopped = true;
-        }
-
-        if (IsUnderExternalForce)
-        {
-            // 1. Handle Vertical Physics (Gravity)
-            if (!IsAgentGrounded() || _velocity.y > 0f)
-            {
-                _velocity.y += gravity * Time.deltaTime;
-            }
-
-            // 2. Handle Horizontal Physics (Drag decay)
-            Vector3 horizontalVelocity = new Vector3(_velocity.x, 0f, _velocity.z);
-            horizontalVelocity = Vector3.Lerp(horizontalVelocity, Vector3.zero, horizontalDrag * Time.deltaTime);
-            _velocity = new Vector3(horizontalVelocity.x, _velocity.y, horizontalVelocity.z);
-
-            // 3. CRITICAL: Move via Transform to allow true 3D vertical flight!
-            transform.position += _velocity * Time.deltaTime;
-
-            // 4. Landing and Recovery Check
-            // If moving downward and close enough to a valid NavMesh floor, hand control back
-            if (_velocity.y <= 0f && IsAgentGrounded())
-            {
-                EndExternalForce();
-            }
+            ApplyAirPhysics();
         }
     }
 
     public void ApplyImpulseForce(Vector3 force)
     {
-        IsUnderExternalForce = true;
-
-        // Sever NavMesh control over position updates so the transform can fly vertically
-        _agent.updatePosition = false;
-        _agent.updateRotation = false;
-        if (_agent.enabled) _agent.isStopped = true;
-
-        // Accumulate the force directly into our physics velocity vector
         _velocity += force;
+        IsUnderExternalForce = true;
     }
 
-    private void EndExternalForce()
+    public void HaltVelocity()
     {
-        IsUnderExternalForce = false;
         _velocity = Vector3.zero;
 
-        // Cleanly warp the agent back onto the closest valid spot on the mesh to prevent sinking
-        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 1.5f, NavMesh.AllAreas))
+        if (IsGrounded)
         {
-            _agent.Warp(hit.position);
+            SyncAgentToTransform();
         }
 
-        // Re-enable native NavMesh tracking safely
-        _agent.updatePosition = true;
-        _agent.updateRotation = true;
-        
-        if (!IsStunned && _agent.enabled)
+        if (_agent.enabled && _agent.isOnNavMesh)
         {
-            _agent.isStopped = false;
+            _agent.ResetPath();
         }
     }
 
     public void Move(Vector3 displacement)
     {
-        // If we are overriding coordinates (like during a dash or pinned ride), use transform
-        if (IsUnderExternalForce || IsDashing)
+        if (_isUnderExternalForce || _isDashing)
         {
             transform.position += displacement;
         }
-        else if (_agent.enabled)
+        else if (_agent.enabled && _agent.isOnNavMesh)
         {
             _agent.Move(displacement);
         }
@@ -136,46 +147,223 @@ public class AIMovementController : MonoBehaviour, IMovementController
         }
     }
 
-    public void HaltVelocity()
+    public void Stun(float duration)
     {
-        _velocity = Vector3.zero;
-        if (_agent.enabled && _agent.isOnNavMesh)
+        if (_stunCoroutine != null)
         {
-            _agent.ResetPath();
+            StopCoroutine(_stunCoroutine);
+        }
+
+        _stunCoroutine = StartCoroutine(StunRoutine(duration));
+    }
+
+    public Vector3 GetAimDirection()
+    {
+        if (_enemyAI != null && _enemyAI._currentTarget != null)
+        {
+            // Aim from eye/fire height towards the target's center
+            Vector3 eyePosition = transform.position + Vector3.up * 1.5f;
+            Vector3 targetCenter = _enemyAI._currentTarget.position + Vector3.up * 1.0f;
+            Vector3 aimDirection = (targetCenter - eyePosition).normalized;
+
+            // Apply a random deviation within a cone
+            Quaternion spread = Quaternion.Euler(
+                Random.Range(-aimErrorAngle, aimErrorAngle),
+                Random.Range(-aimErrorAngle, aimErrorAngle),
+                0f
+            );
+
+            return spread * aimDirection;
+        }
+        return transform.forward;
+    }
+
+    // --- Private Implementation ---
+
+    private void ApplyAirPhysics()
+    {
+        // 1. Gravity
+        if (!IsGrounded || _velocity.y > 0f)
+        {
+            _velocity.y += gravity * _gravityMultiplier * Time.deltaTime;
+        }
+
+        // 2. Horizontal Drag
+        Vector3 horizontalVelocity = new Vector3(_velocity.x, 0f, _velocity.z);
+        horizontalVelocity = Vector3.Lerp(horizontalVelocity, Vector3.zero, horizontalDrag * Time.deltaTime);
+        _velocity = new Vector3(horizontalVelocity.x, _velocity.y, horizontalVelocity.z);
+
+        Vector3 displacement = _velocity * Time.deltaTime;
+
+        // --- GROUND / CEILING DETECTION ---
+        if (_velocity.y < 0f)
+        {
+            float downDistance = Mathf.Abs(displacement.y) + groundCheckTolerance;
+            if (Physics.Raycast(transform.position + Vector3.up * 0.5f, Vector3.down, out RaycastHit groundHit, downDistance + 0.5f, obstacleMask, QueryTriggerInteraction.Ignore))
+            {
+                transform.position = new Vector3(transform.position.x + displacement.x, groundHit.point.y, transform.position.z + displacement.z);
+                _velocity.y = 0f;
+                IsUnderExternalForce = false;
+                return;
+            }
+        }
+
+        // --- HORIZONTAL OBSTACLE DETECTION ---
+        if (displacement.sqrMagnitude > 0.0001f)
+        {
+            Vector3 origin = transform.position + (Vector3.up * 0.5f);
+            if (Physics.SphereCast(origin, _agent.radius, displacement.normalized, out RaycastHit hit, displacement.magnitude, obstacleMask, QueryTriggerInteraction.Ignore))
+            {
+                displacement = Vector3.ProjectOnPlane(displacement, hit.normal);
+                _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal);
+            }
+        }
+
+        transform.position += displacement;
+
+        // 3. Touchdown check
+        if (_velocity.magnitude < 0.01f && _velocity.y <= 0f && IsGrounded)
+        {
+            IsUnderExternalForce = false;
         }
     }
 
-    private bool IsAgentGrounded()
+    private void EndExternalForce()
     {
-        // Sample a narrow cylinder right beneath the bot's feet
+        _velocity = Vector3.zero;
+
+        // Enable agent before warping so internal solver binds correctly
+        _agent.enabled = true;
+        SyncAgentToTransform();
+        EvaluateAgentControl();
+    }
+
+    private void SyncAgentToTransform()
+    {
+        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, navMeshRecoveryRadius, NavMesh.AllAreas))
+        {
+            transform.position = hit.position;
+            if (_agent.enabled)
+            {
+                _agent.Warp(hit.position);
+                _agent.nextPosition = hit.position;
+            }
+        }
+        else if (_agent.enabled)
+        {
+            _agent.Warp(transform.position);
+            _agent.nextPosition = transform.position;
+        }
+    }
+
+    private void EvaluateAgentControl()
+    {
+        if (!_agent.enabled) return;
+
+        bool overrideTransform = _isDashing || _isUnderExternalForce;
+
+        _agent.updatePosition = !overrideTransform;
+        //_agent.updateRotation = !overrideTransform;
+
+        if (overrideTransform)
+        {
+            if (_agent.isOnNavMesh)
+            {
+                _agent.ResetPath();
+                _agent.isStopped = true;
+            }
+        }
+        else if (_isStunned)
+        {
+            if (_agent.isOnNavMesh) _agent.isStopped = true;
+        }
+        else
+        {
+            if (_agent.isOnNavMesh) _agent.isStopped = false;
+        }
+    }
+
+   private IEnumerator StunRoutine(float duration)
+    {
+        _isStunned = true;
+        HaltVelocity();
+
+        if (TryGetComponent<AbilityManager>(out var abilityManager))
+        {
+            abilityManager.InterruptAllAbilities();
+        }
+
+        EvaluateAgentControl();
+
+        // Notify EnemyAI directly if needed, or rely on EnemyAI checking IsStunned
+        if (_enemyAI != null)
+        {
+            _enemyAI.SetStunned(true);
+        }
+
+        yield return new WaitForSeconds(duration);
+
+        _isStunned = false;
+
+        if (_enemyAI != null)
+        {
+            _enemyAI.SetStunned(false);
+        }
+
+        EvaluateAgentControl();
+    }
+
+    private bool CheckGrounded()
+    {
+        if (_velocity.y > 0.05f) return false;
+
         if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 0.4f, NavMesh.AllAreas))
         {
-            return Mathf.Abs(transform.position.y - hit.position.y) <= 0.2f;
+            return Mathf.Abs(transform.position.y - hit.position.y) <= groundCheckTolerance;
         }
+
         return false;
     }
 
-    public Vector3 GetAimDirection() => transform.forward;
-
-    public void Stun(float duration)
+    public void SetGravityMultiplier(float value)
     {
-        if (_enemyAI != null && _enemyAI.enabled)
-        {
-            HaltVelocity(); // Stop any current movement
-            StartCoroutine(StunDurationTracker(duration));
-            _enemyAI.Stun(duration);
-        }
+        _gravityMultiplier = value;
+    }
+    public void HaltVerticalVelocity()
+    {
+        _velocity.y = 0f;
     }
 
-    private System.Collections.IEnumerator StunDurationTracker(float duration)
+    public void ApplySlow(float slowMultiplier, float duration, bool decaying = false)
     {
-        _isStunned = true;
-        yield return new WaitForSeconds(duration);
-        _isStunned = false;
-        
-        if (!_isStunned && !IsUnderExternalForce && _agent.enabled)
+        if (_slowCoroutine != null)
         {
-            _agent.isStopped = false;
+            StopCoroutine(_slowCoroutine);
+            SpeedMultiplier = _preSlowMultiplier;
         }
+
+        _slowCoroutine = StartCoroutine(SlowRoutine(slowMultiplier, duration, decaying));
     }
+
+    private IEnumerator SlowRoutine(float slowMultiplier, float duration, bool decaying)
+    {
+        _preSlowMultiplier = SpeedMultiplier;
+        float targetSpeed = _preSlowMultiplier * slowMultiplier;
+        SpeedMultiplier = targetSpeed;
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            if (decaying)
+            {
+                SpeedMultiplier = Mathf.Lerp(targetSpeed, _preSlowMultiplier, elapsed / duration);
+            }
+            yield return null;
+        }
+
+        SpeedMultiplier = _preSlowMultiplier;
+        _slowCoroutine = null;
+    }
+
 }

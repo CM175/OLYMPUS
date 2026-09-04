@@ -7,11 +7,9 @@ public class SolarArrow : BaseProjectile
     public float maxSpeed = 80f;
     public int minDamageOrHealing = 15;
     public int maxDamageOrHealing = 60;
+    public float damageOverTimeDuration = 0.5f;
 
-    [Header("Utility Settings")]
-    public bool isHealingArrow = false;
-
-    public void InitializeChargedProjectile(float chargeRatio)
+    public void SetCharge(float chargeRatio)
     {
         speed = Mathf.Lerp(minSpeed, maxSpeed, chargeRatio);
         damage = Mathf.RoundToInt(Mathf.Lerp(minDamageOrHealing, maxDamageOrHealing, chargeRatio));
@@ -29,35 +27,37 @@ public class SolarArrow : BaseProjectile
 
     protected override void OnImpact(Collider other)
     {
-        SpawnImpactVisuals(other);
+        if (other.transform.root.gameObject == attackerRoot) return; 
 
-        if (isHealingArrow)
+        _hasImpacted = true;
+        SpawnImpactVisuals(other);
+        
+        var myTeam = attackerRoot.GetComponent<TeamMember>();
+        // Custom Support Interface Logic
+        
+        if (myTeam != null)
         {
-            // Custom Support Interface Logic
-            var health = other.GetComponent<IDamageable>();
-            if (health != null)
+            
+            IDamageable health = other.GetComponent<IDamageable>();
+            if (!myTeam.IsEnemy(other.transform.root.gameObject))
+            {
+            
+                health?.ApplyHeal(damage);
+            }
+            else
             {
                 
-                if (attackerRoot != null)
-                {
-                    var myTeam = attackerRoot.GetComponent<TeamMember>();
-                    if (myTeam != null && myTeam.IsEnemy(other.transform.root.gameObject))
-                    {
-                        return; 
-                    }
-                }
-                // Inverting the damage framework natively into a healing addition safely
-                health.ApplyHeal(damage);
+                health?.DamageOverTime(damage, damageOverTimeDuration); 
             }
-        }
-        else
-        {
-            ApplyDamage(other);
         }
 
         if (!piercesTargets)
         {
             Destroy(gameObject);
+        }
+        else
+        {
+            _hasImpacted = false;
         }
     }
 
