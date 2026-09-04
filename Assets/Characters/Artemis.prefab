@@ -199,17 +199,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a3a3a0271a2a6e42a7a11aa3e803ec6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  cooldown: 0.5
+  cooldown: 0.25
   playerCamera: {fileID: 0}
   isChargeable: 1
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  exclusiveState: 0
+  exclusiveState: 1
   damage: 10
   range: 30
   isHolding: 0
   maxChargeTime: 0.8
-  arrowPrefab: {fileID: 7647197124771894346, guid: 5268b13d70d812e48b4eafe296c33393, type: 3}
+  arrowPrefab: {fileID: 7647197124771894346, guid: 711c1685bafdb9944b56d140fbb6b068, type: 3}
 --- !u!114 &2271320762536309116
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -269,9 +269,11 @@ MonoBehaviour:
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
-  cost: 500
+  cost: 1000
   duration: 8
   speedBuffMultiplier: 1.3
+  drawSpeedMultiplier: 2.5
+  huntScreenVfxPrefab: {fileID: 0}
 --- !u!114 &3248273820284310416
 MonoBehaviour:
   m_ObjectHideFlags: 0

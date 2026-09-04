@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
@@ -23,52 +22,94 @@ public class PlayerController : MonoBehaviour, IMovementController
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
 
-    /// <summary>
-    /// Runtime speed multiplier set by abilities and temporary buffs.
-    /// 1 = normal speed. Resets to 1 when the buff expires.
-    /// </summary>
     public float SpeedMultiplier { get; set; } = 1f;
 
     private CharacterController _controller;
     private InputSystem_Actions _input;
+
     private Vector2 _moveInput;
-    private Vector3 _velocity;
-    public bool IsGrounded { get; set; }
     private bool _isCrouching;
     private bool _jumpQueued;
+
     private bool _stunned = false;
     public bool IsStunned => _stunned;
+
     public bool IsDashing { get; set; } = false;
+
+    public bool IsGrounded { get; set; }
+    
+    public bool IsUnderExternalForce { get; set; } = false;
+    private Coroutine _slowCoroutine;
+    private float _preSlowMultiplier = 1f;
+
+    // =========================
+    // NEW PHYSICS MODEL
+    // =========================
+    private Vector3 _internalVelocity; // input + gravity
+    private Vector3 _externalVelocity; // abilities (knockback, slam, etc.)
+    private float _gravityMultiplier = 1f;
 
     public void ApplyImpulseForce(Vector3 force)
     {
-        _velocity += force; 
+        _externalVelocity += force;
+    }
+
+    public void HaltVelocity()
+    {
+        _internalVelocity = Vector3.zero;
+        _externalVelocity = Vector3.zero;
     }
 
     public void Move(Vector3 displacement)
     {
         if (_controller.enabled)
-        {
             _controller.Move(displacement);
-        }
-    }
-    public void Teleport(Vector3 position)
-    {
-        if (_controller.enabled)
-        {
-            _controller.Move(position);
-        }
     }
 
-    public void HaltVelocity()
+    public void Teleport(Vector3 position)
     {
-        SetVelocity(Vector3.zero);
+        if (_controller == null) return;
+
+        // 1. Clear all accumulated frame velocities so you don't keep flying
+        HaltVelocity();
+
+        // 2. CharacterController must be disabled to safely set world transform coordinates
+        _controller.enabled = false;
+        transform.position = position;
+        _controller.enabled = true;
     }
+
+    public Vector3 GetAimDirection()
+    {
+        Camera cam = Camera.main;
+        return cam != null ? cam.transform.forward : transform.forward;
+    }
+
+    public void Stun(float duration)
+    {
+        StartCoroutine(StunRoutine(duration));
+    }
+
+    private IEnumerator StunRoutine(float duration)
+    {
+        HaltVelocity();
+        _stunned = true;
+        AbilityManager abilityManager = GetComponent<AbilityManager>();
+        if (abilityManager != null)
+        {
+            abilityManager.InterruptAllAbilities();
+            abilityManager.enabled = false;
+        }
+        yield return new WaitForSeconds(duration);
+        if (abilityManager != null)
+            abilityManager.enabled = true;
+        _stunned = false;
+    }
+
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
         _input = new InputSystem_Actions();
-
     }
 
     private void OnEnable()
@@ -81,24 +122,11 @@ public class PlayerController : MonoBehaviour, IMovementController
         _input.Player.Jump.performed += OnJump;
         _input.Player.Crouch.performed += OnCrouch;
         _input.Player.Crouch.canceled += OnCrouchReleased;
-
-        IsDashing = false;
-        _stunned = false;
     }
 
     private void OnDisable()
     {
-        _input.Player.Move.performed -= OnMove;
-        _input.Player.Move.canceled -= OnMove;
-
-        _input.Player.Jump.performed -= OnJump;
-        _input.Player.Crouch.performed -= OnCrouch;
-        _input.Player.Crouch.canceled -= OnCrouchReleased;
-
         _input.Player.Disable();
-
-        _moveInput = Vector2.zero;
-        _jumpQueued = false;
     }
 
     private void OnMove(InputAction.CallbackContext ctx)
@@ -109,9 +137,7 @@ public class PlayerController : MonoBehaviour, IMovementController
     private void OnJump(InputAction.CallbackContext ctx)
     {
         if (IsGrounded)
-        {
             _jumpQueued = true;
-        }
     }
 
     private void OnCrouch(InputAction.CallbackContext ctx)
@@ -124,82 +150,67 @@ public class PlayerController : MonoBehaviour, IMovementController
         _isCrouching = false;
     }
 
-    // Inside PlayerController.cs
-
-    private void HandleGroundCheck()
-    {
-        bool wasGrounded = IsGrounded; // Store the state from last frame
-        IsGrounded = Physics.CheckSphere(GetGroundCheckPosition(), groundDistance, groundMask);
-
-        if (IsGrounded)
-        {
-            // If we just landed this frame...
-            if (!wasGrounded)
-            {
-                OnLand();
-            }
-
-            if (_velocity.y < 0f)
-            {
-                _velocity.y = -2f; // Keep the player snapped to ground
-            }
-        }
-    }
-
-    private void OnLand()
-    {
-        // Zero out horizontal velocity (X and Z) so the leap momentum stops
-            
-        _velocity.x = 0f;
-        _velocity.z = 0f;
-        
-    }
-
     private void Update()
     {
         HandleGroundCheck();
         HandleCrouchHeight();
-        
-        // Process movement inputs and physics into a single frame movement vector
-        ExecuteCombinedMovement();
+        ExecuteMovement();
     }
 
-    private void ExecuteCombinedMovement()
+    private void ExecuteMovement()
     {
-        // 1. Calculate Horizontal Input Movement
-        Vector3 horizontalInputMove = Vector3.zero;
-        if (!IsStunned && !IsDashing) 
+        Vector3 inputMove = Vector3.zero;
+
+        if (!IsStunned && !IsDashing)
         {
             float baseSpeed = _isCrouching ? crouchSpeed : walkSpeed;
-            float speed = baseSpeed * Mathf.Max(0f, SpeedMultiplier);
-            Vector3 moveDirection = transform.right * _moveInput.x + transform.forward * _moveInput.y;
-            horizontalInputMove = moveDirection * speed;
+            float speed = baseSpeed * SpeedMultiplier;
+
+            Vector3 moveDir = transform.right * _moveInput.x + transform.forward * _moveInput.y;
+            inputMove = moveDir * speed;
+        }
+        else
+        {
+            inputMove = Vector3.zero;
         }
 
-        // 2. Apply Gravity to our Physics Velocity tracking vector
+        // Gravity → internal only
         if (!IsGrounded)
         {
-            _velocity.y += gravity * Time.deltaTime;
+            _internalVelocity.y += gravity * _gravityMultiplier * Time.deltaTime;
+            _externalVelocity.y += gravity * _gravityMultiplier * Time.deltaTime;
         }
 
-        // 3. Smoothly Decay Physics Impulse Forces (X & Z)
-        Vector3 horizontalPhysicsVelocity = new Vector3(_velocity.x, 0f, _velocity.z);
-        horizontalPhysicsVelocity = Vector3.Lerp(horizontalPhysicsVelocity, Vector3.zero, horizontalDrag * Time.deltaTime);
-        _velocity = new Vector3(horizontalPhysicsVelocity.x, _velocity.y, horizontalPhysicsVelocity.z);
-
-        // 4. Handle Jump Input
+        // Jump
         if (_jumpQueued && IsGrounded && !IsStunned)
         {
-            _velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            _internalVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             _jumpQueued = false;
         }
 
-        // 5. Combine Input (m/s) and Physics Velocity (m/s) into final frame displacement
-        Vector3 finalFrameMovement = (horizontalInputMove * Time.deltaTime) + (_velocity * Time.deltaTime);
+        // External drag
+        Vector3 extHorizontal = new Vector3(_externalVelocity.x, 0f, _externalVelocity.z);
+        extHorizontal = Vector3.Lerp(extHorizontal, Vector3.zero, horizontalDrag * Time.deltaTime);
+        _externalVelocity = new Vector3(extHorizontal.x, _externalVelocity.y, extHorizontal.z);
+
+        Vector3 finalMove =
+            (inputMove * Time.deltaTime) +
+            (_internalVelocity * Time.deltaTime) +
+            (_externalVelocity * Time.deltaTime);
 
         if (_controller.enabled)
+            _controller.Move(finalMove);
+    }
+
+    private void HandleGroundCheck()
+    {
+        bool wasGrounded = IsGrounded;
+        IsGrounded = Physics.CheckSphere(GetGroundCheckPosition(), groundDistance, groundMask);
+
+        if (IsGrounded && !wasGrounded)
         {
-            _controller.Move(finalFrameMovement);
+            _internalVelocity.y = 0f;
+            _externalVelocity.y = 0f;
         }
     }
 
@@ -221,46 +232,51 @@ public class PlayerController : MonoBehaviour, IMovementController
     private Vector3 GetGroundCheckPosition()
     {
         if (groundCheck != null)
-        {
             return groundCheck.position;
-        }
 
         return transform.position + _controller.center - Vector3.up * (_controller.height / 2f);
     }
 
-    public void SetVelocity(Vector3 newVelocity)
+    
+    public void SetGravityMultiplier(float value)
     {
-        _velocity = newVelocity;
+        _gravityMultiplier = value;
+    }
+    public void HaltVerticalVelocity()
+    {
+        _internalVelocity.y = 0f;
+        _externalVelocity.y = 0f;
     }
 
-    public void Stun(float duration)
+    public void ApplySlow(float slowMultiplier, float duration, bool decaying = false)
     {
-        StartCoroutine(StunRoutine(duration));
-    }
-
-    private IEnumerator StunRoutine(float duration)
-    {
-        HaltVelocity(); // Stop any current movement
-        _stunned = true; 
-        AbilityManager abilityManager = GetComponent<AbilityManager>();
-        abilityManager.enabled = false; // Disable abilities while stunned
-        yield return new WaitForSeconds(duration);
-
-        abilityManager.enabled = true; // Re-enable abilities after stun
-        _stunned = false;
-    }
-
-    // Add these public methods inside the PlayerController class to satisfy the interface expansion
-
-    public Vector3 GetAimDirection()
-    {
-        // Fall back to Camera.main if an explicit reference isn't serialized
-        Camera mainCam = Camera.main;
-        if (mainCam != null) 
+        if (_slowCoroutine != null)
         {
-            return mainCam.transform.forward;
+            StopCoroutine(_slowCoroutine);
+            SpeedMultiplier = _preSlowMultiplier;
         }
-        return transform.forward;
+
+        _slowCoroutine = StartCoroutine(SlowRoutine(slowMultiplier, duration, decaying));
     }
 
+    private IEnumerator SlowRoutine(float slowMultiplier, float duration, bool decaying)
+    {
+        _preSlowMultiplier = SpeedMultiplier;
+        float targetSpeed = _preSlowMultiplier * slowMultiplier;
+        SpeedMultiplier = targetSpeed;
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            if (decaying)
+            {
+                SpeedMultiplier = Mathf.Lerp(targetSpeed, _preSlowMultiplier, elapsed / duration);
+            }
+            yield return null;
+        }
+
+        SpeedMultiplier = _preSlowMultiplier;
+        _slowCoroutine = null;
+    }
 }

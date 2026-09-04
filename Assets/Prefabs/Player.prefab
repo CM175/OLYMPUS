@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 5314131021646493146}
   - component: {fileID: 6019712462396341325}
   - component: {fileID: 2945150499789069994}
+  - component: {fileID: 2953813353661969110}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -168,6 +169,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TeamMember
   team: 0
+--- !u!114 &2953813353661969110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 560230799114539144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dc1dc4d8b20cf1488c0d9b44cc75723, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeamColorVisuals
+  teamAColor: {r: 0.2, g: 0.6, b: 1, a: 1}
+  teamBColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  colorPropertyName: _BaseColor
+  emissionPropertyName: _EmissionColor
 --- !u!1 &1052349920367589121
 GameObject:
   m_ObjectHideFlags: 0

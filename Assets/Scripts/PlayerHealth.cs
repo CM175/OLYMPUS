@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour, IDamageable
@@ -6,76 +5,191 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     public int maxHealth = 100;
     public Transform spawnPoint;
     public int currentHealth;
-
     public bool IsInvincible { get; set; } = false;
     public float DamageReduction { get; set; } = 0f;
-    private bool respawning = false;
-    private AbilityManager abilityManager;
-    PlayerController controller;
-    MeshRenderer _mesh;
-    
 
+    [HideInInspector]
+    public MatchManager matchManager;
+
+    public bool IsDead { get; set; }= false;
 
     private void OnEnable()  => PlayerRegistry.Register(transform);
     private void OnDisable() => PlayerRegistry.Unregister();
 
-    void Start()
-    {
-        controller = GetComponent<PlayerController>();
-        abilityManager = GetComponent<AbilityManager>();
-        _mesh       = GetComponent<MeshRenderer>();
-
-    }
-
     public void OnHeroLoaded(Hero hero)
     {
-        maxHealth     = hero.health;
+        maxHealth = hero.health;
         currentHealth = maxHealth;
-        IsInvincible   = false;
+        IsInvincible = false;
         DamageReduction = 0f;
+        IsDead = false;
     }
 
     public void TakeDamage(int damage)
     {
-        if (IsInvincible) return;
-        int reduced = UnityEngine.Mathf.RoundToInt(damage * (1f - DamageReduction));
+        if (IsInvincible || IsDead) return;
+
+        int reduced = Mathf.RoundToInt(damage * (1f - DamageReduction));
         currentHealth -= reduced;
-        Debug.Log($"damage taken: {reduced}, current health: {currentHealth}/{maxHealth}");
         currentHealth = Mathf.Max(currentHealth, 0);
-        if (currentHealth <= 0) Die();
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
     }
 
     public void ApplyHeal(int heal)
     {
-        if (respawning) return;
+        if (IsDead) return;
         currentHealth += heal;
         currentHealth = Mathf.Min(currentHealth, maxHealth);
     }
 
-    void Die()
+    public void HealOverTime(int totalHeal, float duration)
     {
-        StartCoroutine(Respawn());
+        if (IsDead) return;
+
+        if (duration <= 0f)
+        {
+            ApplyHeal(totalHeal);
+            return;
+        }
+
+        StartCoroutine(SmoothHealRoutine(totalHeal, duration));
     }
 
-    IEnumerator Respawn()
+    private System.Collections.IEnumerator SmoothHealRoutine(int totalHeal, float duration)
     {
-        respawning = true;
-        controller.enabled = false;
-        IsInvincible = true;
-        abilityManager.enabled = false;
+        float elapsed = 0f;
+        float accumulatedHeal = 0f;
+        float healRate = totalHeal / duration;
 
-        if (_mesh != null) _mesh.enabled = false;
+        while (elapsed < duration && currentHealth < maxHealth)
+        {
+            if (IsDead) yield break;
 
-        yield return new WaitForSeconds(3f);
+            elapsed += Time.deltaTime;
+            accumulatedHeal += healRate * Time.deltaTime;
 
-        transform.position  = spawnPoint.position;
-        controller.enabled = true;
-        abilityManager.enabled = true;
-        if (_mesh != null) _mesh.enabled = true;
+            // Apply health only when a full integer point is accumulated
+            if (accumulatedHeal >= 1f)
+            {
+                int healAmount = Mathf.FloorToInt(accumulatedHeal);
+                ApplyHeal(healAmount);
+                accumulatedHeal -= healAmount;
+            }
 
-        currentHealth   = maxHealth;
-        IsInvincible    = false;
-        DamageReduction = 0f;
-        respawning = false;
+            yield return null;
+        }
+        {
+            if (IsDead) yield break;
+
+            elapsed += Time.deltaTime;
+            accumulatedHeal += healRate * Time.deltaTime;
+
+            // Apply health only when a full integer point is accumulated
+            if (accumulatedHeal >= 1f)
+            {
+                int healAmount = Mathf.FloorToInt(accumulatedHeal);
+                ApplyHeal(healAmount);
+                accumulatedHeal -= healAmount;
+            }
+
+            yield return null;
+        }
+        {
+            if (IsDead) yield break;
+
+            elapsed += Time.deltaTime;
+            accumulatedHeal += healRate * Time.deltaTime;
+
+            // Apply health only when a full integer point is accumulated
+            if (accumulatedHeal >= 1f)
+            {
+                int healAmount = Mathf.FloorToInt(accumulatedHeal);
+                ApplyHeal(healAmount);
+                accumulatedHeal -= healAmount;
+            }
+
+            yield return null;
+        }
+
+        // Apply any leftover fraction once the timer finishes
+        if (accumulatedHeal > 0f)
+        {
+            ApplyHeal(Mathf.RoundToInt(accumulatedHeal));
+        }
+    }
+
+    public void DamageOverTime(int totalDamage, float duration)
+    {
+        if (IsDead) return;
+
+        if (duration <= 0f)
+        {
+            TakeDamage(totalDamage);
+            return;
+        }
+
+        StartCoroutine(SmoothDamageRoutine(totalDamage, duration));
+    }
+
+    private System.Collections.IEnumerator SmoothDamageRoutine(int totalDamage, float duration)
+    {
+        float elapsed = 0f;
+        float accumulatedDamage = 0f;
+        float damageRate = totalDamage / duration;
+
+        while (elapsed < duration && currentHealth > 0)
+        {
+            if (IsDead) yield break;
+
+            elapsed += Time.deltaTime;
+            accumulatedDamage += damageRate * Time.deltaTime;
+
+            // Apply damage only when a full integer point is accumulated
+            if (accumulatedDamage >= 1f)
+            {
+                int damageAmount = Mathf.FloorToInt(accumulatedDamage);
+                TakeDamage(damageAmount);
+                accumulatedDamage -= damageAmount;
+            }
+
+            yield return null;
+        }
+
+        // Apply any leftover fraction once the timer finishes
+        if (accumulatedDamage > 0f)
+        {
+            TakeDamage(Mathf.RoundToInt(accumulatedDamage));
+        }
+    }
+    private void Die()
+    {
+        if (IsDead) return;
+        IsDead = true;
+
+        // Ensure the current health is set flat to 0
+        currentHealth = 0;
+
+        if (matchManager == null)
+        {
+            matchManager = FindFirstObjectByType<MatchManager>();
+        }
+        
+        if (matchManager != null)
+        {
+            // matchManager.hudController will now show the death screen & zeroed health
+            if (matchManager.hudController != null)
+            {
+                matchManager.hudController.ShowDeathScreen();
+            }
+
+            matchManager.RespawnPlayer();
+        }
+
+        // Fully destroy the player root instance
+        Destroy(gameObject);
     }
 }

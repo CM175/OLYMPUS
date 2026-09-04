@@ -22,7 +22,7 @@ public class EnemyAI : MonoBehaviour
     private AbilityManager _abilityManager;
     private TeamMember     _teamMember;
 
-    private Transform      _currentTarget;
+    public Transform      _currentTarget;
     private enum State { Idle, Patrol, Chase, Stunned }
     private State _state = State.Idle;
 
@@ -48,6 +48,10 @@ public class EnemyAI : MonoBehaviour
         _abilityManager = GetComponent<AbilityManager>();
         _teamMember     = GetComponent<TeamMember>();
         movement = GetComponent<AIMovementController>();
+        if (_agent != null)
+        {
+            _agent.updateRotation = false; // Let your script control rotation
+        }
     }
 
     private void Start()
@@ -62,6 +66,12 @@ public class EnemyAI : MonoBehaviour
         if (_state == State.Stunned) return;
         if (movement.IsUnderExternalForce)
             return;
+
+        if (movement.IsUnderExternalForce)
+        {
+            _agent.ResetPath();
+            return;
+        }
 
         HandleTargetScanning();
 
@@ -164,17 +174,17 @@ public class EnemyAI : MonoBehaviour
         _agent.stoppingDistance  = combatRange * 0.8f;
         _agent.SetDestination(_currentTarget.position);
 
-        Vector3 lookDir = (_currentTarget.position - transform.position).normalized;
-        lookDir.y = 0;
-        if (lookDir != Vector3.zero)
+        Vector3 horizontalLookDir = _currentTarget.position - transform.position;
+        horizontalLookDir.y = 0f;
+
+        if (horizontalLookDir.sqrMagnitude > 0.001f)
         {
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
-                Quaternion.LookRotation(lookDir),
+                Quaternion.LookRotation(horizontalLookDir),
                 Time.deltaTime * 10f
             );
         }
-
         ExecuteCombatAbilities(Vector3.Distance(transform.position, _currentTarget.position));
     }
 
@@ -256,25 +266,17 @@ public class EnemyAI : MonoBehaviour
 
     // Single authoritative stun routine. AIMovementController.Stun() delegates
     // here rather than running its own parallel coroutine.
-    public void Stun(float duration)
+    public void SetStunned(bool stunned)
     {
-        StartCoroutine(StunRoutine(duration));
-    }
-
-    private IEnumerator StunRoutine(float duration)
-    {
-        if (!_agent.enabled) yield break;
-
-        State previousState  = _state;
-        _state               = State.Stunned;
-        _agent.isStopped     = true;
-
-        yield return new WaitForSeconds(duration);
-
-        if (_agent != null && gameObject.activeInHierarchy)
+        if (stunned)
         {
-            _agent.isStopped = false;
-            _state           = previousState == State.Stunned ? State.Patrol : previousState;
+            _state = State.Stunned;
+            if (_agent.enabled && _agent.isOnNavMesh) _agent.isStopped = true;
+        }
+        else
+        {
+            _state = State.Patrol;
+            if (_agent.enabled && _agent.isOnNavMesh) _agent.isStopped = false;
         }
     }
 

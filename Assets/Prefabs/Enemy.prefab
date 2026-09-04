@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 8492045905183251075}
   - component: {fileID: 2117606048965787888}
   - component: {fileID: 7172785217306823700}
+  - component: {fileID: 1296108845960250951}
   m_Layer: 8
   m_Name: Enemy
   m_TagString: Enemy
@@ -139,6 +140,9 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 0
   spawnPoint: {fileID: 0}
+  matchManager: {fileID: 0}
+  heroPrefab: {fileID: 0}
+  team: 0
   OnDeathWithKiller:
     m_PersistentCalls:
       m_Calls: []
@@ -183,6 +187,7 @@ MonoBehaviour:
     m_Bits: 256
   patrolWaitTime: 2
   patrolRadius: 10
+  _currentTarget: {fileID: 0}
   _aiMaxChargeHoldTime: 1.5
 --- !u!114 &4635832211684307665
 MonoBehaviour:
@@ -271,5 +276,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8884f680e76613b429b31351c0073d34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AIMovementController
-  horizontalDrag: 0
   gravity: -30
+  horizontalDrag: 8
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  navMeshRecoveryRadius: 1
+  groundCheckTolerance: 0.25
+  aimErrorAngle: 10
+--- !u!114 &1296108845960250951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2391148793557673702}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dc1dc4d8b20cf1488c0d9b44cc75723, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeamColorVisuals
+  teamAColor: {r: 0.2, g: 0.6, b: 1, a: 1}
+  teamBColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  colorPropertyName: _BaseColor
+  emissionPropertyName: _EmissionColor

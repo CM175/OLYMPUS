@@ -3,69 +3,129 @@ using UnityEngine;
 
 public class ChariotOfTheSun : Ultimate
 {
-    public float duration = 5f;
+    [Header("Flight & Positioning")]
+    public float liftHeight = 8f;        // Total upward lift distance
+    public float liftSpeed = 12f;        // Speed of upward ascent
+    public float hoverDuration = 5f;
+    public float downwardDescendForce = -8f;
+
+    [Header("Solar Pillar")]
     public float beamRadius = 6f;
-    public int damagePerTick = 10;
-    public int healPerTick = 15;
-    public float tickRate = 0.5f;
-    public float range = 100f;
+    public int damagePerTick = 12;
+    public int healPerTick = 20;
+    public float tickRate = 0.25f;
+    public float maxRange = 120f;
+
+    [Header("Damage Mitigation")]
+    [Range(0f, 1f)] public float aerialDamageReduction = 0.5f; // Replaces raw invincibility with 50% resistance
 
     protected override void Activate()
     {
-        base.Activate(); // Safely processes and consumes Ultimate Charge resources
-        StartCoroutine(AscensionChariotRoutine());
+        base.Activate();
+        StartCoroutine(ChariotFlightRoutine());
     }
 
-    private IEnumerator AscensionChariotRoutine()
+    private IEnumerator ChariotFlightRoutine()
     {
-        Debug.Log("[Ultimate] Apollo takes to the sky in his Chariot!");
+        Transform root = transform.root;
+        IMovementController movement = root.GetComponent<IMovementController>();
+        IDamageable health = root.GetComponent<IDamageable>();
+        TeamMember myTeam = root.GetComponent<TeamMember>();
 
-        // Brief tactical logic adjustment: apply temporary invincibility or speed while channeling from overhead views
-        IDamageable health = transform.root.GetComponent<IDamageable>();
-        if (health != null) health.IsInvincible = true;
+        // 1. Ascend to hover altitude
+        if (movement != null)
+        {
+            movement.HaltVerticalVelocity();
+            movement.SetGravityMultiplier(0f);
+            movement.IsDashing = true; 
+        }
+
+        float verticalAscended = 0f;
+        while (verticalAscended < liftHeight)
+        {
+            float step = liftSpeed * Time.deltaTime;
+            if (verticalAscended + step > liftHeight)
+                step = liftHeight - verticalAscended;
+
+            if (movement != null)
+                movement.Move(Vector3.up * step);
+
+            verticalAscended += step;
+            yield return null;
+        }
+
+        // 2. Lock velocity & maintain float
+        if (movement != null)
+            movement.HaltVerticalVelocity();
 
         float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            // Cast down from player crosshair perspective to establish localized tracking coordinate systems
-            Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
-            if (Physics.Raycast(ray, out RaycastHit hit, range))
-            {
-                // Spawn a tracing visual frame at the hit position
-                if (vfxPrefab != null)
-                {
-                    GameObject fx = Instantiate(vfxPrefab, hit.point, Quaternion.identity);
-                    Destroy(fx, tickRate);
-                }
+        float nextTick = 0f;
 
-                // Process Area of Effect logic
-                Collider[] entities = Physics.OverlapSphere(hit.point, beamRadius);
-                foreach (var col in entities)
+        while (elapsed < hoverDuration)
+        {
+            Vector3 rayOrigin;
+            Vector3 rayDirection = movement != null ? movement.GetAimDirection() : transform.forward;
+
+            if (playerCamera != null)
+            {
+                rayOrigin = playerCamera.transform.position;
+            }
+            else
+            {
+                rayOrigin = root.position;
+            }
+
+            Ray ray = new Ray(rayOrigin, rayDirection);
+            if (Physics.Raycast(ray, out RaycastHit hit, maxRange))
+            {
+                if (Time.time >= nextTick)
                 {
-                    var myTeam = transform.root.GetComponent<TeamMember>();
-                    // Treat AI / Enemies
-                    if (myTeam != null && myTeam.IsEnemy(col.gameObject))
-                    {
-                        col.GetComponent<IDamageable>()?.TakeDamage(damagePerTick);
-                    }
-                    else if (myTeam != null && !myTeam.IsEnemy(col.gameObject))
-                    {
-                        var pHealth = col.GetComponent<IDamageable>();
-                        if (pHealth != null)
-                        {
-                            pHealth.ApplyHeal(healPerTick);
-                        }
-                    }
+                    ProcessSolarPillar(hit.point, myTeam);
+                    nextTick = Time.time + tickRate;
                 }
             }
 
-            yield return new WaitForSeconds(tickRate);
-            elapsed += tickRate;
+            elapsed += Time.deltaTime;
+            yield return null;
         }
 
-        if (health != null) health.IsInvincible = false;
-        
-        Debug.Log("[Ultimate] Apollo's Chariot returned safely.");
+        // 3. Restore gravity and descend
+        if (movement != null)
+        {
+            movement.SetGravityMultiplier(1f);
+            movement.ApplyImpulseForce(Vector3.up * downwardDescendForce);
+            movement.IsDashing = false;
+        }
+
         StartCooldown();
+    }
+
+    private void ProcessSolarPillar(Vector3 centerPoint, TeamMember myTeam)
+    {
+        // Visual indicator at target point
+        if (vfxPrefab != null)
+        {
+            GameObject fx = Instantiate(vfxPrefab, centerPoint, Quaternion.identity);
+            fx.transform.localScale = Vector3.one * (beamRadius * 2);
+            Destroy(fx, tickRate);
+        }
+
+        Collider[] targets = Physics.OverlapSphere(centerPoint, beamRadius);
+        foreach (var col in targets)
+        {
+            Transform targetRoot = col.transform.root;
+
+            IDamageable targetHealth = targetRoot.GetComponent<IDamageable>();
+            if (targetHealth == null) continue;
+
+            if (myTeam != null && myTeam.IsEnemy(targetRoot.gameObject))
+            {
+                targetHealth.TakeDamage(damagePerTick);
+            }
+            else if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject))
+            {
+                targetHealth.ApplyHeal(healPerTick);
+            }
+        }
     }
 }

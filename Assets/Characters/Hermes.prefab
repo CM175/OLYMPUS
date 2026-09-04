@@ -73,6 +73,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WingedDaggers
   cooldown: 0.5
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
@@ -95,6 +96,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FleetFooted
   cooldown: 0
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
@@ -113,13 +115,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MessengerOfTheGods
   cooldown: 0
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
-  exclusiveState: 0
-  cost: 5000
-  duration: 8
-  hyperSpeedMultiplier: 2
-  reducedBlinkCooldown: 1
+  exclusiveState: 1
+  cost: 1000
+  maxDistance: 25
+  windupTime: 0.3
+  sweepRadius: 2.5
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 9
+  baseDamage: 75
+  silenceDuration: 1.5
+  pushbackImpulse: 10
+  sonicTrailVfxPrefab: {fileID: 0}
+  impactBurstVfxPrefab: {fileID: 0}
 --- !u!114 &3086645997603996126
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -134,6 +145,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlinkDash
   cooldown: 6
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
@@ -156,6 +168,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AmbushInvisibility
   cooldown: 8
   playerCamera: {fileID: 0}
+  isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 1

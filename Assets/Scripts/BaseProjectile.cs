@@ -15,6 +15,7 @@ public class BaseProjectile : MonoBehaviour
     protected Vector3 spawnPosition;
     protected Rigidbody rb;
     protected GameObject attackerRoot;
+    public bool _hasImpacted = false;
     public virtual void SetAttacker(GameObject attacker)
     {
         attackerRoot = attacker.transform.root.gameObject;
@@ -45,18 +46,24 @@ public class BaseProjectile : MonoBehaviour
 
     protected virtual void OnTriggerEnter(Collider other)
     {
+        if (_hasImpacted) return;
+        if (other.transform.root.gameObject == attackerRoot) return;
         OnImpact(other);
     }
 
     protected virtual void OnImpact(Collider other)
     {
-        
+        _hasImpacted = true;
         SpawnImpactVisuals(other);
         ApplyDamage(other);
 
-        if (!piercesTargets)
+        if (!piercesTargets )
         {
             Destroy(gameObject);
+        }
+        else
+        {
+            _hasImpacted = false; 
         }
     }
 

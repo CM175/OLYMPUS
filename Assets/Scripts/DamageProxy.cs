@@ -22,6 +22,25 @@ public class DamageProxy : MonoBehaviour, IDamageable
         }
     }
 
+    public bool IsDead
+    {
+        get
+        {
+            if (_parentDamageable != null)
+            {
+                return _parentDamageable.IsDead;
+            }
+            return false;
+        }
+        set
+        {
+            if (_parentDamageable != null)
+            {
+                _parentDamageable.IsDead = value;
+            }
+        }
+    }
+
     private void Start()
     {
         _parentDamageable = transform.root.GetComponent<IDamageable>();
@@ -35,5 +54,15 @@ public class DamageProxy : MonoBehaviour, IDamageable
     public void ApplyHeal(int heal)
     {
         _parentDamageable?.ApplyHeal(heal);
+    }
+
+    public void HealOverTime(int totalHeal, float duration)
+    {
+        _parentDamageable?.HealOverTime(totalHeal, duration);
+    }
+
+    public void DamageOverTime(int totalDamage, float duration)
+    {
+        _parentDamageable?.DamageOverTime(totalDamage, duration);
     }
 }

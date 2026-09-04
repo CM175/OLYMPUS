@@ -43,12 +43,13 @@
     <UnityVersion>6000.3.9f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Users\Corym\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.2.2\Analyzers\Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="C:\Users\Corym\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.3.1\Analyzers\Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\TeamColorVisuals.cs" />
     <Compile Include="Assets\Abilities\Artemis\StormArrow.cs" />
     <Compile Include="Assets\Scripts\IInitializable.cs" />
     <Compile Include="Assets\Abilities\Hermes\AmbushInvisibility.cs" />
@@ -57,9 +58,9 @@
     <Compile Include="Assets\Scripts\HeroManager.cs" />
     <Compile Include="Assets\Scripts\Hero.cs" />
     <Compile Include="Assets\Abilities\Minotaur\AxeSwing.cs" />
-    <Compile Include="Assets\Abilities\Apollo\ArrowSwap.cs" />
     <Compile Include="Assets\Scripts\MapGenerator.cs" />
     <Compile Include="Assets\Abilities\Artemis\CrescentBow.cs" />
+    <Compile Include="Assets\Abilities\Minotaur\LabyrinthDomain.cs" />
     <Compile Include="Assets\Scripts\EnemyAI.cs" />
     <Compile Include="Assets\Scripts\DamageProxy.cs" />
     <Compile Include="Assets\Abilities\Artemis\TrackThePrey.cs" />
@@ -71,19 +72,25 @@
     <Compile Include="Assets\Abilities\Artemis\MoonlightChase.cs" />
     <Compile Include="Assets\Scripts\Attack.cs" />
     <Compile Include="Assets\Scripts\Ultimate.cs" />
+    <Compile Include="Assets\Abilities\Poseidon\ReleaseTheKraken.cs" />
+    <Compile Include="Assets\Abilities\Poseidon\UndertowSurge.cs" />
     <Compile Include="Assets\Abilities\Zeus\LightningBarrier.cs" />
     <Compile Include="Assets\Scripts\PlayerRegistry.cs" />
+    <Compile Include="Assets\Scripts\Outline.cs" />
     <Compile Include="Assets\Abilities\Apollo\ChariotOfTheSun.cs" />
     <Compile Include="Assets\Abilities\Zeus\OlympianWrath.cs" />
     <Compile Include="Assets\Scripts\KillZone.cs" />
+    <Compile Include="Assets\Abilities\Poseidon\TidalSurge.cs" />
     <Compile Include="Assets\Abilities\Achillies\ShieldBash.cs" />
     <Compile Include="Assets\Scripts\IMovementController.cs" />
     <Compile Include="Assets\Scripts\HUDController.cs" />
     <Compile Include="Assets\Abilities\Achillies\AchillesFury.cs" />
     <Compile Include="Assets\Abilities\Apollo\SolarArrow.cs" />
+    <Compile Include="Assets\Abilities\Poseidon\TidalSurgeProjectile.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Abilities\Apollo\SolarBlind.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
+    <Compile Include="Assets\Abilities\Poseidon\TridentStrike.cs" />
     <Compile Include="Assets\Scripts\MatchManager.cs" />
     <Compile Include="Assets\Scripts\CapturePoint.cs" />
     <Compile Include="Assets\Scripts\BaseProjectile.cs" />
@@ -99,23 +106,27 @@
     <Compile Include="Assets\Scripts\AIMovementController.cs" />
     <Compile Include="Assets\Scripts\CharacterSelectManager.cs" />
     <Compile Include="Assets\Abilities\Artemis\MoonlightTrapAbility.cs" />
+    <Compile Include="Assets\Abilities\Poseidon\TridentProjectile.cs" />
     <Compile Include="Assets\Abilities\Hermes\FleetFooted.cs" />
     <Compile Include="Assets\Scripts\AbilityHUD.cs" />
     <Compile Include="Assets\Abilities\Achillies\SlayerOfTroy.cs" />
     <Compile Include="Assets\Scripts\IDamageable.cs" />
+    <Compile Include="Assets\Scripts\CapturePointHudController.cs" />
     <Compile Include="Assets\Scripts\Ability.cs" />
-    <Compile Include="Assets\Abilities\Hermes\ChronosShift.cs" />
     <Compile Include="Assets\Scripts\DamageDisplay.cs" />
     <Compile Include="Assets\Abilities\Hermes\WingedDaggers.cs" />
     <Compile Include="Assets\Abilities\Zeus\SkyCharge.cs" />
     <Compile Include="Assets\Scripts\EnemySpawner.cs" />
+    <Compile Include="Assets\Abilities\Apollo\AscensionLeap.cs" />
     <Compile Include="Assets\Scripts\EnemyHealth.cs" />
     <Compile Include="Assets\Abilities\Zeus\BarrierDamage.cs" />
     <Compile Include="Assets\Abilities\Achillies\BattleCry.cs" />
     <Compile Include="Assets\Scripts\CharacterDatabase.cs" />
     <Compile Include="Assets\Abilities\Achillies\SpearThrust.cs" />
+    <Compile Include="Assets\Abilities\Hermes\SonicBoom.cs" />
     <Compile Include="Assets\Abilities\Minotaur\GroundSlam.cs" />
     <Compile Include="Assets\Scripts\UICharacterSelectMenu.cs" />
+    <Compile Include="Assets\Scripts\CapturePointVisuals.cs" />
     <Compile Include="Assets\Abilities\Achillies\SpearThrow.cs" />
     <Compile Include="Assets\Abilities\Apollo\GoldenBow.cs" />
   </ItemGroup>
@@ -139,6 +150,7 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
+    <None Include="Assets\Materials\OutlineShader.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
@@ -709,18 +721,6 @@
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>Library\PackageCache\com.unity.collections@aea9d3bd5e19\Unity.Collections.Tests\System.Runtime.CompilerServices.Unsafe\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEditor.iOS.Extensions.Xcode">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Data\PlaybackEngines\iOSSupport\UnityEditor.iOS.Extensions.Xcode.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEditor.iOS.Extensions.Common">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Data\PlaybackEngines\iOSSupport\UnityEditor.iOS.Extensions.Common.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEditor.Apple.Extensions.Common">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Data\PlaybackEngines\iOSSupport\UnityEditor.Apple.Extensions.Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="netstandard">

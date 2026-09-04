@@ -1,0 +1,280 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &900790392907432212
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4236196163507458240}
+  - component: {fileID: 7652298225264467266}
+  - component: {fileID: 5579671830996769418}
+  - component: {fileID: 3494354493569313829}
+  - component: {fileID: 6149060045785917057}
+  m_Layer: 8
+  m_Name: Capsule
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4236196163507458240
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900790392907432212}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalScale: {x: 1.4, y: 1.4, z: 1.4}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4253781051978825843}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &7652298225264467266
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900790392907432212}
+  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &5579671830996769418
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900790392907432212}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!136 &3494354493569313829
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900790392907432212}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6149060045785917057
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900790392907432212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 451a25366226fcf489517fe5d99587ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DamageProxy
+--- !u!1 &4368917915713340982
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4253781051978825843}
+  - component: {fileID: 8894862967266644307}
+  - component: {fileID: 1852400587034966107}
+  - component: {fileID: 3439894929921627425}
+  - component: {fileID: 9065758840702093789}
+  - component: {fileID: 4712429978848764771}
+  m_Layer: 8
+  m_Name: Poseidon
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4253781051978825843
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 60.22063, y: 1.48272, z: -55.13945}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4236196163507458240}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8894862967266644307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bcba9535a02f14abb0ffd67b139122, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Hero
+  heroName: Poseidon
+  role: Vanguard
+  health: 550
+  primaryAttack: {fileID: 1852400587034966107}
+  primaryAbility: {fileID: 3439894929921627425}
+  secondaryAbility: {fileID: 0}
+  mobilityAbility: {fileID: 9065758840702093789}
+  ultimateAbility: {fileID: 4712429978848764771}
+  passiveAbility: {fileID: 0}
+--- !u!114 &1852400587034966107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e9cafd9b1fed264e92d00ed07682262, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TridentStrike
+  cooldown: 0.65
+  playerCamera: {fileID: 0}
+  isChargeable: 0
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  exclusiveState: 1
+  damage: 35
+  range: 2.5
+  isHolding: 0
+  thrustRadius: 0.2
+  tridentProjectilePrefab: {fileID: 4986571318311556195, guid: 1bbb758dacc7b814684c585dfc0d33c3, type: 3}
+  maxChargeTime: 1.2
+--- !u!114 &3439894929921627425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8422cfa27767cf54985f5d8008cd8303, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TidalSurge
+  cooldown: 8
+  playerCamera: {fileID: 0}
+  isChargeable: 0
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  exclusiveState: 0
+  waveProjectilePrefab: {fileID: 5197287543900479135, guid: 5eb75ca1e8d5df24fad2ac5137d347a9, type: 3}
+  forwardSpawnOffset: 1.5
+--- !u!114 &9065758840702093789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84423afff87e6b04297991eb2e04701a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndertowSurge
+  cooldown: 7
+  playerCamera: {fileID: 0}
+  isChargeable: 0
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  exclusiveState: 1
+  dashSpeed: 24
+  dashDuration: 0.5
+  popUpRadius: 4
+  emergeDamage: 25
+  verticalImpulse: 10
+  interruptStun: 0.2
+--- !u!114 &4712429978848764771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d77c6525526a89947b4fbbe64916b1be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReleaseTheKraken
+  cooldown: 0
+  playerCamera: {fileID: 0}
+  isChargeable: 0
+  vfxPrefab: {fileID: 612544311509272817, guid: d9291d56c2bb78c4380a82f736764db8, type: 3}
+  sprite: {fileID: 0}
+  exclusiveState: 0
+  cost: 1200
+  radius: 10
+  eruptionDamage: 70
+  suctionDuration: 1.2
+  suctionForce: 9
+  upwardEruptionForce: 14
+  dazeDuration: 0.5

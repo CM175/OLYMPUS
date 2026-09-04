@@ -9,6 +9,7 @@ public class HuntersLeap : Ability, IInitializable
     [SerializeField] private float gravityScale = 30f;
     private IMovementController _movementController;
     private Transform _rootTransform;
+    private bool hasLeftGround = false;
 
     public void Initialize(GameObject playerRoot)
     {
@@ -29,11 +30,14 @@ public class HuntersLeap : Ability, IInitializable
 
     private IEnumerator LeapRoutine()
     {
+        _movementController.HaltVelocity();
+        _movementController.IsDashing = true;
         Vector3 leapDirection = -_rootTransform.forward;
         leapDirection.y = 0f;
         leapDirection.Normalize();
 
         Vector3 airVelocity = (leapDirection * leapForce) + (Vector3.up * leapHeight);
+        hasLeftGround = false;
 
         while (isExecuting)
         {
@@ -42,9 +46,12 @@ public class HuntersLeap : Ability, IInitializable
 
             // Displace layout coordinates completely via the abstraction interface
             _movementController.Move(frameMovement);
-
+            if (!_movementController.IsGrounded)
+            {
+                hasLeftGround = true;
+            }
             // Ground check abstracted from explicit component type
-            if (_movementController.IsGrounded)
+            if (hasLeftGround && _movementController.IsGrounded)
             {
                 break;
             }

@@ -140,6 +140,7 @@ GameObject:
   - component: {fileID: 1837161773370203234}
   - component: {fileID: 5517210552183172876}
   - component: {fileID: -3766891880228399788}
+  - component: {fileID: 7390377453136858302}
   m_Layer: 8
   m_Name: Minotaur
   m_TagString: Untagged
@@ -182,7 +183,7 @@ MonoBehaviour:
   primaryAbility: {fileID: 1837161773370203234}
   secondaryAbility: {fileID: 5517210552183172876}
   mobilityAbility: {fileID: 0}
-  ultimateAbility: {fileID: 0}
+  ultimateAbility: {fileID: 7390377453136858302}
   passiveAbility: {fileID: 0}
 --- !u!114 &1837161773370203234
 MonoBehaviour:
@@ -203,10 +204,12 @@ MonoBehaviour:
   sprite: {fileID: 0}
   exclusiveState: 1
   chargeSpeed: 10
-  chargeDuration: 1.5
+  chargeDuration: 3
   hitSweepRadius: 2
-  impactDamage: 30
-  pinWallCrushDamage: 75
+  impactDamage: 40
+  pinWallCrushDamage: 150
+  horizontalImpulse: 20
+  verticalImpulse: 5
 --- !u!114 &5517210552183172876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -219,20 +222,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41e3da4ca54074f4fb96f2aee2842048, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GroundSlam
-  cooldown: 6
+  cooldown: 10
   playerCamera: {fileID: 0}
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 1
-  leapForwardSpeed: 5
+  leapForwardSpeed: 20
   leapUpwardVelocity: 12
   gravityScale: 30
-  slamRadius: 6
+  slamRadius: 7.5
   slamDamage: 45
-  knockupHeight: 30
+  knockupHeight: 5
   knockupDuration: 0.5
-  inwardPullDistance: 2
+  inwardPullForce: 20
 --- !u!114 &-3766891880228399788
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,3 +260,29 @@ MonoBehaviour:
   swingAngle: 90
   vfxSwingLeftPrefab: {fileID: 0}
   vfxSwingRightPrefab: {fileID: 0}
+--- !u!114 &7390377453136858302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4368917915713340982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7f1dcd302b9db241a491ec4ef6fe45a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LabyrinthDomain
+  cooldown: 0
+  playerCamera: {fileID: 0}
+  isChargeable: 0
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  exclusiveState: 0
+  cost: 5000
+  pillarPrefab: {fileID: 4556862154269343062, guid: 77154c135bed4994ea2d957ca892ce03, type: 3}
+  pillarCount: 15
+  arenaRadius: 7.5
+  arenaDuration: 10
+  slamDamage: 50
+  stunDuration: 1.5
+  pullForce: 30
