@@ -10,7 +10,7 @@ public class HymnOfRadiance : Ability
 
     protected override void Activate()
     {
-        Debug.Log($"Activating hymn of radiance");
+        //Debug.Log($"Activating hymn of radiance");
         Vector3 origin = transform.root.position;
         Collider[] targets = Physics.OverlapSphere(origin, burstRadius);
 

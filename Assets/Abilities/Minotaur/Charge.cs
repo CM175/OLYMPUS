@@ -48,7 +48,7 @@ public class Charge : Ability, IInitializable
     private IEnumerator ChargeRoutine()
     {
         
-        Debug.Log($"{transform.root.name} is Executing charge ");
+        //Debug.Log($"{transform.root.name} is Executing charge ");
         _pinnedMovement = null;
         _pinnedTransform = null;
         _hitSecondaryTargets.Clear(); 

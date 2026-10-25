@@ -13,7 +13,7 @@ public class BattleCry : Ability
 
         if (stats == null)
         {
-            Debug.LogWarning("[BattleCry] No PlayerStats found — ability has no effect.");
+            //Debug.LogWarning("[BattleCry] No PlayerStats found — ability has no effect.");
             StartCooldown();
             return;
         }

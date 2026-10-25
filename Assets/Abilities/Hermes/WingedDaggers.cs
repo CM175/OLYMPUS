@@ -3,36 +3,42 @@ using UnityEngine;
 public class WingedDaggers : Attack
 {
     [Header("Hermes Velocity Damage Settings")]
-    [Tooltip("The baseline speed above which damage starts scaling up (e.g., Hermes' default walk speed).")]
     public float baseSpeedThreshold = 6f;
-    
-    [Tooltip("How aggressively the damage scales with extra velocity. Higher = more damage per unit of speed.")]
     public float velocityScaleFactor = 0.15f;
+
+    private Vector3 _lastPos;
+    private float _estimatedSpeed;
+
+    private void Start()
+    {
+        _lastPos = transform.root.position;
+    }
+
+    private void Update()
+    {
+        _estimatedSpeed = (transform.root.position - _lastPos).magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
+        _lastPos = transform.root.position;
+    }
 
     protected override void Activate()
     {
         Transform root = transform.root;
-        
         Vector3 attackPoint = root.position + root.forward * (range / 2f);
         Collider[] hitEnemies = Physics.OverlapSphere(attackPoint, range / 2f);
+        var myTeam = root.GetComponent<TeamMember>();
 
         foreach (var enemy in hitEnemies)
         {
-            var myTeam = transform.root.GetComponent<TeamMember>();
-                
-            if (myTeam != null && !myTeam.IsEnemy(enemy.gameObject))
-            {
-                continue;
-            }
+            Transform enemyRoot = enemy.transform.root;
+            if (enemyRoot == root) continue;
+            if (myTeam != null && !myTeam.IsEnemy(enemyRoot.gameObject)) continue;
 
-            IDamageable target = enemy.GetComponent<IDamageable>();
+            IDamageable target = enemyRoot.GetComponent<IDamageable>() ?? enemy.GetComponent<IDamageable>();
             if (target != null)
             {
                 ApplyDamage(target);
             }
         }
-
-        //Debug.Log("[WingedDaggers] Slashed!");
     }
 
     private void ApplyDamage(IDamageable target)
@@ -40,45 +46,21 @@ public class WingedDaggers : Attack
         Transform root = transform.root;
         PlayerStats stats = root.GetComponent<PlayerStats>();
         CharacterController cc = root.GetComponent<CharacterController>();
-        
-        int finalDamage = damage;
 
-        // 1. Apply baseline system architecture modifier
+        int finalDamage = damage;
         if (stats != null)
         {
             finalDamage = Mathf.RoundToInt(finalDamage * stats.DamageMultiplier);
         }
 
-        // 2. HERMES ACTUAL VELOCITY MECHANIC
-        if (cc != null)
+        float actualSpeed = cc != null ? cc.velocity.magnitude : _estimatedSpeed;
+        if (actualSpeed > baseSpeedThreshold)
         {
-            // cc.velocity returns actual current units/second (3D vector)
-            float actualSpeed = cc.velocity.magnitude;
-
-            if (actualSpeed > baseSpeedThreshold)
-            {
-                float excessSpeed = actualSpeed - baseSpeedThreshold;
-                
-                // Linear scaling formula: Damage * (1 + (excessSpeed * scaleFactor))
-                float damageMultiplier = 1f + (excessSpeed * velocityScaleFactor);
-                
-                finalDamage = Mathf.RoundToInt(finalDamage * damageMultiplier);
-                
-                Debug.Log($"[Hermes] Actual Speed: {actualSpeed:F2} m/s | velocity scale factor {velocityScaleFactor}  | Damage Scaled up to: {finalDamage}");
-            }
-            else
-            {
-                Debug.Log($"[Hermes] Base Speed: {actualSpeed:F2} m/s | Standard Damage: {finalDamage}");
-            }
+            float excessSpeed = actualSpeed - baseSpeedThreshold;
+            float damageMultiplier = 1f + (excessSpeed * velocityScaleFactor);
+            finalDamage = Mathf.RoundToInt(finalDamage * damageMultiplier);
         }
 
-        target.TakeDamage(finalDamage);
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Vector3 attackPoint = transform.root.position + transform.root.forward * (range / 2f);
-        Gizmos.DrawWireSphere(attackPoint, range / 2f);
+        target.TakeDamage(finalDamage, root.gameObject);
     }
 }

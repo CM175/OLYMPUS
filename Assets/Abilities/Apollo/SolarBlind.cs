@@ -10,7 +10,7 @@ public class SolarBlind : Ability
 
     protected override void Activate()
     {
-        Debug.Log($"Activating solar blind");
+        //Debug.Log($"Activating solar blind");
         if (playerCamera == null)
         {
             isExecuting = false;

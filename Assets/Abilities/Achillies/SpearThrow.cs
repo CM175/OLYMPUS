@@ -8,28 +8,31 @@ public class SpearThrow : Ability
 
     protected override void Activate()
     {
-        // 1. Determine spawn position and rotation
-        Vector3 spawnPos = playerCamera.transform.position + (playerCamera.transform.forward * 1.5f);
-        Quaternion spawnRot = playerCamera.transform.rotation;
+        Transform root = transform.root;
+        Vector3 spawnPos;
+        Quaternion spawnRot;
 
-        // 2. Instantiate the physical spear
+        if (playerCamera != null)
+        {
+            spawnPos = playerCamera.transform.position + (playerCamera.transform.forward * 1.5f);
+            spawnRot = playerCamera.transform.rotation;
+        }
+        else
+        {
+            Vector3 aim = movementController != null ? movementController.GetAimDirection() : root.forward;
+            spawnPos = root.position + Vector3.up * 1.5f + (aim * 1.5f);
+            spawnRot = Quaternion.LookRotation(aim);
+        }
+
         GameObject spearObj = Instantiate(spearPrefab, spawnPos, spawnRot);
-        
-        // 3. Configure the projectile's stats dynamically based on player buffs
         SpearProjectile projectile = spearObj.GetComponent<SpearProjectile>();
         if (projectile != null)
         {
-            projectile.SetAttacker(transform.root.gameObject); 
-            PlayerStats stats = transform.root.GetComponent<PlayerStats>();
-            
-            // Apply Damage Multiplier from PlayerStats
-            int finalDamage = stats != null
-                ? Mathf.RoundToInt(damage * stats.DamageMultiplier)
-                : damage;
-
+            projectile.SetAttacker(root.gameObject);
+            PlayerStats stats = root.GetComponent<PlayerStats>();
+            int finalDamage = stats != null ? Mathf.RoundToInt(damage * stats.DamageMultiplier) : damage;
             projectile.damage = finalDamage;
         }
-
-        StartCooldown(); 
+        StartCooldown();
     }
 }

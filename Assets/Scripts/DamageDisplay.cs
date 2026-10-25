@@ -13,8 +13,8 @@ public class DamageDisplay : MonoBehaviour
 
     void OnDestroy() => _health.OnDamageDealt -= ShowDamage;
 
-    void ShowDamage(int damage)
+    void ShowDamage(int damage, GameObject attacker)
     {
-        Debug.Log($"{gameObject.name} took {damage} damage. Health: {_health.currentHealth}");
+        //Debug.Log($"{gameObject.name} took {damage} damage. Health: {_health.currentHealth}");
     }
 }

@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -6,17 +8,28 @@ public class EnemyHealth : MonoBehaviour, IDamageable
     public int maxHealth = 100;
     public int currentHealth;
 
+    [Tooltip("If true, the agent/dummy will not be destroyed on death, allowing ML-Agents OnEpisodeBegin() to manage resets.")]
+    public bool isTrainingDummy = false;
+
     [HideInInspector] public Transform spawnPoint;
     [HideInInspector] public MatchManager matchManager;
     [HideInInspector] public Hero heroPrefab;
     [HideInInspector] public Team team;
 
-    public UnityEvent<GameObject> OnDeathWithKiller;
-    public event System.Action<int> OnDamageDealt;
-    public static event System.Action<int> OnAnyEnemyDamaged;
+    public int CurrentHealth => currentHealth;
+    public int MaxHealth => maxHealth;
 
     public bool IsInvincible { get; set; } = false;
     public bool IsDead { get; set; } = false;
+
+    // Unified IDamageable events
+    public event Action<int, GameObject> OnDamageReceived;
+    public event Action<GameObject> OnDied;
+
+    // Retained for backwards compatibility with existing UI/systems
+    public UnityEvent<GameObject> OnDeathWithKiller;
+    public event Action<int, GameObject> OnDamageDealt;
+    public static event Action<int> OnAnyEnemyDamaged;
 
     public void OnHeroLoaded(Hero hero)
     {
@@ -25,42 +38,51 @@ public class EnemyHealth : MonoBehaviour, IDamageable
         IsDead = false;
     }
 
+    public void ResetHealth()
+    {
+        currentHealth = maxHealth;
+        IsDead = false;
+    }
+
     public void TakeDamage(int damage) => TakeDamage(damage, null);
 
     public void TakeDamage(int damage, GameObject attacker)
     {
+        Debug.Log($"[EnemyHealth] {gameObject.name} taking {damage} damage from {(attacker != null ? attacker.name : "Unknown")}");
         if (IsInvincible || IsDead) return;
+
         currentHealth -= damage;
         currentHealth = Mathf.Max(currentHealth, 0);
 
-        OnDamageDealt?.Invoke(damage);
+        OnDamageReceived?.Invoke(damage, attacker);
+        OnDamageDealt?.Invoke(damage, attacker);
         OnAnyEnemyDamaged?.Invoke(damage);
 
         if (currentHealth <= 0)
+        {
+            Debug.Log($"[EnemyHealth] {gameObject.name} has reached 0 health and will die. Attacker: {(attacker != null ? attacker.name : "None")}");
             Die(attacker);
+        }
     }
 
     public void ApplyHeal(int heal)
     {
         if (IsDead) return;
-        currentHealth += heal;
-        currentHealth = Mathf.Min(currentHealth, maxHealth);
+        currentHealth = Mathf.Min(currentHealth + heal, maxHealth);
     }
 
     public void HealOverTime(int totalHeal, float duration)
     {
         if (IsDead) return;
-
         if (duration <= 0f)
         {
             ApplyHeal(totalHeal);
             return;
         }
-
         StartCoroutine(SmoothHealRoutine(totalHeal, duration));
     }
 
-    private System.Collections.IEnumerator SmoothHealRoutine(int totalHeal, float duration)
+    private IEnumerator SmoothHealRoutine(int totalHeal, float duration)
     {
         float elapsed = 0f;
         float accumulatedHeal = 0f;
@@ -69,7 +91,6 @@ public class EnemyHealth : MonoBehaviour, IDamageable
         while (elapsed < duration)
         {
             if (IsDead) yield break;
-
             elapsed += Time.deltaTime;
             accumulatedHeal += healRate * Time.deltaTime;
 
@@ -79,7 +100,6 @@ public class EnemyHealth : MonoBehaviour, IDamageable
                 ApplyHeal(healAmount);
                 accumulatedHeal -= healAmount;
             }
-
             yield return null;
         }
 
@@ -92,17 +112,15 @@ public class EnemyHealth : MonoBehaviour, IDamageable
     public void DamageOverTime(int totalDamage, float duration)
     {
         if (IsDead) return;
-
         if (duration <= 0f)
         {
             TakeDamage(totalDamage);
             return;
         }
-
         StartCoroutine(SmoothDamageRoutine(totalDamage, duration));
     }
 
-    private System.Collections.IEnumerator SmoothDamageRoutine(int totalDamage, float duration)
+    private IEnumerator SmoothDamageRoutine(int totalDamage, float duration)
     {
         float elapsed = 0f;
         float accumulatedDamage = 0f;
@@ -111,7 +129,6 @@ public class EnemyHealth : MonoBehaviour, IDamageable
         while (elapsed < duration)
         {
             if (IsDead) yield break;
-
             elapsed += Time.deltaTime;
             accumulatedDamage += damageRate * Time.deltaTime;
 
@@ -121,7 +138,6 @@ public class EnemyHealth : MonoBehaviour, IDamageable
                 TakeDamage(damageAmount);
                 accumulatedDamage -= damageAmount;
             }
-
             yield return null;
         }
 
@@ -133,10 +149,18 @@ public class EnemyHealth : MonoBehaviour, IDamageable
 
     private void Die(GameObject attacker)
     {
+        Debug.Log($"[EnemyHealth] {gameObject.name} has died. Attacker: {(attacker != null ? attacker.name : "None")}");
         if (IsDead) return;
         IsDead = true;
 
+        OnDied?.Invoke(attacker);
         OnDeathWithKiller?.Invoke(attacker);
+
+        if (isTrainingDummy)
+        {
+            // Do not destroy during RL training loop
+            return;
+        }
 
         if (matchManager == null)
             matchManager = FindFirstObjectByType<MatchManager>();

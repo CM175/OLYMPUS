@@ -1,118 +1,114 @@
 using System.Collections;
-
 using UnityEngine;
 
 public class LightningBolt : Attack
 {
     public float chainRange = 15f;
-
-    public LineRenderer boltLine; // Assign in Inspector
+    public LineRenderer boltLine;
     public float beamDuration = 0.1f;
-    public float damageOverTimeDuration; 
+    public float damageOverTimeDuration;
 
     private void Awake()
     {
         damageOverTimeDuration = cooldown * 0.8f;
-        
     }
 
     protected override void Activate()
     {
-        Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+        Transform root = transform.root;
+        Vector3 rayOrigin = playerCamera != null ? playerCamera.transform.position : root.position + Vector3.up * 1.5f;
+        Vector3 rayDir = playerCamera != null ? playerCamera.transform.forward : (movementController != null ? movementController.GetAimDirection() : root.forward);
+
+        Ray ray = new Ray(rayOrigin, rayDir);
         Vector3 endPoint = ray.GetPoint(range);
 
         if (Physics.Raycast(ray, out RaycastHit hit, range))
         {
             endPoint = hit.point;
-            var myTeam = transform.root.GetComponent<TeamMember>();
-            Collider hitObject = hit.collider;
-            if (myTeam != null && !myTeam.IsEnemy(hitObject.transform.root.gameObject))
+            var myTeam = root.GetComponent<TeamMember>();
+            GameObject hitRoot = hit.collider.transform.root.gameObject;
+
+            if (myTeam != null && !myTeam.IsEnemy(hitRoot))
             {
-                StartCoroutine(ShowBolt(transform.position, endPoint));
+                StartCoroutine(ShowBolt(root.position + Vector3.up * 1.2f, endPoint));
                 return;
             }
-            
-            IDamageable target = hitObject.GetComponent<IDamageable>();
+
+            IDamageable target = hitRoot.GetComponent<IDamageable>() ?? hit.collider.GetComponent<IDamageable>();
             if (target != null)
             {
-                // No more PlayerStats parameter — charge awards via static event
                 target.DamageOverTime(damage, damageOverTimeDuration);
 
                 Collider[] nearby = Physics.OverlapSphere(hit.point, chainRange);
                 Collider bestTarget = null;
-                float   bestDist    = float.MaxValue;
+                float bestDist = float.MaxValue;
 
                 foreach (var col in nearby)
                 {
-                    
-                    if (!myTeam.IsEnemy(col.transform.root.gameObject)) continue;
-                    if (col.transform.root.gameObject == hitObject.transform.root.gameObject) continue;
-                    if (col.GetComponent<IDamageable>() == null)   continue;
+                    GameObject colRoot = col.transform.root.gameObject;
+                    if (myTeam != null && !myTeam.IsEnemy(colRoot)) continue;
+                    if (colRoot == hitRoot) continue;
+                    if (colRoot.GetComponent<IDamageable>() == null && col.GetComponent<IDamageable>() == null) continue;
 
                     float dist = Vector3.Distance(hit.point, col.transform.position);
                     if (dist < bestDist)
                     {
-                        bestDist   = dist;
+                        bestDist = dist;
                         bestTarget = col;
                     }
                 }
 
                 if (bestTarget != null)
                 {
-                    bestTarget.GetComponent<IDamageable>().DamageOverTime((int)(damage * 0.5f), damageOverTimeDuration);
+                    IDamageable chainDamageable = bestTarget.transform.root.GetComponent<IDamageable>() ?? bestTarget.GetComponent<IDamageable>();
+                    chainDamageable?.DamageOverTime((int)(damage * 0.5f), damageOverTimeDuration);
                     StartCoroutine(ShowChainArc(hit.point, bestTarget.transform.position));
                 }
             }
         }
 
-        StartCoroutine(ShowBolt(transform.position, endPoint));
+        StartCoroutine(ShowBolt(root.position + Vector3.up * 1.2f, endPoint));
     }
 
-    private System.Collections.IEnumerator ShowBolt(Vector3 start, Vector3 end)
+    private IEnumerator ShowBolt(Vector3 start, Vector3 end)
     {
-        LineRenderer arc = Instantiate(boltLine); 
+        if (boltLine == null) yield break;
+        LineRenderer arc = Instantiate(boltLine);
+        Destroy(arc.gameObject, beamDuration + 0.5f);
         arc.enabled = true;
         float timer = 0f;
-        int segments = 12; // More segments = more jagged lightning
+        int segments = 12;
         arc.positionCount = segments;
         arc.startWidth = 0.3f;
         arc.endWidth = 0.05f;
+
         while (timer < beamDuration)
         {
-            arc.SetPosition(0, start); // Origin stays at Zeus
-            
+            arc.SetPosition(0, start);
             for (int i = 1; i < segments - 1; i++)
             {
-                // Calculate a point along the straight line
                 float fraction = (float)i / (segments - 1);
                 Vector3 midPoint = Vector3.Lerp(start, end, fraction);
-
-                // Add random "divine jitter" to make it look like lightning
-                float jitterAmount = 0.5f; 
-                midPoint += Random.insideUnitSphere * jitterAmount;
+                midPoint += Random.insideUnitSphere * 0.5f;
                 arc.SetPosition(i, midPoint);
             }
-
-            arc.SetPosition(segments - 1, end); // End stays at target
-            
+            arc.SetPosition(segments - 1, end);
             timer += Time.deltaTime;
-            yield return null; // This causes the bolt to "flicker" every frame
+            yield return null;
         }
-        
-        
         Destroy(arc.gameObject);
     }
 
     private IEnumerator ShowChainArc(Vector3 start, Vector3 end)
     {
-        // Create a temporary LineRenderer for the arc
-        LineRenderer arc = Instantiate(boltLine); 
+        if (boltLine == null) yield break;
+        LineRenderer arc = Instantiate(boltLine);
         arc.enabled = true;
-        
         float elapsed = 0;
         float arcDuration = 0.15f;
         int segments = 8;
         arc.positionCount = segments;
+        Destroy(arc.gameObject, arcDuration + 0.5f);
 
         while (elapsed < arcDuration)
         {
@@ -121,15 +117,13 @@ public class LightningBolt : Attack
             {
                 float lerpVal = (float)i / (segments - 1);
                 Vector3 pos = Vector3.Lerp(start, end, lerpVal);
-                pos += Random.insideUnitSphere * 0.3f; // Smaller jitter for arcs
+                pos += Random.insideUnitSphere * 0.3f;
                 arc.SetPosition(i, pos);
             }
             arc.SetPosition(segments - 1, end);
-            
             elapsed += Time.deltaTime;
             yield return null;
         }
-
         Destroy(arc.gameObject);
     }
 }

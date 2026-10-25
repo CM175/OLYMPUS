@@ -13,6 +13,6 @@ public class TrackThePrey : PassiveAbility
     public void OnEnemyHit(GameObject enemy)
     {
         // Highlight logic (e.g., adding an outline component or changing layer)
-        Debug.Log($"[TrackThePrey] Marking target: {enemy.name}");
+        //Debug.Log($"[TrackThePrey] Marking target: {enemy.name}");
     }
 }

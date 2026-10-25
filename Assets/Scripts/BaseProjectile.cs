@@ -16,6 +16,7 @@ public class BaseProjectile : MonoBehaviour
     protected Rigidbody rb;
     protected GameObject attackerRoot;
     public bool _hasImpacted = false;
+
     public virtual void SetAttacker(GameObject attacker)
     {
         attackerRoot = attacker.transform.root.gameObject;
@@ -24,7 +25,8 @@ public class BaseProjectile : MonoBehaviour
     protected virtual void Start()
     {
         spawnPosition = transform.position;
-        rb = GetComponent<Rigidbody>(); 
+        rb = GetComponent<Rigidbody>();
+        InitializeMovement();
     }
 
     protected virtual void InitializeMovement()
@@ -47,7 +49,7 @@ public class BaseProjectile : MonoBehaviour
     protected virtual void OnTriggerEnter(Collider other)
     {
         if (_hasImpacted) return;
-        if (other.transform.root.gameObject == attackerRoot) return;
+        if (attackerRoot != null && other.transform.root.gameObject == attackerRoot) return;
         OnImpact(other);
     }
 
@@ -57,7 +59,7 @@ public class BaseProjectile : MonoBehaviour
         SpawnImpactVisuals(other);
         ApplyDamage(other);
 
-        if (!piercesTargets )
+        if (!piercesTargets)
         {
             Destroy(gameObject);
         }
@@ -77,9 +79,14 @@ public class BaseProjectile : MonoBehaviour
                 return; 
             }
         }
-        // OPTIMIZED: Adaptive interface resolution across both primary objects and layout children proxies
-        IDamageable hit = other.GetComponent<IDamageable>();
-        hit?.TakeDamage(damage);
+
+        IDamageable hit = other.transform.root.GetComponent<IDamageable>();
+        if (hit == null)
+        {
+            hit = other.GetComponent<IDamageable>();
+        }
+
+        hit?.TakeDamage(damage, attackerRoot);
     }
 
     protected void SpawnImpactVisuals(Collider other)

@@ -20,39 +20,39 @@ public class OlympianWrath : Ultimate
 
     private IEnumerator StormZone(Vector3 center)
     {
-        Debug.Log("Olympian Wrath activated — storm zone created");
-
         GameObject visual = null;
         if (vfxPrefab != null)
         {
             visual = Instantiate(vfxPrefab, center, Quaternion.identity);
             visual.transform.localScale = Vector3.one * (radius * 2);
+            Destroy(visual, duration + 0.5f);
         }
 
         float elapsed = 0f;
+        GameObject attackerRoot = transform.root.gameObject;
+        TeamMember myTeam = attackerRoot.GetComponent<TeamMember>();
 
         while (elapsed < duration)
         {
             Collider[] targets = Physics.OverlapSphere(center, radius);
-
             foreach (var col in targets)
             {
-                var myTeam = transform.root.GetComponent<TeamMember>();
-                
-                if (myTeam != null && !myTeam.IsEnemy(col.transform.root.gameObject))
+                Transform victimRoot = col.transform.root;
+                if (victimRoot.gameObject == attackerRoot) continue;
+
+                if (myTeam != null && !myTeam.IsEnemy(victimRoot.gameObject))
                 {
                     continue;
                 }
 
-                IDamageable target = col.GetComponent<IDamageable>();
-                if (target != null)
+                IDamageable target = victimRoot.GetComponent<IDamageable>() ?? col.GetComponent<IDamageable>();
+                if (target != null && !target.IsDead)
                 {
                     Vector3 enemyPos = col.transform.position;
-                    target.TakeDamage(damagePerStrike);
+                    target.TakeDamage(damagePerStrike, attackerRoot);
                     StartCoroutine(AnimateSkyBolt(enemyPos));
-                    }
+                }
             }
-
             yield return new WaitForSeconds(strikeInterval);
             elapsed += strikeInterval;
         }
@@ -60,28 +60,22 @@ public class OlympianWrath : Ultimate
         if (visual != null)
             Destroy(visual);
 
-        StartCooldown(); // clears isExecuting and starts cooldown timer
-        Debug.Log("Olympian Wrath ended");
+        StartCooldown();
     }
 
     private IEnumerator AnimateSkyBolt(Vector3 targetPos)
     {
-        if (strikeBoltPrefab == null)
-        {
-            Debug.LogWarning("OlympianWrath: strikeBoltPrefab is not assigned!");
-            yield break;
-        }
+        if (strikeBoltPrefab == null) yield break;
 
         Vector3 skyPos = targetPos + Vector3.up * skyHeight;
         LineRenderer bolt = Instantiate(strikeBoltPrefab);
         bolt.enabled = true;
-
         int segments = 15;
         bolt.positionCount = segments;
-
         float boltDuration = 0.15f;
         float elapsed = 0f;
 
+        Destroy(bolt.gameObject, boltDuration + 0.5f);
         while (elapsed < boltDuration)
         {
             bolt.SetPosition(0, skyPos);
@@ -93,11 +87,9 @@ public class OlympianWrath : Ultimate
                 bolt.SetPosition(i, mid);
             }
             bolt.SetPosition(segments - 1, targetPos);
-
             elapsed += Time.deltaTime;
             yield return null;
         }
-
         Destroy(bolt.gameObject);
     }
 }

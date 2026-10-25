@@ -4,7 +4,7 @@ public class HeroManager : MonoBehaviour
 {
     [Header("Settings")]
     public Hero heroPrefab;
-    public Camera playerCamera; // Can be null for AI Bots
+    public Camera playerCamera; 
 
     [Header("State")]
     public Hero currentHero;
@@ -18,10 +18,15 @@ public class HeroManager : MonoBehaviour
     {
         _abilityManager = GetComponent<AbilityManager>();
         
-        // Auto-detect if this root object is meant to be an AI or human
-        if (GetComponent<EnemyAI>() != null || GetComponent<PlayerController>() == null)
+        if (GetComponent<RLEnemyCombatAgent>() != null || GetComponent<PlayerController>() == null)
         {
             isAIControlled = true;
+        }
+
+        // Guarantee PlayerStats exists so Ultimates function properly on both AI and Players
+        if (GetComponent<PlayerStats>() == null)
+        {
+            gameObject.AddComponent<PlayerStats>();
         }
     }
 
@@ -45,7 +50,6 @@ public class HeroManager : MonoBehaviour
         currentHero = Instantiate(prefab, transform.position, transform.rotation);
         currentHero.transform.SetParent(transform);
 
-        // Map Hero prefab abilities to the runtime AbilityManager
         _abilityManager.primaryAttack    = currentHero.primaryAttack;
         _abilityManager.primaryAbility   = currentHero.primaryAbility;
         _abilityManager.secondaryAbility = currentHero.secondaryAbility;
@@ -56,9 +60,8 @@ public class HeroManager : MonoBehaviour
         InitializeUltimate();
         InitializePassive();
 
-        // Support health tracking dynamically
         GetComponent<PlayerHealth>()?.OnHeroLoaded(currentHero);
-        GetComponent<EnemyHealth>()?.OnHeroLoaded(currentHero); // Add hook if your AI uses a separate script
+        GetComponent<EnemyHealth>()?.OnHeroLoaded(currentHero);
 
         OnHeroLoaded?.Invoke(currentHero);
 
@@ -66,27 +69,24 @@ public class HeroManager : MonoBehaviour
         {
             teamVisuals.ApplyVisuals();
         }
-        // Human-only initialization
+
         if (!isAIControlled)
         {
             if (TryGetComponent<PlayerController>(out var controller))
             {
                 controller.enabled = true;
             }
-
             var mouseLook = GetComponentInChildren<MouseLook>();
             if (mouseLook != null)
             {
                 mouseLook.enabled = true;
             }
-
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
         else
         {
-            // Enable AI loops once hero layout is completely set up
-            if (TryGetComponent<EnemyAI>(out var ai))
+            if (TryGetComponent<RLEnemyCombatAgent>(out var ai))
             {
                 ai.enabled = true;
             }
@@ -97,7 +97,6 @@ public class HeroManager : MonoBehaviour
 
     private void GiveCameraToAbilities()
     {
-        // For human players, provide the camera; for AIs, it safely remains null
         InitializeAbility(_abilityManager.primaryAttack);
         InitializeAbility(_abilityManager.primaryAbility);
         InitializeAbility(_abilityManager.secondaryAbility);
@@ -108,43 +107,41 @@ public class HeroManager : MonoBehaviour
     private void InitializeAbility(Ability ability)
     {
         if (ability == null) return;
+        ability.playerCamera = playerCamera;
 
-        ability.playerCamera = playerCamera; //
-        
         if (TryGetComponent<IMovementController>(out var controller))
         {
             ability.SetMovementController(controller);
         }
 
-        // ADDED HERE: Provide the ability with its sibling manager context link
         if (TryGetComponent<AbilityManager>(out var manager))
         {
             ability.SetAbilityManager(manager);
         }
 
-        if (ability is IInitializable init) //
-            init.Initialize(gameObject); //
+        if (ability is IInitializable init)
+        {
+            init.Initialize(gameObject);
+        }
     }
 
     private void InitializeUltimate()
     {
         if (_abilityManager.ultimateAbility == null) return;
-
         PlayerStats stats = GetComponent<PlayerStats>();
-        if (stats == null) return; // AIs can utilize a simplified stats block or bypass
-
-        _abilityManager.ultimateAbility.Initialize(stats);
+        if (stats != null)
+        {
+            _abilityManager.ultimateAbility.Initialize(stats);
+        }
     }
 
     private void InitializePassive()
     {
         if (currentHero.passiveAbility == null) return;
-
         if (currentHero.passiveAbility is IInitializable init)
         {
             init.Initialize(gameObject);
         }
-        
         currentHero.passiveAbility.Use();
     }
 }

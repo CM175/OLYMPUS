@@ -16,7 +16,7 @@ public class AIMovementController : MonoBehaviour, IMovementController
     [SerializeField] private float aimErrorAngle = 5f;
 
     private NavMeshAgent _agent;
-    private EnemyAI _enemyAI;
+    private RLEnemyCombatAgent _enemyAI;
     private float _baseSpeed;
     private Vector3 _velocity;
     private Coroutine _stunCoroutine;
@@ -83,7 +83,7 @@ public class AIMovementController : MonoBehaviour, IMovementController
     private void Awake()
     {
         _agent = GetComponent<NavMeshAgent>();
-        _enemyAI = GetComponent<EnemyAI>();
+        _enemyAI = GetComponent<RLEnemyCombatAgent>();
 
         if (_agent != null)
         {
@@ -96,6 +96,12 @@ public class AIMovementController : MonoBehaviour, IMovementController
 
     private void Update()
     {
+        // Auto-detect if we walked off an edge during a dash or knockback
+        if (!CheckGrounded() && !_agent.isOnNavMesh)
+        {
+            IsUnderExternalForce = true;
+        }
+
         if (_isUnderExternalForce)
         {
             ApplyAirPhysics();
@@ -159,22 +165,6 @@ public class AIMovementController : MonoBehaviour, IMovementController
 
     public Vector3 GetAimDirection()
     {
-        if (_enemyAI != null && _enemyAI._currentTarget != null)
-        {
-            // Aim from eye/fire height towards the target's center
-            Vector3 eyePosition = transform.position + Vector3.up * 1.5f;
-            Vector3 targetCenter = _enemyAI._currentTarget.position + Vector3.up * 1.0f;
-            Vector3 aimDirection = (targetCenter - eyePosition).normalized;
-
-            // Apply a random deviation within a cone
-            Quaternion spread = Quaternion.Euler(
-                Random.Range(-aimErrorAngle, aimErrorAngle),
-                Random.Range(-aimErrorAngle, aimErrorAngle),
-                0f
-            );
-
-            return spread * aimDirection;
-        }
         return transform.forward;
     }
 
@@ -295,31 +285,25 @@ public class AIMovementController : MonoBehaviour, IMovementController
 
         EvaluateAgentControl();
 
-        // Notify EnemyAI directly if needed, or rely on EnemyAI checking IsStunned
-        if (_enemyAI != null)
-        {
-            _enemyAI.SetStunned(true);
-        }
-
         yield return new WaitForSeconds(duration);
 
         _isStunned = false;
-
-        if (_enemyAI != null)
-        {
-            _enemyAI.SetStunned(false);
-        }
 
         EvaluateAgentControl();
     }
 
     private bool CheckGrounded()
     {
-        if (_velocity.y > 0.05f) return false;
-
-        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 0.4f, NavMesh.AllAreas))
+        // 1. Raycast downward against the ground/geometry layer
+        if (Physics.Raycast(transform.position + Vector3.up * 0.2f, Vector3.down, out RaycastHit hit, groundCheckTolerance + 0.3f, obstacleMask, QueryTriggerInteraction.Ignore))
         {
-            return Mathf.Abs(transform.position.y - hit.position.y) <= groundCheckTolerance;
+            return true;
+        }
+
+        // 2. NavMesh ground check fallback
+        if (NavMesh.SamplePosition(transform.position, out NavMeshHit navHit, 0.4f, NavMesh.AllAreas))
+        {
+            return Mathf.Abs(transform.position.y - navHit.position.y) <= groundCheckTolerance;
         }
 
         return false;

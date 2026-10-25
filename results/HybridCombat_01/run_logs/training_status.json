@@ -1,0 +1,29 @@
+{
+    "CombatAgent": {
+        "checkpoints": [
+            {
+                "steps": 109446,
+                "file_path": "results\\HybridCombat_01\\CombatAgent\\CombatAgent-109446.onnx",
+                "reward": null,
+                "creation_time": 1792950640.68084,
+                "auxillary_file_paths": [
+                    "results\\HybridCombat_01\\CombatAgent\\CombatAgent-109446.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 109446,
+            "file_path": "results\\HybridCombat_01\\CombatAgent.onnx",
+            "reward": null,
+            "creation_time": 1792950640.68084,
+            "auxillary_file_paths": [
+                "results\\HybridCombat_01\\CombatAgent\\CombatAgent-109446.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.2.2+cpu"
+    }
+}

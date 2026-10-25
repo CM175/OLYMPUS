@@ -45,16 +45,11 @@ public class TridentStrike : Attack, IInitializable
         StartCooldown();
     }
 
-    protected override void Activate()
-    {
-        // Handled via OnPress/OnRelease charge timings
-    }
-
     private void PerformMeleeThrust()
     {
         IMovementController movement = _rootTransform.GetComponent<IMovementController>();
         Vector3 origin = (playerCamera != null) ? playerCamera.transform.position : _rootTransform.position + Vector3.up * 1.5f;
-        Vector3 dir = (movement != null) ? movement.GetAimDirection() : _rootTransform.forward;
+        Vector3 dir = (playerCamera != null) ? playerCamera.transform.forward : (movement != null ? movement.GetAimDirection() : _rootTransform.forward);
 
         if (Physics.SphereCast(origin, thrustRadius, dir, out RaycastHit hit, range))
         {
@@ -67,7 +62,7 @@ public class TridentStrike : Attack, IInitializable
             {
                 PlayerStats stats = _rootTransform.GetComponent<PlayerStats>();
                 int finalDamage = (stats != null) ? Mathf.RoundToInt(damage * stats.DamageMultiplier) : damage;
-                target.TakeDamage(finalDamage);
+                target.TakeDamage(finalDamage, _rootTransform.gameObject);
             }
         }
 
@@ -81,8 +76,21 @@ public class TridentStrike : Attack, IInitializable
     {
         if (tridentProjectilePrefab == null) return;
 
-        Vector3 spawnPos = (playerCamera != null) ? playerCamera.transform.position + playerCamera.transform.forward : _rootTransform.position + Vector3.up * 1.5f;
-        Quaternion spawnRot = (playerCamera != null) ? playerCamera.transform.rotation : _rootTransform.rotation;
+        Vector3 spawnPos;
+        Quaternion spawnRot;
+
+        if (playerCamera != null)
+        {
+            spawnPos = playerCamera.transform.position + playerCamera.transform.forward;
+            spawnRot = playerCamera.transform.rotation;
+        }
+        else
+        {
+            IMovementController movement = _rootTransform.GetComponent<IMovementController>();
+            Vector3 aim = movement != null ? movement.GetAimDirection() : _rootTransform.forward;
+            spawnPos = _rootTransform.position + Vector3.up * 1.5f + aim;
+            spawnRot = Quaternion.LookRotation(aim);
+        }
 
         GameObject proj = Instantiate(tridentProjectilePrefab, spawnPos, spawnRot);
         TridentProjectile script = proj.GetComponent<TridentProjectile>();

@@ -9,7 +9,6 @@ public class CrescentBow : Attack
 
     [Header("Projectile")]
     public GameObject arrowPrefab;
-
     private bool _isUltActive = false;
     private float _ultChargeSpeedMultiplier = 1f;
 
@@ -29,12 +28,9 @@ public class CrescentBow : Attack
     public override void OnRelease()
     {
         if (!_isCharging) return;
-
         float heldDuration = Time.time - _chargeStartTime;
-        // Accelerate the effective charge accumulation during ultimate
         float effectiveChargeTime = heldDuration * _ultChargeSpeedMultiplier;
         float chargePercent = Mathf.Clamp01(effectiveChargeTime / maxChargeTime);
-
         TryFireCharged(chargePercent);
         _isCharging = false;
     }
@@ -47,15 +43,27 @@ public class CrescentBow : Attack
 
     private void FireArrow(float chargePercent)
     {
-        if (playerCamera == null) return;
+        Transform root = transform.root;
+        Vector3 spawnPos;
+        Quaternion spawnRot;
 
-        Vector3 spawnPos = playerCamera.transform.position + playerCamera.transform.forward;
-        GameObject arrow = Instantiate(arrowPrefab, spawnPos, playerCamera.transform.rotation);
-        
+        if (playerCamera != null)
+        {
+            spawnPos = playerCamera.transform.position + playerCamera.transform.forward;
+            spawnRot = playerCamera.transform.rotation;
+        }
+        else
+        {
+            Vector3 aimDir = movementController != null ? movementController.GetAimDirection() : root.forward;
+            spawnPos = root.position + Vector3.up * 1.5f + aimDir;
+            spawnRot = Quaternion.LookRotation(aimDir);
+        }
+
+        GameObject arrow = Instantiate(arrowPrefab, spawnPos, spawnRot);
         StormArrow stormArrow = arrow.GetComponent<StormArrow>();
         if (stormArrow != null)
         {
-            stormArrow.SetAttacker(transform.root.gameObject);
+            stormArrow.SetAttacker(root.gameObject);
             stormArrow.SetCharge(chargePercent);
             stormArrow.piercesTargets = _isUltActive;
         }

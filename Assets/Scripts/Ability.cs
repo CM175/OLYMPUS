@@ -28,7 +28,12 @@ public abstract class Ability : MonoBehaviour
     {
         if (!CanUse()) return;
         isExecuting = true;
-        Activate();
+
+        // Automatically set the ambient context to this character root
+        using (new DamageContext(transform.root.gameObject))
+        {
+            Activate();
+        }
     }
 
     protected virtual bool CanUse()

@@ -8,7 +8,8 @@ public class GoldenBow : Attack
     private bool _isCharging;
 
     [Header("Prefabs")]
-    public GameObject arrowPrefab;  // Damaging arrow variant
+    public GameObject arrowPrefab;
+
     public override void OnPress()
     {
         _isCharging = true;
@@ -19,27 +20,36 @@ public class GoldenBow : Attack
     {
         if (!_isCharging) return;
         if (!CanUse()) return;
+
         float chargeTime = Time.time - _chargeStartTime;
         float chargePercent = Mathf.Clamp01(chargeTime / maxChargeTime);
-
         FireArrow(chargePercent);
         StartCooldown();
-        
 
         _isCharging = false;
     }
 
     private void FireArrow(float chargePercent)
     {
-        
-        if (playerCamera == null) return;
+        Transform root = transform.root;
+        Vector3 spawnPos;
+        Quaternion spawnRot;
 
-        Vector3 spawnPos = playerCamera.transform.position + playerCamera.transform.forward;
-        GameObject arrow = Instantiate(arrowPrefab, spawnPos, playerCamera.transform.rotation);
-        
+        if (playerCamera != null)
+        {
+            spawnPos = playerCamera.transform.position + playerCamera.transform.forward;
+            spawnRot = playerCamera.transform.rotation;
+        }
+        else
+        {
+            Vector3 aim = movementController != null ? movementController.GetAimDirection() : root.forward;
+            spawnPos = root.position + Vector3.up * 1.5f + aim;
+            spawnRot = Quaternion.LookRotation(aim);
+        }
+
+        GameObject arrow = Instantiate(arrowPrefab, spawnPos, spawnRot);
         SolarArrow arrowScript = arrow.GetComponent<SolarArrow>();
-        arrowScript?.SetAttacker(transform.root.gameObject);
+        arrowScript?.SetAttacker(root.gameObject);
         arrowScript?.SetCharge(chargePercent);
-        
     }
 }

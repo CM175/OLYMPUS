@@ -39,7 +39,7 @@ public class GroundSlam : Ability, IInitializable
 
     private IEnumerator SlamRoutine()
     {
-        Debug.Log($"{_rootTransform.root.name} is executing Ground Slam!");
+        //Debug.Log($"{_rootTransform.root.name} is executing Ground Slam!");
         _movementController.HaltVelocity();
 
         _movementController.IsDashing = true;

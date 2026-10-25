@@ -26,7 +26,7 @@ public class AchillesFury : Ultimate
         if (stats      != null) stats.DamageMultiplier        = damageMultiplier;
         if (controller != null) controller.SpeedMultiplier    = speedMultiplier;
 
-        Debug.Log($"[AchillesFury] Active — {duration}s of invincibility, {damageMultiplier}x damage, {speedMultiplier}x speed.");
+        //Debug.Log($"[AchillesFury] Active — {duration}s of invincibility, {damageMultiplier}x damage, {speedMultiplier}x speed.");
 
         yield return new WaitForSeconds(duration);
 
@@ -35,7 +35,7 @@ public class AchillesFury : Ultimate
         if (stats      != null) stats.DamageMultiplier        = 1f;
         if (controller != null) controller.SpeedMultiplier    = 1f;
 
-        Debug.Log("[AchillesFury] Expired.");
+        //Debug.Log("[AchillesFury] Expired.");
         StartCooldown();
     }
 }
