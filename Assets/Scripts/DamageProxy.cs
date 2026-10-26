@@ -47,4 +47,5 @@ public class DamageProxy : MonoBehaviour, IDamageable
     public void ApplyHeal(int heal) => _parentDamageable?.ApplyHeal(heal);
     public void HealOverTime(int totalHeal, float duration) => _parentDamageable?.HealOverTime(totalHeal, duration);
     public void DamageOverTime(int totalDamage, float duration) => _parentDamageable?.DamageOverTime(totalDamage, duration);
+    public void DamageOverTime(int totalDamage, float duration, GameObject attacker) => _parentDamageable?.DamageOverTime(totalDamage, duration, attacker);
 }

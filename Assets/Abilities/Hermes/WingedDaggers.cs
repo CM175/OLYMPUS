@@ -22,6 +22,7 @@ public class WingedDaggers : Attack
 
     protected override void Activate()
     {
+        Debug.Log("Winged Daggers activated");
         Transform root = transform.root;
         Vector3 attackPoint = root.position + root.forward * (range / 2f);
         Collider[] hitEnemies = Physics.OverlapSphere(attackPoint, range / 2f);
@@ -30,6 +31,7 @@ public class WingedDaggers : Attack
         foreach (var enemy in hitEnemies)
         {
             Transform enemyRoot = enemy.transform.root;
+            Debug.Log($"[WingedDaggers] hit {enemy.name} at {enemy.transform.position}. Enemy root: {enemyRoot.name}");
             if (enemyRoot == root) continue;
             if (myTeam != null && !myTeam.IsEnemy(enemyRoot.gameObject)) continue;
 
@@ -44,14 +46,9 @@ public class WingedDaggers : Attack
     private void ApplyDamage(IDamageable target)
     {
         Transform root = transform.root;
-        PlayerStats stats = root.GetComponent<PlayerStats>();
         CharacterController cc = root.GetComponent<CharacterController>();
 
         int finalDamage = damage;
-        if (stats != null)
-        {
-            finalDamage = Mathf.RoundToInt(finalDamage * stats.DamageMultiplier);
-        }
 
         float actualSpeed = cc != null ? cc.velocity.magnitude : _estimatedSpeed;
         if (actualSpeed > baseSpeedThreshold)
@@ -61,6 +58,6 @@ public class WingedDaggers : Attack
             finalDamage = Mathf.RoundToInt(finalDamage * damageMultiplier);
         }
 
-        target.TakeDamage(finalDamage, root.gameObject);
+        Deal(target, finalDamage);
     }
 }

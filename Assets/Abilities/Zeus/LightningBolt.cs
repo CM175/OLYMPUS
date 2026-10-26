@@ -37,7 +37,7 @@ public class LightningBolt : Attack
             IDamageable target = hitRoot.GetComponent<IDamageable>() ?? hit.collider.GetComponent<IDamageable>();
             if (target != null)
             {
-                target.DamageOverTime(damage, damageOverTimeDuration);
+                DealOverTime(target, damage, damageOverTimeDuration);
 
                 Collider[] nearby = Physics.OverlapSphere(hit.point, chainRange);
                 Collider bestTarget = null;
@@ -61,7 +61,7 @@ public class LightningBolt : Attack
                 if (bestTarget != null)
                 {
                     IDamageable chainDamageable = bestTarget.transform.root.GetComponent<IDamageable>() ?? bestTarget.GetComponent<IDamageable>();
-                    chainDamageable?.DamageOverTime((int)(damage * 0.5f), damageOverTimeDuration);
+                    DealOverTime(chainDamageable, (int)(damage * 0.5f), damageOverTimeDuration);
                     StartCoroutine(ShowChainArc(hit.point, bestTarget.transform.position));
                 }
             }

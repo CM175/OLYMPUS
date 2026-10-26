@@ -120,7 +120,7 @@ public class ChariotOfTheSun : Ultimate
 
             if (myTeam != null && myTeam.IsEnemy(targetRoot.gameObject))
             {
-                targetHealth.TakeDamage(damagePerTick);
+                Deal(targetHealth, damagePerTick);
             }
             else if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject))
             {

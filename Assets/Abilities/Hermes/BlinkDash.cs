@@ -76,7 +76,7 @@ public class BlinkDash : Ability, IInitializable
                 IDamageable target = enemyRoot.GetComponent<IDamageable>() ?? enemyRoot.GetComponentInChildren<IDamageable>();
                 if (target != null)
                 {
-                    target.TakeDamage(dashDamage);
+                    Deal(target, dashDamage);
                     hitTargets.Add(enemyRoot);
                 }
             }

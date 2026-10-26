@@ -114,10 +114,6 @@ public class SonicBoom : Ultimate, IInitializable
         RaycastHit[] hits = Physics.SphereCastAll(start + Vector3.up * 0.5f, sweepRadius, dir, dist);
         TeamMember myTeam = _rootTransform.GetComponent<TeamMember>();
 
-        int finalDmg = playerStats != null
-            ? Mathf.RoundToInt(baseDamage * playerStats.DamageMultiplier)
-            : baseDamage;
-
         HashSet<Transform> hitVictims = new HashSet<Transform>();
 
         foreach (var hit in hits)
@@ -130,7 +126,7 @@ public class SonicBoom : Ultimate, IInitializable
 
             // Damage
             IDamageable dmg = victimRoot.GetComponent<IDamageable>() ?? victimRoot.GetComponentInChildren<IDamageable>();
-            dmg?.TakeDamage(finalDmg);
+            Deal(dmg, baseDamage);
 
             // Impulse & Interrupt
             IMovementController targetMovement = victimRoot.GetComponent<IMovementController>();

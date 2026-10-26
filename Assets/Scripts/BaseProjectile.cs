@@ -86,7 +86,7 @@ public class BaseProjectile : MonoBehaviour
             hit = other.GetComponent<IDamageable>();
         }
 
-        hit?.TakeDamage(damage, attackerRoot);
+        DamageDealer.Deal(attackerRoot, hit, damage);
     }
 
     protected void SpawnImpactVisuals(Collider other)

@@ -31,10 +31,6 @@ public class LabyrinthDomain : Ultimate, IInitializable
         Collider[] victims = Physics.OverlapSphere(center, arenaRadius);
         var myTeam = _rootTransform.GetComponent<TeamMember>();
 
-        int finalDamage = playerStats != null 
-            ? Mathf.RoundToInt(slamDamage * playerStats.DamageMultiplier) 
-            : slamDamage;
-
         foreach (var col in victims)
         {
             Transform targetRoot = col.transform.root;
@@ -44,7 +40,7 @@ public class LabyrinthDomain : Ultimate, IInitializable
                 continue;
 
             IDamageable dmg = targetRoot.GetComponent<IDamageable>() ?? targetRoot.GetComponentInChildren<IDamageable>();
-            dmg?.TakeDamage(finalDamage);
+            Deal(dmg, slamDamage);
 
             IMovementController targetMovement = targetRoot.GetComponent<IMovementController>();
     

@@ -27,13 +27,18 @@ public class RLEnemyCombatAgent : Agent
     [SerializeField] private float maxAimLeadAngle = 15f;
     [SerializeField] private float aimTurnSpeed = 15f;
 
-    [Header("Reward Shaping")]
-    [SerializeField] private float damageDealtRewardScale = 0.05f;
-    [SerializeField] private float damageTakenPenaltyScale = 0.03f;
+    [Header("Reward Shaping (damage terms are fractions of max health, so a full kill is about +1)")]
+    [SerializeField] private float damageDealtReward = 1.0f;
+    [SerializeField] private float damageTakenPenalty = 0.5f;
     [SerializeField] private float killReward = 1.0f;
     [SerializeField] private float deathPenalty = -1.0f;
-    [SerializeField] private float abilityHitBonus = 0.02f;
     [SerializeField] private float existentialPenaltyPerStep = -0.0005f;
+    [SerializeField] private float rangeShaping = 0.1f;
+
+    [Header("Episode / Performance")]
+    [SerializeField] private int maxEpisodeSteps = 4000;      // ~80s of game time; time-outs bootstrap the value estimate
+    [SerializeField] private float navRepathInterval = 0.2f;  // seconds between SetDestination calls
+    [SerializeField] private float edgeObservationRange = 10f;
 
     private NavMeshAgent _agent;
     private AIMovementController _movement;
@@ -41,7 +46,7 @@ public class RLEnemyCombatAgent : Agent
     private TeamMember _teamMember;
     private IDamageable _selfDamageable;
 
-    private Transform _currentTarget;
+    public Transform _currentTarget;
     private IDamageable _targetDamageable;
     private Vector3 _lastTargetPosition;
     private Vector3 _targetVelocity;
@@ -52,6 +57,14 @@ public class RLEnemyCombatAgent : Agent
     private PositioningAction _positioningAction = PositioningAction.Hold;
     private bool _isInitialized = false;
     private bool _hasSpawnCached = false;
+
+    private float _strafeSide = 1f;
+    private float _nextNavTime;
+    private int _selfHpKnown;
+    private int _targetHpKnown;
+    private int _lastEndFrame = -1;
+    private bool _hasPrevPotential;
+    private float _prevPotential;
     private void Awake()
     {
         CacheSpawnPosition();
@@ -109,15 +122,21 @@ public class RLEnemyCombatAgent : Agent
 
         _initialSpawnPosition = transform.position;
         _initialSpawnRotation = transform.rotation;
+        if (MaxStep <= 0) MaxStep = maxEpisodeSteps;
         _isInitialized = true;
     }
 
     public override void OnEpisodeBegin()
     {
-        Debug.Log($"[RLEnemyCombatAgent] OnEpisodeBegin() called for {gameObject.name}");
         CacheSpawnPosition();
 
+        // A time-out can leave the sparring dummy damaged; restore it so every episode starts equal.
+        if (_targetDamageable is EnemyHealth staleTarget && staleTarget.isTrainingDummy && !staleTarget.IsDead)
+            staleTarget.ResetHealth();
+
         UnsubscribeFromTarget();
+        _strafeSide = Random.value < 0.5f ? 1f : -1f;
+        _hasPrevPotential = false;
         _currentTarget = null;
         _targetDamageable = null;
         _targetVelocity = Vector3.zero;
@@ -132,6 +151,8 @@ public class RLEnemyCombatAgent : Agent
         {
             eh.ResetHealth();
         }
+
+        if (_selfDamageable != null) _selfHpKnown = _selfDamageable.CurrentHealth;
 
         // 2. Resolve Spawn Target
         Vector3 targetSpawnPos = trainingSpawnPoint != null ? trainingSpawnPoint.position : _initialSpawnPosition;
@@ -174,7 +195,11 @@ public class RLEnemyCombatAgent : Agent
         FindTarget();
         UpdateTargetVelocity();
         UpdateLineOfSight();
-        ExecuteMacroNavigation();
+        if (Time.time >= _nextNavTime)
+        {
+            _nextNavTime = Time.time + navRepathInterval;
+            ExecuteMacroNavigation();
+        }
         ApplyAimRotation();
     }
 
@@ -185,7 +210,7 @@ public class RLEnemyCombatAgent : Agent
 
         if (_currentTarget != null)
         {
-            float combatRange = _abilityManager.primaryAttack != null ? _abilityManager.primaryAttack.range : 15f;
+            float combatRange = GetCombatRange();
             Vector3 destination = ComputePositioningDestination(combatRange);
             _agent.stoppingDistance = 0.5f;
             if (_agent.isOnNavMesh)
@@ -220,7 +245,7 @@ public class RLEnemyCombatAgent : Agent
             case PositioningAction.Strafe:
                 float orbitDistance = Mathf.Clamp(currentDistance, combatRange * 0.5f, combatRange * 1.1f);
                 Vector3 lateral = Vector3.Cross(Vector3.up, awayDir).normalized;
-                float side = (GetInstanceID() % 2 == 0) ? 1f : -1f;
+                float side = _strafeSide;
                 Vector3 orbitDir = (awayDir + lateral * side * 0.6f).normalized;
                 rawDestination = targetPos + orbitDir * orbitDistance;
                 break;
@@ -292,6 +317,7 @@ public class RLEnemyCombatAgent : Agent
 
             _targetDamageable.OnDamageReceived += HandleTargetDamageTaken;
             _targetDamageable.OnDied += HandleTargetDeath;
+            _targetHpKnown = _targetDamageable.CurrentHealth;
         }
     }
 
@@ -319,7 +345,8 @@ public class RLEnemyCombatAgent : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        // 1. Self State (8 values)
+        // 1. Self state (9 values)
+        if (_selfDamageable != null) _selfHpKnown = _selfDamageable.CurrentHealth;
         sensor.AddObservation(_selfDamageable != null ? (float)_selfDamageable.CurrentHealth / _selfDamageable.MaxHealth : 1f);
         sensor.AddObservation(_movement.IsStunned ? 1f : 0f);
         sensor.AddObservation(_movement.IsDashing ? 1f : 0f);
@@ -328,14 +355,19 @@ public class RLEnemyCombatAgent : Agent
         sensor.AddObservation(GetCooldownNormalized(_abilityManager.secondaryAbility));
         sensor.AddObservation(GetCooldownNormalized(_abilityManager.mobilityAbility));
         sensor.AddObservation(GetCooldownNormalized(_abilityManager.ultimateAbility));
+        sensor.AddObservation(_agent != null ? Mathf.Clamp01(_agent.velocity.magnitude / Mathf.Max(_agent.speed, 0.01f)) : 0f);
 
-        // 2. Target Context (9 values)
+        // 2. Target context (10 values), directions in the agent's local frame
         if (_currentTarget != null)
         {
             Vector3 toTarget = _currentTarget.position - transform.position;
-            sensor.AddObservation(toTarget.normalized);
+            float combatRange = Mathf.Max(GetCombatRange(), 0.01f);
+            if (_targetDamageable != null) _targetHpKnown = _targetDamageable.CurrentHealth;
+
+            sensor.AddObservation(transform.InverseTransformDirection(toTarget.normalized));
             sensor.AddObservation(Mathf.Clamp01(toTarget.magnitude / detectionRange));
-            sensor.AddObservation(Vector3.ClampMagnitude(_targetVelocity / 10f, 1f)); // normalized velocity
+            sensor.AddObservation(Mathf.Clamp01(toTarget.magnitude / (combatRange * 2f)));
+            sensor.AddObservation(transform.InverseTransformDirection(Vector3.ClampMagnitude(_targetVelocity / 10f, 1f)));
             sensor.AddObservation(_targetDamageable != null ? (float)_targetDamageable.CurrentHealth / _targetDamageable.MaxHealth : 1f);
             sensor.AddObservation(_hasLineOfSight ? 1f : 0f);
         }
@@ -343,10 +375,14 @@ public class RLEnemyCombatAgent : Agent
         {
             sensor.AddObservation(Vector3.zero);
             sensor.AddObservation(1f);
+            sensor.AddObservation(1f);
             sensor.AddObservation(Vector3.zero);
             sensor.AddObservation(0f);
             sensor.AddObservation(0f);
         }
+
+        // 3. Nearest NavMesh edge (3 values): lets the policy learn not to get knocked or dashed off the map
+        AddEdgeObservations(sensor);
     }
 
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
@@ -366,6 +402,59 @@ public class RLEnemyCombatAgent : Agent
             actionMask.SetActionEnabled(1, actionIndex, false);
     }
 
+    private float GetCombatRange()
+    {
+        return _abilityManager != null && _abilityManager.primaryAttack != null
+            ? _abilityManager.primaryAttack.range
+            : 15f;
+    }
+
+    private void AddEdgeObservations(VectorSensor sensor)
+    {
+        if (NavMesh.FindClosestEdge(transform.position, out NavMeshHit edge, NavMesh.AllAreas))
+        {
+            Vector3 local = transform.InverseTransformDirection((edge.position - transform.position).normalized);
+            sensor.AddObservation(Mathf.Clamp01(edge.distance / edgeObservationRange));
+            sensor.AddObservation(local.x);
+            sensor.AddObservation(local.z);
+        }
+        else
+        {
+            sensor.AddObservation(1f);
+            sensor.AddObservation(0f);
+            sensor.AddObservation(0f);
+        }
+    }
+
+    // Potential-based shaping (gamma matches the trainer's 0.99): gives a dense "get to a useful range"
+    // signal without changing which policy is optimal.
+    private void ApplyRangeShaping()
+    {
+        if (_currentTarget == null)
+        {
+            _hasPrevPotential = false;
+            return;
+        }
+
+        float ideal = GetCombatRange() * 0.7f;
+        float dist = Vector3.Distance(transform.position, _currentTarget.position);
+        float potential = -Mathf.Abs(dist - ideal) / detectionRange;
+
+        if (_hasPrevPotential)
+            AddReward(rangeShaping * (0.99f * potential - _prevPotential));
+
+        _prevPotential = potential;
+        _hasPrevPotential = true;
+    }
+
+    public void EndEpisodeOnce()
+    {
+        // Self-death and target-death can both fire in the same frame; only end the episode once.
+        if (Time.frameCount == _lastEndFrame) return;
+        _lastEndFrame = Time.frameCount;
+        EndEpisode();
+    }
+
     private float GetCooldownNormalized(Ability ability)
     {
         if (ability == null || ability.cooldown <= 0f) return 0f;
@@ -377,6 +466,7 @@ public class RLEnemyCombatAgent : Agent
     {
         // Step penalty applied reliably per decision tick
         AddReward(existentialPenaltyPerStep);
+        ApplyRangeShaping();
 
         if (_movement == null || _currentTarget == null)
         {
@@ -463,40 +553,54 @@ public class RLEnemyCombatAgent : Agent
 
     private void HandleSelfDamageTaken(int damage, GameObject attacker)
     {
-        AddReward(-damage * damageTakenPenaltyScale);
+        int hpNow = _selfDamageable != null ? _selfDamageable.CurrentHealth : 0;
+        float lost = hpNow > 0 ? damage : Mathf.Min(damage, _selfHpKnown);   // ignore overkill
+        _selfHpKnown = hpNow;
+
+        // Environment damage (KillZone etc.) has no attacker: the death penalty already covers it.
+        if (attacker == null || attacker == gameObject || _selfDamageable == null) return;
+
+        AddReward(-damageTakenPenalty * lost / Mathf.Max(1, _selfDamageable.MaxHealth));
     }
 
     private void HandleSelfDeath(GameObject killer)
     {
         AddReward(deathPenalty);
-        EndEpisode();
+        EndEpisodeOnce();
     }
 
     private void HandleTargetDeath(GameObject killer)
     {
-        // If the target is also an ML-Agent (self-play or sparring AI),
-        // force it to end its episode so it also respawns!
+        if (killer == gameObject)
+            AddReward(killReward);
+
+        // If the target is also an ML-Agent (self-play or sparring AI), end its episode too so it respawns.
         if (_currentTarget != null && _currentTarget.TryGetComponent<Agent>(out var targetAgent))
         {
-            targetAgent.EndEpisode();
+            if (targetAgent is RLEnemyCombatAgent other) other.EndEpisodeOnce();
+            else targetAgent.EndEpisode();
         }
 
         UnsubscribeFromTarget();
         _currentTarget = null;
         _targetDamageable = null;
 
-        if (killer == gameObject)
-            AddReward(killReward);
-
-        EndEpisode();
+        EndEpisodeOnce();
     }
 
     private void HandleTargetDamageTaken(int damage, GameObject attacker)
     {
+        if (_targetDamageable == null) return;
+
+        int hpNow = _targetDamageable.CurrentHealth;
+        float lost = hpNow > 0 ? damage : Mathf.Min(damage, _targetHpKnown);  // ignore overkill
+        _targetHpKnown = hpNow;
+
         if (attacker != gameObject) return;
-        AddReward(damage * damageDealtRewardScale);
-        AddReward(abilityHitBonus);
+        Debug.Log("Damage Dealt");
+        AddReward(damageDealtReward * lost / Mathf.Max(1, _targetDamageable.MaxHealth));
     }
+
 
 
     private void UnsubscribeFromTarget()

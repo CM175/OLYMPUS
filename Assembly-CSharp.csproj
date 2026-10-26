@@ -47,9 +47,9 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
-    <Analyzer Include="C:\Users\Corym\OneDrive\transfer\OLYMPUS\Library\PackageCache\com.unity.ai.inference@9a123aee5df7\Runtime\Core\SourceGenerator\SourceGenerators.dll" />
-    <Analyzer Include="C:\Users\Corym\OneDrive\transfer\OLYMPUS\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\SourceGenerators\netstandard2.0\EnumToLowerCase.dll" />
-    <Analyzer Include="C:\Users\Corym\OneDrive\transfer\OLYMPUS\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\MVVM\SourceGenerators\netstandard2.0\MVVMSourceGenerators.dll" />
+    <Analyzer Include="C:\Users\Corym\Projects\OLYMPUS\Library\PackageCache\com.unity.ai.inference@9a123aee5df7\Runtime\Core\SourceGenerator\SourceGenerators.dll" />
+    <Analyzer Include="C:\Users\Corym\Projects\OLYMPUS\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\SourceGenerators\netstandard2.0\EnumToLowerCase.dll" />
+    <Analyzer Include="C:\Users\Corym\Projects\OLYMPUS\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\MVVM\SourceGenerators\netstandard2.0\MVVMSourceGenerators.dll" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\TeamColorVisuals.cs" />
@@ -85,6 +85,7 @@
     <Compile Include="Assets\Scripts\KillZone.cs" />
     <Compile Include="Assets\Abilities\Poseidon\TidalSurge.cs" />
     <Compile Include="Assets\Abilities\Achillies\ShieldBash.cs" />
+    <Compile Include="Assets\Scripts\DamageDealer.cs" />
     <Compile Include="Assets\Scripts\IMovementController.cs" />
     <Compile Include="Assets\Scripts\HUDController.cs" />
     <Compile Include="Assets\Abilities\Achillies\AchillesFury.cs" />

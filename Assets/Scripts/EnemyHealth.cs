@@ -48,7 +48,6 @@ public class EnemyHealth : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damage, GameObject attacker)
     {
-        Debug.Log($"[EnemyHealth] {gameObject.name} taking {damage} damage from {(attacker != null ? attacker.name : "Unknown")}");
         if (IsInvincible || IsDead) return;
 
         currentHealth -= damage;
@@ -60,7 +59,6 @@ public class EnemyHealth : MonoBehaviour, IDamageable
 
         if (currentHealth <= 0)
         {
-            Debug.Log($"[EnemyHealth] {gameObject.name} has reached 0 health and will die. Attacker: {(attacker != null ? attacker.name : "None")}");
             Die(attacker);
         }
     }
@@ -109,18 +107,20 @@ public class EnemyHealth : MonoBehaviour, IDamageable
         }
     }
 
-    public void DamageOverTime(int totalDamage, float duration)
+    public void DamageOverTime(int totalDamage, float duration) => DamageOverTime(totalDamage, duration, null);
+
+    public void DamageOverTime(int totalDamage, float duration, GameObject attacker)
     {
         if (IsDead) return;
         if (duration <= 0f)
         {
-            TakeDamage(totalDamage);
+            TakeDamage(totalDamage, attacker);
             return;
         }
-        StartCoroutine(SmoothDamageRoutine(totalDamage, duration));
+        StartCoroutine(SmoothDamageRoutine(totalDamage, duration, attacker));
     }
 
-    private IEnumerator SmoothDamageRoutine(int totalDamage, float duration)
+    private IEnumerator SmoothDamageRoutine(int totalDamage, float duration, GameObject attacker)
     {
         float elapsed = 0f;
         float accumulatedDamage = 0f;
@@ -135,7 +135,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable
             if (accumulatedDamage >= 1f)
             {
                 int damageAmount = Mathf.FloorToInt(accumulatedDamage);
-                TakeDamage(damageAmount);
+                TakeDamage(damageAmount, attacker);
                 accumulatedDamage -= damageAmount;
             }
             yield return null;
@@ -143,16 +143,17 @@ public class EnemyHealth : MonoBehaviour, IDamageable
 
         if (accumulatedDamage > 0f)
         {
-            TakeDamage(Mathf.RoundToInt(accumulatedDamage));
+            TakeDamage(Mathf.RoundToInt(accumulatedDamage), attacker);
         }
     }
 
     private void Die(GameObject attacker)
     {
-        Debug.Log($"[EnemyHealth] {gameObject.name} has died. Attacker: {(attacker != null ? attacker.name : "None")}");
         if (IsDead) return;
         IsDead = true;
 
+        
+        StopAllCoroutines();
         OnDied?.Invoke(attacker);
         OnDeathWithKiller?.Invoke(attacker);
 

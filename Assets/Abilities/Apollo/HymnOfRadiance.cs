@@ -24,7 +24,7 @@ public class HymnOfRadiance : Ability
             if (myTeam != null && myTeam.IsEnemy(target.gameObject))
             {
                 var dmg = targetRoot.GetComponent<IDamageable>();
-                dmg?.DamageOverTime(damageAmount, healOrDamageDuration);
+                DealOverTime(dmg, damageAmount, healOrDamageDuration);
                 
                 // OPTIMIZED: Use interface impulses instead of tight NavMeshAgent coupling
                 IMovementController movement = targetRoot.GetComponent<IMovementController>();

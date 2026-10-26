@@ -21,6 +21,13 @@ public abstract class Ability : MonoBehaviour
     // Keep track of the manager to query other active abilities on the character
     [System.NonSerialized] protected AbilityManager abilityManager;
 
+    protected GameObject Owner => transform.root.gameObject;
+
+    // Outgoing damage always goes through these so the attacker is explicit
+    // and PlayerStats.DamageMultiplier is applied exactly once.
+    protected void Deal(IDamageable target, int baseDamage) => DamageDealer.Deal(Owner, target, baseDamage);
+    protected void DealOverTime(IDamageable target, int baseTotalDamage, float duration) => DamageDealer.DealOverTime(Owner, target, baseTotalDamage, duration);
+
     public virtual void OnPress() {}
     public virtual void OnRelease() {}
     

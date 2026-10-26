@@ -105,7 +105,7 @@ public class GroundSlam : Ability, IInitializable
             IDamageable damageable = targetRoot.GetComponent<IDamageable>() ?? targetRoot.GetComponentInChildren<IDamageable>();
             if (damageable != null)
             {
-                damageable.TakeDamage(slamDamage);
+                Deal(damageable, slamDamage);
 
                 // Dynamically route crowd control strictly using the target's controller layer
                 IMovementController targetMovement = targetRoot.GetComponent<IMovementController>();

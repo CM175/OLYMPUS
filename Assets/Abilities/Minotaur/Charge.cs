@@ -138,7 +138,7 @@ public class Charge : Ability, IInitializable
 
                     _pinnedMovement.HaltVelocity();
                     pinnedDamageable = _pinnedTransform.GetComponent<IDamageable>() ?? _pinnedTransform.GetComponentInChildren<IDamageable>();
-                    pinnedDamageable?.TakeDamage(impactDamage);
+                    Deal(pinnedDamageable, impactDamage);
                     // OPTIMIZED: Stun the target for the remaining duration of the charge ride
                     float remainingChargeTime = chargeDuration - elapsedTime;
                     _pinnedMovement.Stun(remainingChargeTime + 0.5f); 
@@ -148,7 +148,7 @@ public class Charge : Ability, IInitializable
                 else if (targetRoot != _pinnedTransform && !_hitSecondaryTargets.Contains(targetRoot))
                 {
                     _hitSecondaryTargets.Add(targetRoot);
-                    damageable.TakeDamage((int)(impactDamage * 0.5f));
+                    Deal(damageable, (int)(impactDamage * 0.5f));
                     
                     // Secondary side-swiped targets get a brief generic 1-second hit stun
                     targetMovement.Stun(1.0f);
@@ -198,7 +198,7 @@ public class Charge : Ability, IInitializable
         if (_pinnedTransform != null)
         {
             IDamageable target = _pinnedTransform.GetComponent<IDamageable>() ?? _pinnedTransform.GetComponentInChildren<IDamageable>();
-            target?.TakeDamage(pinWallCrushDamage);
+            Deal(target, pinWallCrushDamage);
 
             if (_pinnedMovement != null)
             {

@@ -29,9 +29,7 @@ public class SpearThrow : Ability
         if (projectile != null)
         {
             projectile.SetAttacker(root.gameObject);
-            PlayerStats stats = root.GetComponent<PlayerStats>();
-            int finalDamage = stats != null ? Mathf.RoundToInt(damage * stats.DamageMultiplier) : damage;
-            projectile.damage = finalDamage;
+            projectile.damage = damage; // multiplier applied on impact by BaseProjectile
         }
         StartCooldown();
     }

@@ -23,4 +23,5 @@ public interface IDamageable
     void ApplyHeal(int heal);
     void HealOverTime(int totalHeal, float duration);
     void DamageOverTime(int totalDamage, float duration);
+    void DamageOverTime(int totalDamage, float duration, GameObject attacker);
 }

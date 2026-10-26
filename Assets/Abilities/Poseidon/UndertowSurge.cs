@@ -70,7 +70,7 @@ public class UndertowSurge : Ability, IInitializable
             if (myTeam != null && !myTeam.IsEnemy(tRoot.gameObject)) continue;
 
             IDamageable dmg = tRoot.GetComponent<IDamageable>() ?? tRoot.GetComponentInChildren<IDamageable>();
-            dmg?.TakeDamage(emergeDamage);
+            Deal(dmg, emergeDamage);
 
             IMovementController move = tRoot.GetComponent<IMovementController>();
             if (move != null)

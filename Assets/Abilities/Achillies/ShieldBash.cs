@@ -13,7 +13,6 @@ public class ShieldBash : Ability
 
     protected override void Activate()
     {
-        PlayerStats stats = transform.root.GetComponent<PlayerStats>();
         Transform root = transform.root;
 
         Collider[] colliders = Physics.OverlapSphere(root.position, bashRange);
@@ -31,14 +30,7 @@ public class ShieldBash : Ability
             }
             IDamageable target = col.transform.root.GetComponent<IDamageable>();
             if (target == null) continue;
-
-            // DamageMultiplier still applied here — it's about outgoing damage scaling
-            // Charge awarding happens automatically via EnemyHealth.OnAnyEnemyDamaged
-            int finalDamage = stats != null
-                ? Mathf.RoundToInt(damage * stats.DamageMultiplier)
-                : damage;
-
-            target.TakeDamage(finalDamage);
+            Deal(target, damage);
 
             IMovementController targetController = col.transform.root.GetComponent<IMovementController>();
             if (targetController != null) targetController.Stun(stunDuration);

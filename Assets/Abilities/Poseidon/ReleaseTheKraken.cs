@@ -63,10 +63,6 @@ public class ReleaseTheKraken : Ultimate, IInitializable
         }
 
         // Stage 2: Eruption & Brief Daze
-        int finalDmg = playerStats != null 
-            ? Mathf.RoundToInt(eruptionDamage * playerStats.DamageMultiplier) 
-            : eruptionDamage;
-
         Collider[] eruptionTargets = Physics.OverlapSphere(center, radius);
         HashSet<Transform> processedTargets = new();
 
@@ -79,7 +75,7 @@ public class ReleaseTheKraken : Ultimate, IInitializable
             processedTargets.Add(victimRoot);
 
             IDamageable dmg = victimRoot.GetComponent<IDamageable>() ?? victimRoot.GetComponentInChildren<IDamageable>();
-            dmg?.TakeDamage(finalDmg);
+            Deal(dmg, eruptionDamage);
 
             IMovementController move = victimRoot.GetComponent<IMovementController>();
             if (move != null)

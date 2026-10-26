@@ -49,7 +49,7 @@ public class OlympianWrath : Ultimate
                 if (target != null && !target.IsDead)
                 {
                     Vector3 enemyPos = col.transform.position;
-                    target.TakeDamage(damagePerStrike, attackerRoot);
+                    Deal(target, damagePerStrike);
                     StartCoroutine(AnimateSkyBolt(enemyPos));
                 }
             }

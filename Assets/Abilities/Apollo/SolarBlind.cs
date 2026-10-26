@@ -36,7 +36,7 @@ public class SolarBlind : Ability
             
             if (myTeam != null && myTeam.IsEnemy(victim.gameObject))
             {
-                victimRoot.GetComponent<IDamageable>()?.TakeDamage(minorBurnDamage);
+                Deal(victimRoot.GetComponent<IDamageable>(), minorBurnDamage);
 
                 // OPTIMIZED: Replaced EnemyAI lookup with a unified generic Stun call via interface
                 IMovementController movement = victimRoot.GetComponent<IMovementController>();

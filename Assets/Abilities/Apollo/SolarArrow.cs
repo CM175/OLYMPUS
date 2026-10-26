@@ -47,7 +47,7 @@ public class SolarArrow : BaseProjectile
             else
             {
                 
-                health?.DamageOverTime(damage, damageOverTimeDuration); 
+                DamageDealer.DealOverTime(attackerRoot, health, damage, damageOverTimeDuration); 
             }
         }
 

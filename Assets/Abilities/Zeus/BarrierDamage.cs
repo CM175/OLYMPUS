@@ -21,7 +21,7 @@ public class BarrierDamage : MonoBehaviour
         if (_nextHitTime.TryGetValue(col, out float t) && Time.time < t) return;
 
         IDamageable target = victimTransform.GetComponent<IDamageable>() ?? col.GetComponent<IDamageable>();
-        target?.TakeDamage(damage, attackerTransform.gameObject);
+        DamageDealer.Deal(attackerTransform.gameObject, target, damage);
 
         _nextHitTime[col] = Time.time + 0.5f;
     }

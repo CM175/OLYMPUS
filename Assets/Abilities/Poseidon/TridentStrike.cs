@@ -60,9 +60,7 @@ public class TridentStrike : Attack, IInitializable
             IDamageable target = targetRoot.GetComponent<IDamageable>() ?? hit.collider.GetComponent<IDamageable>();
             if (target != null)
             {
-                PlayerStats stats = _rootTransform.GetComponent<PlayerStats>();
-                int finalDamage = (stats != null) ? Mathf.RoundToInt(damage * stats.DamageMultiplier) : damage;
-                target.TakeDamage(finalDamage, _rootTransform.gameObject);
+                Deal(target, damage);
             }
         }
 

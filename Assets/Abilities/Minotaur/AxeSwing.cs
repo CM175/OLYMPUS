@@ -60,7 +60,7 @@ public class AxeSwing : Attack, IInitializable
             }
 
             IDamageable targetDamage = victimRoot.GetComponent<IDamageable>() ?? col.GetComponent<IDamageable>();
-            targetDamage?.TakeDamage(damage, _rootTransform.gameObject);
+            Deal(targetDamage, damage);
         }
     }
 }
