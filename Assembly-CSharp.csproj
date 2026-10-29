@@ -71,13 +71,14 @@
     <Compile Include="Assets\Scripts\Attack.cs" />
     <Compile Include="Assets\Scripts\Abilities\Minotaur\AxeSwing.cs" />
     <Compile Include="Assets\Scripts\Abilities\Zeus\OlympianWrath.cs" />
+    <Compile Include="Assets\Scripts\TrainingArena.cs" />
     <Compile Include="Assets\Scripts\Ultimate.cs" />
     <Compile Include="Assets\Scripts\PlayerRegistry.cs" />
     <Compile Include="Assets\Scripts\Abilities\Achillies\SpearThrust.cs" />
     <Compile Include="Assets\Scripts\Outline.cs" />
     <Compile Include="Assets\Scripts\Abilities\Artemis\HuntersLeap.cs" />
-    <Compile Include="Assets\Scripts\KillZone.cs" />
     <Compile Include="Assets\Scripts\Abilities\Zeus\LightningBarrier.cs" />
+    <Compile Include="Assets\Scripts\KillZone.cs" />
     <Compile Include="Assets\Scripts\Abilities\Hermes\SonicBoom.cs" />
     <Compile Include="Assets\Scripts\DamageDealer.cs" />
     <Compile Include="Assets\Scripts\IMovementController.cs" />

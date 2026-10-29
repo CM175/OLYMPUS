@@ -8,7 +8,6 @@ public class SpearThrust : Attack
     protected override void Activate()
     {
         
-        Debug.Log("thrusted");
         Transform root = transform.root;
         IMovementController movement = root.GetComponent<IMovementController>();
 
@@ -20,7 +19,6 @@ public class SpearThrust : Attack
         {
             
             Transform targetRoot = hit.collider.transform.root;
-            Debug.Log($"[SpearThrust] Hit {hit.collider.name} at {hit.point} with normal {hit.normal}. Target root: {targetRoot.name}");
             var myTeam = root.GetComponent<TeamMember>();
             
             if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject))

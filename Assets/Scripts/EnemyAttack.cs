@@ -5,6 +5,7 @@ public class EnemyAttack : MonoBehaviour
     public int damage = 10;
     public float attackRange = 2f;
     public float attackCooldown = 2f;
+    [System.NonSerialized] public RLEnemyCombatAgent assignedAgent;   // set by TrainingArena
 
     float _lastAttack;
     Transform _player;
@@ -14,7 +15,7 @@ public class EnemyAttack : MonoBehaviour
     void Start()
     {
         targetAssigned = false;
-        RLEnemyCombatAgent targetAgent = FindFirstObjectByType<RLEnemyCombatAgent>();
+        RLEnemyCombatAgent targetAgent = FindTargetAgent();
         _player = targetAgent != null ? targetAgent.transform : null;
         if (_player == null)
         {
@@ -30,9 +31,9 @@ public class EnemyAttack : MonoBehaviour
 
     void Update()
     {
-        if (!targetAssigned)
+        if (_player == null || _playerDamageable == null)
         {
-            RLEnemyCombatAgent targetAgent = FindFirstObjectByType<RLEnemyCombatAgent>();
+            RLEnemyCombatAgent targetAgent = FindTargetAgent();
             _player = targetAgent != null ? targetAgent.transform : null;
             if (_player == null)
             {
@@ -50,6 +51,15 @@ public class EnemyAttack : MonoBehaviour
         float distance = Vector3.Distance(transform.position, _player.position);
         if (distance < attackRange && Time.time > _lastAttack + attackCooldown)
             Attack();
+    }
+
+    // Prefer the agent in our own arena; FindFirstObjectByType would make every dummy hit the same agent.
+    RLEnemyCombatAgent FindTargetAgent()
+    {
+        if (assignedAgent != null) return assignedAgent;
+        var arena = GetComponentInParent<TrainingArena>();
+        if (arena != null && arena.agent != null) return arena.agent;
+        return FindFirstObjectByType<RLEnemyCombatAgent>();
     }
 
     void Attack()

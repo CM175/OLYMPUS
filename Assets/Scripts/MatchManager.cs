@@ -47,14 +47,14 @@ public class MatchManager : MonoBehaviour
         // TEAM A (AI Companions)
         for (int i = 1; i < teamAMaxPlayers; i++)
         {
-            Hero hero = characterDatabase.GetHeroAtIndex((i+Random.Range(1,5)) % totalAvailableHeroes);
+            Hero hero = characterDatabase.GetHeroAtIndex((i+Random.Range(0, totalAvailableHeroes)) % totalAvailableHeroes);
             SpawnAIBot(hero, Team.TeamA, teamASpawns[i % teamASpawns.Length]);
         }
 
         // TEAM B (AI Competitors)
         for (int i = 0; i < teamBMaxPlayers; i++)
         {
-            Hero hero = characterDatabase.GetHeroAtIndex((i+Random.Range(1,5)) % totalAvailableHeroes);
+            Hero hero = characterDatabase.GetHeroAtIndex((i+Random.Range(0, totalAvailableHeroes)) % totalAvailableHeroes);
             SpawnAIBot(hero, Team.TeamB, teamBSpawns[i% teamBSpawns.Length]);
         }
     }

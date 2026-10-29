@@ -104,6 +104,7 @@ GameObject:
   - component: {fileID: 1296108845960250951}
   - component: {fileID: 5111741522757223891}
   - component: {fileID: 5020004130006532914}
+  - component: {fileID: -199001585297649089}
   m_Layer: 8
   m_Name: Enemy
   m_TagString: Enemy
@@ -141,6 +142,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   maxHealth: 100
   currentHealth: 0
+  isTrainingDummy: 0
   spawnPoint: {fileID: 0}
   matchManager: {fileID: 0}
   heroPrefab: {fileID: 0}
@@ -194,14 +196,19 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   defaultObjective: {fileID: 0}
+  trainingSpawnPoint: {fileID: 0}
   maxAimLeadAngle: 15
   aimTurnSpeed: 15
-  damageDealtRewardScale: 0.05
-  damageTakenPenaltyScale: 0.03
+  damageDealtReward: 1
+  damageTakenPenalty: 0.5
   killReward: 1
   deathPenalty: -1
-  abilityHitBonus: 0.02
   existentialPenaltyPerStep: -0.0005
+  rangeShaping: 0.1
+  maxEpisodeSteps: 4000
+  navRepathInterval: 0.2
+  edgeObservationRange: 10
+  _currentTarget: {fileID: 0}
 --- !u!114 &4635832211684307665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -335,7 +342,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 0}
+  m_Model: {fileID: 5022602860645237092, guid: af38ba0eeda033243be1e82d07c6f07c, type: 3}
   m_InferenceDevice: 0
   m_BehaviorType: 0
   m_BehaviorName: CombatAgent
@@ -359,3 +366,30 @@ MonoBehaviour:
   DecisionPeriod: 5
   DecisionStep: 0
   TakeActionsBetweenDecisions: 1
+--- !u!54 &-199001585297649089
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2391148793557673702}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0

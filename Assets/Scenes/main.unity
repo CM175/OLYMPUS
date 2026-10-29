@@ -1252,7 +1252,7 @@ PrefabInstance:
       objectReference: {fileID: 4388727752609113279}
     - target: {fileID: 3580547885085713394, guid: 4ef76c8fa89acee47ab6a92c7d1c78e9, type: 3}
       propertyPath: teamAMaxPlayers
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3580547885085713394, guid: 4ef76c8fa89acee47ab6a92c7d1c78e9, type: 3}
       propertyPath: deathSpectatorCamera

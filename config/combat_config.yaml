@@ -26,3 +26,71 @@ behaviors:
     max_steps: 3000000
     time_horizon: 256
     summary_freq: 10000
+
+# Curriculum: the training arena reads these as environment parameters (dummy_*).
+# A lesson advances once the smoothed mean episode reward passes its threshold (a clean kill is worth about +2).
+environment_parameters:
+  spawn_distance_scale:
+    curriculum:
+      - name: InRange
+        completion_criteria:
+          measure: reward
+          behavior: CombatAgent
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.8
+        value: 0.8
+      - name: Close
+        completion_criteria:
+          measure: reward
+          behavior: CombatAgent
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 1.0
+        value: 2.0
+      - name: Anywhere
+        value: 0.0
+  dummy_health:
+    curriculum:
+      - name: Fragile
+        completion_criteria:
+          measure: reward
+          behavior: CombatAgent
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 1.0
+        value: 300.0
+      - name: FullHealth
+        value: 600.0
+  dummy_attacks:
+    curriculum:
+      - name: Passive
+        completion_criteria:
+          measure: reward
+          behavior: CombatAgent
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 1.5
+        value: 0.0
+      - name: FightsBack
+        value: 1.0
+  dummy_speed:
+    curriculum:
+      - name: Stationary
+        completion_criteria:
+          measure: reward
+          behavior: CombatAgent
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 1.6
+        value: 0.0
+      - name: Walking
+        completion_criteria:
+          measure: reward
+          behavior: CombatAgent
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 1.7
+        value: 2.0
+      - name: Chasing
+        value: 4.0

@@ -4,9 +4,11 @@ public class KillZone : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
-        if (other.transform.root.TryGetComponent<IDamageable>(out IDamageable damageable))
+        Debug.Log($"KillZone: {other.name} entered kill zone.");
+        if (other.transform.root.TryGetComponent(out IDamageable damageable))
         {
-            damageable.TakeDamage(9999); 
+            Debug.Log($"KillZone: {other.name} entered kill zone, killing it.");
+            damageable.TakeDamage(damageable.CurrentHealth); 
         }
     }
 }

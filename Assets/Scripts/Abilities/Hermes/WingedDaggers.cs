@@ -22,7 +22,6 @@ public class WingedDaggers : Attack
 
     protected override void Activate()
     {
-        Debug.Log("Winged Daggers activated");
         Transform root = transform.root;
         Vector3 attackPoint = root.position + root.forward * (range / 2f);
         Collider[] hitEnemies = Physics.OverlapSphere(attackPoint, range / 2f);
@@ -31,7 +30,6 @@ public class WingedDaggers : Attack
         foreach (var enemy in hitEnemies)
         {
             Transform enemyRoot = enemy.transform.root;
-            Debug.Log($"[WingedDaggers] hit {enemy.name} at {enemy.transform.position}. Enemy root: {enemyRoot.name}");
             if (enemyRoot == root) continue;
             if (myTeam != null && !myTeam.IsEnemy(enemyRoot.gameObject)) continue;
 

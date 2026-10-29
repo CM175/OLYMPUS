@@ -65,6 +65,17 @@ public class RLEnemyCombatAgent : Agent
     private int _lastEndFrame = -1;
     private bool _hasPrevPotential;
     private float _prevPotential;
+    private TrainingArena _arena;
+    private bool _primaryHeld;
+    private float _primaryHeldSince;
+
+    // per-episode diagnostics (reported to TensorBoard)
+    private float _epDamageDealt, _epDamageTaken, _epKilled, _epDied;
+    private int _epDecisions, _epWithTarget, _epWithLos, _epInRange, _epAttackUses, _epAbilityUses;
+    private EnemyHealth _trainingDummy;
+
+    public LayerMask SearchMask => searchMask;
+    public float CombatRange => GetCombatRange();
     private void Awake()
     {
         CacheSpawnPosition();
@@ -123,6 +134,7 @@ public class RLEnemyCombatAgent : Agent
         _initialSpawnPosition = transform.position;
         _initialSpawnRotation = transform.rotation;
         if (MaxStep <= 0) MaxStep = maxEpisodeSteps;
+        if (_arena == null) SetArena(GetComponentInParent<TrainingArena>());
         _isInitialized = true;
     }
 
@@ -130,11 +142,11 @@ public class RLEnemyCombatAgent : Agent
     {
         CacheSpawnPosition();
 
-        // A time-out can leave the sparring dummy damaged; restore it so every episode starts equal.
-        if (_targetDamageable is EnemyHealth staleTarget && staleTarget.isTrainingDummy && !staleTarget.IsDead)
-            staleTarget.ResetHealth();
+        // Restore the sparring dummy (dead after a kill, damaged after a time-out) so every episode starts equal.
+        if (_trainingDummy != null) _trainingDummy.ResetHealth();
 
         UnsubscribeFromTarget();
+        ReportEpisodeStats();
         _strafeSide = Random.value < 0.5f ? 1f : -1f;
         _hasPrevPotential = false;
         _currentTarget = null;
@@ -145,6 +157,8 @@ public class RLEnemyCombatAgent : Agent
 
         if (_abilityManager != null)
             _abilityManager.InterruptAllAbilities();
+            if (_abilityManager.primaryAttack != null) _abilityManager.primaryAttack.isHolding = false;
+            _primaryHeld = false;
 
         // 1. Revive health
         if (TryGetComponent<EnemyHealth>(out var eh))
@@ -157,6 +171,7 @@ public class RLEnemyCombatAgent : Agent
         // 2. Resolve Spawn Target
         Vector3 targetSpawnPos = trainingSpawnPoint != null ? trainingSpawnPoint.position : _initialSpawnPosition;
         Quaternion targetSpawnRot = trainingSpawnPoint != null ? trainingSpawnPoint.rotation : _initialSpawnRotation;
+        if (_arena != null) _arena.ResetEpisode(out targetSpawnPos, out targetSpawnRot);
 
         // 3. Forcibly disable NavMeshAgent before transform displacement
         if (_agent != null)
@@ -192,6 +207,7 @@ public class RLEnemyCombatAgent : Agent
     }
     private void Update()
     {
+        UpdatePrimaryHold();
         FindTarget();
         UpdateTargetVelocity();
         UpdateLineOfSight();
@@ -255,6 +271,8 @@ public class RLEnemyCombatAgent : Agent
                 break;
         }
 
+        if (_arena != null) rawDestination = _arena.ClampToBounds(rawDestination);
+
         // CLAMP TO VALID NAVMESH SURFACE: Never send the agent over an edge
         if (NavMesh.SamplePosition(rawDestination, out NavMeshHit hit, 4.0f, NavMesh.AllAreas))
         {
@@ -284,6 +302,7 @@ public class RLEnemyCombatAgent : Agent
         foreach (var col in colliders)
         {
             if (col.gameObject == gameObject) continue;
+            if (_arena != null && !_arena.Contains(col.transform)) continue;   // only fight inside our own arena
             GameObject rootObj = col.transform.root.gameObject;
 
             if (_teamMember.IsEnemy(rootObj))
@@ -318,6 +337,7 @@ public class RLEnemyCombatAgent : Agent
             _targetDamageable.OnDamageReceived += HandleTargetDamageTaken;
             _targetDamageable.OnDied += HandleTargetDeath;
             _targetHpKnown = _targetDamageable.CurrentHealth;
+            _trainingDummy = bestTarget.TryGetComponent<EnemyHealth>(out var dummyHealth) && dummyHealth.isTrainingDummy ? dummyHealth : null;
         }
     }
 
@@ -397,7 +417,7 @@ public class RLEnemyCombatAgent : Agent
 
     private void MaskAbilitySlot(IDiscreteActionMask actionMask, int actionIndex, Ability ability, bool exclusiveLocked)
     {
-        bool unavailable = ability == null || ability.IsOnCooldown() || exclusiveLocked;
+        bool unavailable = ability == null || exclusiveLocked || (actionIndex != 1 && ability.IsOnCooldown());   // slot 1 = "hold attack": stays selectable while cooling down
         if (unavailable)
             actionMask.SetActionEnabled(1, actionIndex, false);
     }
@@ -447,6 +467,58 @@ public class RLEnemyCombatAgent : Agent
         _hasPrevPotential = true;
     }
 
+    public void SetArena(TrainingArena arena)
+    {
+        _arena = arena;
+        if (_arena != null) defaultObjective = _arena.Objective;
+    }
+
+    private string GetHeroName()
+    {
+        if (TryGetComponent<HeroManager>(out var heroManager) && heroManager.currentHero != null)
+            return heroManager.currentHero.name.Replace("(Clone)", "").Trim();
+        return "NoHero";
+    }
+
+    private void TrackDecision()
+    {
+        _epDecisions++;
+        if (_currentTarget == null) return;
+
+        _epWithTarget++;
+        if (_hasLineOfSight) _epWithLos++;
+        if (Vector3.Distance(transform.position, _currentTarget.position) <= Mathf.Max(GetCombatRange(), 0.01f))
+            _epInRange++;
+    }
+
+    // Shows up in TensorBoard under Combat/*. Tells you WHY reward is what it is.
+    private void ReportEpisodeStats()
+    {
+        if (_epDecisions > 0)
+        {
+            var stats = Academy.Instance.StatsRecorder;
+            float d = _epDecisions;
+            stats.Add("Combat/DamageDealt", _epDamageDealt);   // fraction of target max health
+            stats.Add("Combat/DamageTaken", _epDamageTaken);   // fraction of own max health
+            stats.Add("Combat/Killed", _epKilled);
+            stats.Add("Combat/Died", _epDied);
+            stats.Add("Combat/TimedOut", (_epKilled + _epDied) > 0f ? 0f : 1f);
+            stats.Add("Combat/HasTarget", _epWithTarget / d);
+            stats.Add("Combat/LineOfSight", _epWithLos / d);
+            stats.Add("Combat/InAttackRange", _epInRange / d);
+            stats.Add("Combat/AttackUses", _epAttackUses);
+            stats.Add("Combat/AbilityUses", _epAbilityUses);
+            stats.Add("Combat/EpisodeDecisions", d);
+            string hero = GetHeroName();
+            stats.Add($"Hero/{hero}/DamageDealt", _epDamageDealt);
+            stats.Add($"Hero/{hero}/Killed", _epKilled);
+            stats.Add($"Hero/{hero}/AttackUses", _epAttackUses);
+        }
+
+        _epDamageDealt = _epDamageTaken = _epKilled = _epDied = 0f;
+        _epDecisions = _epWithTarget = _epWithLos = _epInRange = _epAttackUses = _epAbilityUses = 0;
+    }
+
     public void EndEpisodeOnce()
     {
         // Self-death and target-death can both fire in the same frame; only end the episode once.
@@ -458,15 +530,15 @@ public class RLEnemyCombatAgent : Agent
     private float GetCooldownNormalized(Ability ability)
     {
         if (ability == null || ability.cooldown <= 0f) return 0f;
-        float remaining = (ability.lastUsedTime + ability.cooldown) - Time.time;
+        float remaining = ability.lastUsedTime + ability.cooldown - Time.time;
         return Mathf.Clamp01(remaining / ability.cooldown);
     }
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        // Step penalty applied reliably per decision tick
         AddReward(existentialPenaltyPerStep);
         ApplyRangeShaping();
+        TrackDecision();
 
         if (_movement == null || _currentTarget == null)
         {
@@ -527,10 +599,11 @@ public class RLEnemyCombatAgent : Agent
         switch (actionIndex)
         {
             case 0:
-                if (_abilityManager.primaryAttack != null && _abilityManager.primaryAttack.isHolding)
-                    _abilityManager.primaryAttack.OnRelease();
+                ReleasePrimary();
                 return;
-            case 1: targetAbility = _abilityManager.primaryAttack; break;
+            case 1:
+                HoldPrimary();
+                return;
             case 2: targetAbility = _abilityManager.primaryAbility; break;
             case 3: targetAbility = _abilityManager.secondaryAbility; break;
             case 4: targetAbility = _abilityManager.mobilityAbility; break;
@@ -540,15 +613,54 @@ public class RLEnemyCombatAgent : Agent
         if (targetAbility == null) return;
         if (targetAbility.IsOnCooldown() || _abilityManager.HasActiveExclusiveAbility()) return;
 
-        if (targetAbility is Attack weapon)
+        _epAbilityUses++;
+        targetAbility.Use();
+    }
+
+    // The primary attack is driven exactly like a player's mouse button: press starts it (Attack.Update then fires it
+    // every cooldown), release stops it. Calling Use() directly left isExecuting stuck on, so plain attacks only fired
+    // once per episode and the bows (which fire on release) never fired at all.
+    private void HoldPrimary()
+    {
+        Attack atk = _abilityManager.primaryAttack;
+        if (atk == null || _abilityManager.HasActiveExclusiveAbility()) return;
+        if (_primaryHeld) return;                                    // keep holding; re-pressing would reset a bow's charge timer
+        if (GetChargeTime(atk) > 0f && atk.IsOnCooldown()) return;   // charge weapons ignore presses while cooling down
+
+        atk.OnPress();
+        _primaryHeld = true;
+        _primaryHeldSince = Time.time;
+        _epAttackUses++;
+    }
+
+    private void ReleasePrimary()
+    {
+        if (!_primaryHeld) return;
+        _primaryHeld = false;
+        if (_abilityManager.primaryAttack != null) _abilityManager.primaryAttack.OnRelease();
+    }
+
+    private void UpdatePrimaryHold()
+    {
+        if (!_primaryHeld) return;
+
+        Attack atk = _abilityManager.primaryAttack;
+        if (atk == null)
         {
-            weapon.OnPress();
-            weapon.Use();
+            _primaryHeld = false;
+            return;
         }
-        else
-        {
-            targetAbility.Use();
-        }
+
+        float chargeTime = GetChargeTime(atk);
+        if (chargeTime > 0f && Time.time - _primaryHeldSince >= chargeTime)
+            ReleasePrimary();   // fully charged: loose the arrow
+    }
+
+    private static float GetChargeTime(Attack atk)
+    {
+        if (atk is GoldenBow golden) return golden.maxChargeTime;
+        if (atk is CrescentBow crescent) return crescent.maxChargeTime;
+        return 0f;
     }
 
     private void HandleSelfDamageTaken(int damage, GameObject attacker)
@@ -560,11 +672,13 @@ public class RLEnemyCombatAgent : Agent
         // Environment damage (KillZone etc.) has no attacker: the death penalty already covers it.
         if (attacker == null || attacker == gameObject || _selfDamageable == null) return;
 
+        _epDamageTaken += lost / Mathf.Max(1, _selfDamageable.MaxHealth);
         AddReward(-damageTakenPenalty * lost / Mathf.Max(1, _selfDamageable.MaxHealth));
     }
 
     private void HandleSelfDeath(GameObject killer)
     {
+        _epDied = 1f;
         AddReward(deathPenalty);
         EndEpisodeOnce();
     }
@@ -572,7 +686,7 @@ public class RLEnemyCombatAgent : Agent
     private void HandleTargetDeath(GameObject killer)
     {
         if (killer == gameObject)
-            AddReward(killReward);
+            { AddReward(killReward); _epKilled = 1f; }
 
         // If the target is also an ML-Agent (self-play or sparring AI), end its episode too so it respawns.
         if (_currentTarget != null && _currentTarget.TryGetComponent<Agent>(out var targetAgent))
@@ -597,7 +711,7 @@ public class RLEnemyCombatAgent : Agent
         _targetHpKnown = hpNow;
 
         if (attacker != gameObject) return;
-        Debug.Log("Damage Dealt");
+        _epDamageDealt += lost / Mathf.Max(1, _targetDamageable.MaxHealth);
         AddReward(damageDealtReward * lost / Mathf.Max(1, _targetDamageable.MaxHealth));
     }
 

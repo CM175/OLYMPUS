@@ -16,7 +16,6 @@ public class FrontalArmor : PassiveAbility, IInitializable
             return;
         }
         ph.DamageReduction = damageReduction;
-        Debug.Log($"[FrontalArmor] Damage reduction set to {damageReduction * 100f}%");
         */
     }
 
