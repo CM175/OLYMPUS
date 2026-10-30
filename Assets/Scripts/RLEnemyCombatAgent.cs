@@ -43,7 +43,6 @@ public class RLEnemyCombatAgent : Agent
 [SerializeField] private float objectiveNeutralizedReward = 1.0f; // Rewarded when our team successfully neutralizes an enemy point
 
     [Header("Episode / Performance")]
-    [SerializeField] private int maxEpisodeSteps = 4000;      // ~80s of game time; time-outs bootstrap the value estimate
     [SerializeField] private float navRepathInterval = 0.2f;  // seconds between SetDestination calls
     [SerializeField] private float edgeObservationRange = 10f;
 
@@ -76,6 +75,9 @@ public class RLEnemyCombatAgent : Agent
     private TrainingArena _arena;
     private bool _primaryHeld;
     private float _primaryHeldSince;
+    private bool _isTrainingDead;
+
+    public bool IsTrainingDead => _isTrainingDead;
 
     // per-episode diagnostics (reported to TensorBoard)
     private float _epDamageDealt, _epDamageTaken, _epKilled, _epDied;
@@ -141,7 +143,9 @@ public class RLEnemyCombatAgent : Agent
 
         _initialSpawnPosition = transform.position;
         _initialSpawnRotation = transform.rotation;
-        if (MaxStep <= 0) MaxStep = maxEpisodeSteps;
+        // The TrainingMatchManager ends both agents together at match end.
+        // Disable per-agent MaxStep timeouts so one agent cannot reset mid-match.
+        MaxStep = 0;
         if (_arena == null) SetArena(GetComponentInParent<TrainingArena>());
         _isInitialized = true;
     }
@@ -149,12 +153,10 @@ public class RLEnemyCombatAgent : Agent
     public override void OnEpisodeBegin()
     {
         CacheSpawnPosition();
-
-        // Restore the sparring dummy (dead after a kill, damaged after a time-out) so every episode starts equal.
-        if (_trainingDummy != null) _trainingDummy.ResetHealth();
-
         UnsubscribeFromTarget();
         ReportEpisodeStats();
+
+        _isTrainingDead = false;
         _strafeSide = Random.value < 0.5f ? 1f : -1f;
         _hasPrevPotential = false;
         _currentTarget = null;
@@ -162,59 +164,49 @@ public class RLEnemyCombatAgent : Agent
         _targetVelocity = Vector3.zero;
         _hasLineOfSight = false;
         _hasAimTarget = false;
+        _positioningAction = PositioningAction.Hold;
+        _nextNavTime = 0f;
+        _lastObservedControl = PointOwner.Neutral;
 
+        ReleasePrimary();
         if (_abilityManager != null)
             _abilityManager.InterruptAllAbilities();
-            if (_abilityManager.primaryAttack != null) _abilityManager.primaryAttack.isHolding = false;
-            _primaryHeld = false;
 
-        // 1. Revive health
-        if (TryGetComponent<EnemyHealth>(out var eh))
-        {
-            eh.ResetHealth();
-        }
+        if (TryGetComponent<EnemyHealth>(out var health))
+            health.ResetHealth();
 
-        if (_selfDamageable != null) _selfHpKnown = _selfDamageable.CurrentHealth;
+        if (_selfDamageable != null)
+            _selfHpKnown = _selfDamageable.CurrentHealth;
 
-        // 2. Resolve Spawn Target
-        Vector3 targetSpawnPos = trainingSpawnPoint != null ? trainingSpawnPoint.position : _initialSpawnPosition;
-        Quaternion targetSpawnRot = trainingSpawnPoint != null ? trainingSpawnPoint.rotation : _initialSpawnRotation;
-        if (_arena != null) _arena.ResetEpisode(out targetSpawnPos, out targetSpawnRot);
+        Vector3 spawnPosition = trainingSpawnPoint != null ? trainingSpawnPoint.position : _initialSpawnPosition;
+        Quaternion spawnRotation = trainingSpawnPoint != null ? trainingSpawnPoint.rotation : _initialSpawnRotation;
 
-        // 3. Forcibly disable NavMeshAgent before transform displacement
-        if (_agent != null)
-        {
-            _agent.enabled = false;
-        }
+        if (_arena != null)
+            _arena.GetSpawnPose(this, out spawnPosition, out spawnRotation);
 
-        // 4. Reset velocities and physics states
         if (_movement != null)
+            _movement.ResetForTraining(spawnPosition, spawnRotation);
+        else
         {
-            _movement.HaltVelocity();
-            _movement.IsDashing = false;
-            _movement.IsUnderExternalForce = false;
+            transform.SetPositionAndRotation(spawnPosition, spawnRotation);
+            if (_agent != null)
+            {
+                if (!_agent.enabled) _agent.enabled = true;
+                if (NavMesh.SamplePosition(spawnPosition, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+                    _agent.Warp(hit.position);
+                _agent.ResetPath();
+                _agent.isStopped = false;
+            }
         }
 
-        // 5. Relocate Transform
-        transform.position = targetSpawnPos;
-        transform.rotation = targetSpawnRot;
-
-        // 6. Snap cleanly to NavMesh surface and re-enable
-        if (NavMesh.SamplePosition(targetSpawnPos, out NavMeshHit hit, 5.0f, NavMesh.AllAreas))
-        {
-            transform.position = hit.position;
-        }
-
-        if (_agent != null)
-        {
-            _agent.enabled = true;
-            _agent.Warp(transform.position);
-            _agent.ResetPath();
-            _agent.velocity = Vector3.zero;
-        }
+        if (defaultObjective != null && defaultObjective.TryGetComponent<CapturePoint>(out var point))
+            _lastObservedControl = point.controllingTeam;
     }
+
     private void Update()
     {
+        if (_isTrainingDead) return;
+
         UpdatePrimaryHold();
         FindTarget();
         UpdateTargetVelocity();
@@ -532,7 +524,7 @@ public class RLEnemyCombatAgent : Agent
     
             if (distToObjective <= captureRadius) 
             {
-                AddReward(objectivePresenceReward);
+                AddReward(objectivePresenceReward * Time.deltaTime);
 
                 // If our team is actively pushing or capturing the point, grant a progress reward
                 if (capPoint.currentChallenger == teamMember.team)
@@ -650,6 +642,8 @@ public class RLEnemyCombatAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
+        if (_isTrainingDead) return;
+
         AddReward(existentialPenaltyPerStep);
         ApplyRangeShaping();
         TrackDecision();
@@ -792,28 +786,121 @@ public class RLEnemyCombatAgent : Agent
 
     private void HandleSelfDeath(GameObject killer)
     {
+        if (_isTrainingDead) return;
+
+        _isTrainingDead = true;
         _epDied = 1f;
         AddReward(deathPenalty);
-        EndEpisodeOnce();
+        _hasAimTarget = false;
+        UnsubscribeFromTarget();
+        _currentTarget = null;
+        _targetDamageable = null;
+        ReleasePrimary();
+
+        if (_abilityManager != null)
+            _abilityManager.InterruptAllAbilities();
+
+        if (_agent != null && _agent.enabled)
+        {
+            if (_agent.isOnNavMesh)
+            {
+                _agent.ResetPath();
+                _agent.isStopped = true;
+            }
+        }
+
+        if (_arena != null && _arena.MatchManager != null)
+        {
+            TeamMember killerMember = killer != null
+                ? killer.transform.root.GetComponent<TeamMember>()
+                : null;
+
+            if (killerMember != null && _teamMember != null && killerMember.team != _teamMember.team)
+                _arena.MatchManager.RegisterElimination(killerMember.team);
+
+            _arena.MatchManager.ScheduleRespawn(this);
+        }
+        else
+        {
+            Debug.LogWarning($"{name} died, but no TrainingMatchManager is assigned; it cannot respawn.", this);
+        }
     }
 
     private void HandleTargetDeath(GameObject killer)
     {
-        if (killer == gameObject)
-            { AddReward(killReward); _epKilled = 1f; }
+        bool wasKilledByThisAgent = killer != null && killer.transform.root == transform.root;
 
-        // If the target is also an ML-Agent (self-play or sparring AI), end its episode too so it respawns.
-        if (_currentTarget != null && _currentTarget.TryGetComponent<Agent>(out var targetAgent))
+        if (wasKilledByThisAgent)
         {
-            if (targetAgent is RLEnemyCombatAgent other) other.EndEpisodeOnce();
-            else targetAgent.EndEpisode();
+            AddReward(killReward);
+            _epKilled = 1f;
         }
 
+        // The victim handles the elimination and respawn. A kill does not end either episode.
         UnsubscribeFromTarget();
         _currentTarget = null;
         _targetDamageable = null;
+        _targetVelocity = Vector3.zero;
+        _hasAimTarget = false;
+        _hasPrevPotential = false;
+    }
 
-        EndEpisodeOnce();
+    public void RespawnForTraining()
+    {
+        if (!_isTrainingDead) return;
+        if (_arena == null || (_arena.MatchManager != null && !_arena.MatchManager.IsMatchActive)) return;
+
+        Vector3 spawnPosition = _initialSpawnPosition;
+        Quaternion spawnRotation = _initialSpawnRotation;
+        if (_arena != null)
+            _arena.GetSpawnPose(this, out spawnPosition, out spawnRotation);
+
+        ReleasePrimary();
+        if (_abilityManager != null)
+            _abilityManager.InterruptAllAbilities();
+
+        if (TryGetComponent<EnemyHealth>(out var health))
+            health.ResetHealth();
+
+        _currentTarget = null;
+        _targetDamageable = null;
+        _targetVelocity = Vector3.zero;
+        _hasLineOfSight = false;
+        _hasAimTarget = false;
+        _hasPrevPotential = false;
+        _nextNavTime = 0f;
+        _lastObservedControl = PointOwner.Neutral;
+
+        if (_movement != null)
+            _movement.ResetForTraining(spawnPosition, spawnRotation);
+        else
+        {
+            transform.SetPositionAndRotation(spawnPosition, spawnRotation);
+            if (_agent != null)
+            {
+                if (!_agent.enabled) _agent.enabled = true;
+                if (NavMesh.SamplePosition(spawnPosition, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+                    _agent.Warp(hit.position);
+                _agent.ResetPath();
+                _agent.isStopped = false;
+            }
+        }
+
+        if (_selfDamageable != null)
+            _selfHpKnown = _selfDamageable.CurrentHealth;
+
+        if (defaultObjective != null && defaultObjective.TryGetComponent<CapturePoint>(out var point))
+            _lastObservedControl = point.controllingTeam;
+
+        _isTrainingDead = false;
+    }
+
+    public void ApplyMatchOutcome(Team? winner, float winRewardValue, float lossRewardValue)
+    {
+        if (!winner.HasValue) return;
+        AddReward(_teamMember != null && _teamMember.team == winner.Value
+            ? winRewardValue
+            : lossRewardValue);
     }
 
     private void HandleTargetDamageTaken(int damage, GameObject attacker)

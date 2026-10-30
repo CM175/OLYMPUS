@@ -9,6 +9,10 @@ using UnityEngine.AI;
 /// </summary>
 public class TrainingArena : MonoBehaviour
 {
+    [Header("Training Match")]
+    [SerializeField] private TrainingMatchManager matchManager;
+
+    public TrainingMatchManager MatchManager => matchManager;
     [Header("Spawned by the arena as scene roots")]
     public RLEnemyCombatAgent agentPrefab;
     public RLEnemyCombatAgent opponentPrefab;
@@ -61,6 +65,11 @@ public class TrainingArena : MonoBehaviour
             if (opponent.TryGetComponent<TeamMember>(out var oppTeam)) oppTeam.team = Team.TeamA;
             opponent.SetArena(this);
             if (opponent.TryGetComponent<EnemyHealth>(out var oppHealth)) oppHealth.isTrainingDummy = true;
+
+
+            if (opponent.TryGetComponent<BehaviorParameters>(out var oppParams))
+                oppParams.TeamId = 0;
+
         }
 
         if (agent != null)
@@ -68,7 +77,16 @@ public class TrainingArena : MonoBehaviour
             if (agent.TryGetComponent<TeamMember>(out var agentTeam)) agentTeam.team = Team.TeamB;
             agent.SetArena(this);
             if (agent.TryGetComponent<EnemyHealth>(out var agentHealth)) agentHealth.isTrainingDummy = true;
+
+            if (agent.TryGetComponent<BehaviorParameters>(out var agentParams))
+                agentParams.TeamId = 1;
         }
+
+        if (matchManager == null)
+            matchManager = GetComponent<TrainingMatchManager>();
+
+        if (matchManager == null)
+            matchManager = gameObject.AddComponent<TrainingMatchManager>();
     }
 
     private void Start()
@@ -98,34 +116,35 @@ public class TrainingArena : MonoBehaviour
         if (_spawnedOpponent && opponent != null) Destroy(opponent.gameObject);
     }
 
-    /// <summary>Called by the agent at the start of every episode. Resets the opponent and returns the agent's spawn pose.</summary>
-    public void ResetEpisode(out Vector3 agentPosition, out Quaternion agentRotation)
+    /// <summary>Returns a spawn pose for one agent without moving or resetting its opponent.</summary>
+    public void GetSpawnPose(RLEnemyCombatAgent requestingAgent, out Vector3 position, out Quaternion rotation)
     {
-        Vector3 spot = RandomPoint(spawnMargin);
-        if (opponent != null)
-        {
-            if (opponent.TryGetComponent<EnemyHealth>(out var oppHealth))
-            {
-                oppHealth.ResetHealth();
-            }
-            opponent.transform.position = new Vector3(spot.x, transform.position.y, spot.z);
-        }
+        TeamMember member = requestingAgent != null ? requestingAgent.GetComponent<TeamMember>() : null;
+        bool teamA = member != null && member.team == Team.TeamA;
 
-        Vector3 anchor = opponent != null ? opponent.transform.position : transform.position;
-        float distance = Random.Range(spawnDistanceRange.x, spawnDistanceRange.y);
-        Vector3 offset = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f) * Vector3.forward * distance;
-        Vector3 desired = ClampToBounds(anchor + offset);
-        desired.y = transform.position.y;
+        float side = Mathf.Max(1f, halfExtents.x * 0.65f);
+        float localX = teamA ? -side : side;
+        float localZ = Random.Range(-halfExtents.y + spawnMargin, halfExtents.y - spawnMargin);
+        Vector3 localSpawn = new Vector3(localX, 0f, localZ);
+        Vector3 desired = transform.TransformPoint(localSpawn);
+        desired = ClampToBounds(desired);
 
-        if (NavMesh.SamplePosition(desired, out NavMeshHit hit, 4f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(desired, out NavMeshHit hit, 5f, NavMesh.AllAreas))
             desired = hit.position;
 
-        Vector3 face = anchor - desired;
-        face.y = 0f;
-        agentPosition = desired;
-        agentRotation = face.sqrMagnitude > 0.001f
-            ? Quaternion.LookRotation(face)
-            : Quaternion.identity;
+        Vector3 centreDirection = Objective.position - desired;
+        centreDirection.y = 0f;
+        rotation = centreDirection.sqrMagnitude > 0.001f
+            ? Quaternion.LookRotation(centreDirection.normalized)
+            : transform.rotation;
+        position = desired;
+    }
+
+    /// <summary>Resets objective state after a completed match.</summary>
+    public void ResetObjectiveState()
+    {
+        CapturePoint point = Objective != null ? Objective.GetComponent<CapturePoint>() : null;
+        if (point != null) point.ResetForTraining();
     }
 
     public Vector3 ClampToBounds(Vector3 world)

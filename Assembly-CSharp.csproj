@@ -76,6 +76,7 @@
     <Compile Include="Assets\Scripts\PlayerRegistry.cs" />
     <Compile Include="Assets\Scripts\Abilities\Achillies\SpearThrust.cs" />
     <Compile Include="Assets\Scripts\Outline.cs" />
+    <Compile Include="Assets\Scripts\TrainingMatchManager.cs" />
     <Compile Include="Assets\Scripts\Abilities\Artemis\HuntersLeap.cs" />
     <Compile Include="Assets\Scripts\Abilities\Zeus\LightningBarrier.cs" />
     <Compile Include="Assets\Scripts\KillZone.cs" />

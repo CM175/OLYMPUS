@@ -13,7 +13,7 @@ public class CapturePoint : MonoBehaviour
     [Tooltip("Cap speed multiplier for extra players (e.g. 1x, 1.5x, 2x)")]
     [SerializeField] private float maxCaptureMultiplier = 2.0f;
     [SerializeField] private float decayRate = 10.0f;
-    [SerializeField] private float scoreRate = 0.83f; // ~120s to reach 100%
+    [SerializeField] private float scoreRate = 0.83f;
     [SerializeField] private float overtimeFuseDuration = 4.0f;
 
     [Header("Live Match Status")]
@@ -25,14 +25,12 @@ public class CapturePoint : MonoBehaviour
     public bool isContested = false;
     public bool isOvertime = false;
 
-    // Track active TeamMembers directly instead of raw Colliders
     private readonly HashSet<TeamMember> teamAPlayers = new();
     private readonly HashSet<TeamMember> teamBPlayers = new();
     private float overtimeFuseTimer = 0f;
 
     private void Awake()
     {
-        // Ensure trigger configuration
         GetComponent<Collider>().isTrigger = true;
         Rigidbody rb = GetComponent<Rigidbody>();
         rb.isKinematic = true;
@@ -64,65 +62,48 @@ public class CapturePoint : MonoBehaviour
         UpdateScoreAndOvertime();
     }
 
-    // Handles player death, disables, or despawns mid-fight
     private void PurgeInvalidPlayers()
     {
-        teamAPlayers.RemoveWhere(p => p == null || !p.gameObject.activeInHierarchy);
-        teamBPlayers.RemoveWhere(p => p == null || !p.gameObject.activeInHierarchy);
+        teamAPlayers.RemoveWhere(IsInvalidCaptureMember);
+        teamBPlayers.RemoveWhere(IsInvalidCaptureMember);
+    }
+
+    private bool IsInvalidCaptureMember(TeamMember member)
+    {
+        if (member == null || !member.gameObject.activeInHierarchy) return true;
+        return member.TryGetComponent<EnemyHealth>(out var health) && health.IsDead;
     }
 
     private void EvaluateCaptureLogic()
     {
         int countA = teamAPlayers.Count;
         int countB = teamBPlayers.Count;
-
-        isContested = (countA > 0 && countB > 0);
-
-        // Progress freezes immediately if both teams contest
+        isContested = countA > 0 && countB > 0;
         if (isContested) return;
 
-        if (countA > 0)
+        if (countA > 0) ProcessCaptureTick(Team.TeamA, countA);
+        else if (countB > 0) ProcessCaptureTick(Team.TeamB, countB);
+        else if (controllingTeam != PointOwner.Neutral)
         {
-            ProcessCaptureTick(Team.TeamA, countA);
+            if (captureProgress < 100f)
+                captureProgress = Mathf.Min(100f, captureProgress + decayRate * Time.deltaTime);
         }
-        else if (countB > 0)
+        else if (captureProgress > 0f)
         {
-            ProcessCaptureTick(Team.TeamB, countB);
-        }
-        else
-        {
-            // Point is empty:
-            // 1. If currently held by a team, any enemy neutralizing progress decays back up to 100%
-            // 2. If completely neutral, partial neutral capture progress decays down to 0%
-            if (controllingTeam != PointOwner.Neutral)
-            {
-                if (captureProgress < 100f)
-                {
-                    captureProgress = Mathf.Min(100f, captureProgress + decayRate * Time.deltaTime);
-                }
-            }
-            else
-            {
-                if (captureProgress > 0f)
-                {
-                    captureProgress = Mathf.Max(0f, captureProgress - decayRate * Time.deltaTime);
-                }
-            }
+            captureProgress = Mathf.Max(0f, captureProgress - decayRate * Time.deltaTime);
         }
     }
 
     private void ProcessCaptureTick(Team advancingTeam, int playerCount)
     {
-        PointOwner advancingOwner = (advancingTeam == Team.TeamA) ? PointOwner.TeamA : PointOwner.TeamB;
+        PointOwner advancingOwner = advancingTeam == Team.TeamA ? PointOwner.TeamA : PointOwner.TeamB;
         float speedMult = Mathf.Min(1f + (playerCount - 1) * 0.5f, maxCaptureMultiplier);
         float progressDelta = baseCaptureRate * speedMult * Time.deltaTime;
 
-        // SCENARIO 1: Point is completely Neutral (start of match or fully wiped)
         if (controllingTeam == PointOwner.Neutral)
         {
             if (currentChallenger != advancingTeam)
             {
-                // Enemy had partial progress while neutral: decay it to 0 first
                 captureProgress -= progressDelta;
                 if (captureProgress <= 0f)
                 {
@@ -132,7 +113,6 @@ public class CapturePoint : MonoBehaviour
             }
             else
             {
-                // Build meter up to 100% to lock ownership
                 captureProgress += progressDelta;
                 if (captureProgress >= 100f)
                 {
@@ -142,30 +122,23 @@ public class CapturePoint : MonoBehaviour
                 }
             }
         }
-        // SCENARIO 2: Friendly team controls the point
         else if (controllingTeam == advancingOwner)
         {
-            // Friendly players push the meter back up to 100% if enemies partially neutralized it
             if (captureProgress < 100f)
-            {
                 captureProgress = Mathf.Min(100f, captureProgress + progressDelta);
-            }
         }
-        // SCENARIO 3: Enemy team controls the point (Advancing team is attacking)
         else
         {
-            // Phase 1: Burn defender's hold from 100% down to 0% (Neutralize)
             if (captureProgress > 0f && currentChallenger != advancingTeam)
             {
                 captureProgress -= progressDelta;
                 if (captureProgress <= 0f)
                 {
                     captureProgress = 0f;
-                    controllingTeam = PointOwner.Neutral; // Point is now neutralized!
+                    controllingTeam = PointOwner.Neutral;
                     currentChallenger = advancingTeam;
                 }
             }
-            // Phase 2: Now neutral, build meter up to 100% to take over
             else
             {
                 captureProgress += progressDelta;
@@ -189,55 +162,60 @@ public class CapturePoint : MonoBehaviour
 
         if (currentHolderScore < 99f)
         {
-            // Normal score tick: ticks even while contested up to 99%
             currentHolderScore = Mathf.Min(99f, currentHolderScore + scoreRate * Time.deltaTime);
         }
-        else
+        else if (attackingCount > 0)
         {
-            // Controlling team is at 99%
-            if (attackingCount > 0)
+            isOvertime = true;
+            overtimeFuseTimer = overtimeFuseDuration;
+        }
+        else if (isOvertime)
+        {
+            overtimeFuseTimer -= Time.deltaTime;
+            if (overtimeFuseTimer <= 0f)
             {
-                // Enemy is actively touching/contesting: hold Overtime indefinitely
-                isOvertime = true;
-                overtimeFuseTimer = overtimeFuseDuration;
-            }
-            else if (isOvertime)
-            {
-                // Overtime active but attackers stepped off: burn down the fuse
-                overtimeFuseTimer -= Time.deltaTime;
-                if (overtimeFuseTimer <= 0f)
-                {
-                    isOvertime = false;
-                    currentHolderScore = 100f;
-                    DeclareWinner(controllingTeam);
-                }
-            }
-            else
-            {
-                // Reached 99% with nobody contesting: award the final point
+                isOvertime = false;
                 currentHolderScore = 100f;
                 DeclareWinner(controllingTeam);
             }
+        }
+        else
+        {
+            currentHolderScore = 100f;
+            DeclareWinner(controllingTeam);
         }
     }
 
     private void DeclareWinner(PointOwner winner)
     {
+        if (!enabled) return;
         enabled = false;
         Debug.Log($"Temple secured! Victor: {winner}");
 
         TrainingArena arena = GetComponentInParent<TrainingArena>();
-        if (arena != null)
+        if (arena != null && arena.MatchManager != null)
         {
-            if (arena.agent != null) arena.agent.EndEpisodeOnce();
-            if (arena.opponent != null) arena.opponent.EndEpisodeOnce();
-
-            captureProgress = 0f;
-            teamAScore = 0f;
-            teamBScore = 0f;
-            controllingTeam = PointOwner.Neutral;
-            isOvertime = false;
+            arena.MatchManager.FinishFromObjective(winner);
+        }
+        else
+        {
+            Debug.LogWarning("CapturePoint has no TrainingMatchManager; objective win was not forwarded.", this);
             enabled = true;
         }
+    }
+
+    /// <summary>Called by TrainingArena between matches. Keeps current trigger occupants tracked.</summary>
+    public void ResetForTraining()
+    {
+        controllingTeam = PointOwner.Neutral;
+        currentChallenger = Team.TeamA;
+        captureProgress = 0f;
+        teamAScore = 0f;
+        teamBScore = 0f;
+        isContested = false;
+        isOvertime = false;
+        overtimeFuseTimer = 0f;
+        enabled = true;
+        PurgeInvalidPlayers();
     }
 }

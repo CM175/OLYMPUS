@@ -577,6 +577,7 @@ GameObject:
   - component: {fileID: 2065973419835071831}
   - component: {fileID: 6244848625862948752}
   - component: {fileID: 6247519775513532422}
+  - component: {fileID: 5900312413159104104}
   m_Layer: 3
   m_Name: TrainingArena
   m_TagString: Untagged
@@ -612,6 +613,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2cd8df35b1ed168479e52092e3dea5c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrainingArena
+  matchManager: {fileID: 0}
   agentPrefab: {fileID: 5601654663081600227, guid: db7a51463a4101849a16d6f35053f929, type: 3}
   opponentPrefab: {fileID: 5601654663081600227, guid: db7a51463a4101849a16d6f35053f929, type: 3}
   agent: {fileID: 0}
@@ -654,6 +656,23 @@ MonoBehaviour:
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: e5f2c3b6dbc6af448b94b9309008bb04, type: 2}
   m_BuildHeightMesh: 0
+--- !u!114 &5900312413159104104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8478005968373336240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2df282018b8aa884e91e8273c4a365b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrainingMatchManager
+  matchDuration: 300
+  eliminationScoreLimit: 10
+  respawnDelay: 5
+  winReward: 2
+  lossReward: -2
 --- !u!1001 &6913694118252115586
 PrefabInstance:
   m_ObjectHideFlags: 0
