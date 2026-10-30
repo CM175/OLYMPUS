@@ -34,11 +34,19 @@ public class RLEnemyCombatAgent : Agent
     [SerializeField] private float deathPenalty = -1.0f;
     [SerializeField] private float existentialPenaltyPerStep = -0.0005f;
     [SerializeField] private float rangeShaping = 0.1f;
+    [Header("Objective Reward Shaping")]
+    [SerializeField] private float objectivePresenceReward = 0.02f; // Rewarded per step spent on the point
+    [SerializeField] private float objectiveCaptureProgressReward = 0.2f; // Rewarded when progress increases for our team
+    private PointOwner _lastObservedControl = PointOwner.Neutral;
+[Header("Objective Milestone Rewards")]
+[SerializeField] private float objectiveCapturedReward = 2.0f;     // Rewarded when our team captures/locks the point
+[SerializeField] private float objectiveNeutralizedReward = 1.0f; // Rewarded when our team successfully neutralizes an enemy point
 
     [Header("Episode / Performance")]
     [SerializeField] private int maxEpisodeSteps = 4000;      // ~80s of game time; time-outs bootstrap the value estimate
     [SerializeField] private float navRepathInterval = 0.2f;  // seconds between SetDestination calls
     [SerializeField] private float edgeObservationRange = 10f;
+
 
     private NavMeshAgent _agent;
     private AIMovementController _movement;
@@ -76,7 +84,7 @@ public class RLEnemyCombatAgent : Agent
 
     public LayerMask SearchMask => searchMask;
     public float CombatRange => GetCombatRange();
-    private void Awake()
+    protected override void Awake()
     {
         CacheSpawnPosition();
     }
@@ -217,6 +225,7 @@ public class RLEnemyCombatAgent : Agent
             ExecuteMacroNavigation();
         }
         ApplyAimRotation();
+        EvaluateObjectiveRewards();
     }
 
     private void ExecuteMacroNavigation()
@@ -237,6 +246,19 @@ public class RLEnemyCombatAgent : Agent
             if (!_agent.isOnNavMesh) return;
             _agent.stoppingDistance = 2f;
             _agent.SetDestination(defaultObjective.position);
+        }
+        else
+        {
+            // If no objective and no target, pick a random point on the NavMesh to patrol
+            if (!_agent.hasPath || _agent.remainingDistance < 1f)
+            {
+                Vector3 randomDirection = Random.insideUnitSphere * 15f;
+                randomDirection += transform.position;
+                if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, 15f, NavMesh.AllAreas))
+                {
+                    _agent.SetDestination(hit.position);
+                }
+            }
         }
     }
 
@@ -401,8 +423,49 @@ public class RLEnemyCombatAgent : Agent
             sensor.AddObservation(0f);
         }
 
-        // 3. Nearest NavMesh edge (3 values): lets the policy learn not to get knocked or dashed off the map
+        // 3. Add Objective Observations (4 values): direction and distance to the default objective, plus capture progress and ownership if applicable
+        if (defaultObjective != null)
+        {
+            Vector3 toObjective = defaultObjective.position - transform.position;
+            sensor.AddObservation(transform.InverseTransformDirection(toObjective.normalized));
+            sensor.AddObservation(Mathf.Clamp01(toObjective.magnitude / 100f)); // Normalized distance to objective
+            
+            // If the objective is a CapturePoint, observe its progress and ownership
+            if (defaultObjective.TryGetComponent<CapturePoint>(out var capPoint))
+            {
+                sensor.AddObservation(capPoint.captureProgress / 100f);
+                // 1. Determine what PointOwner matches this agent's team
+                PointOwner agentTeamOwner = (_teamMember != null && _teamMember.team == Team.TeamB) 
+                    ? PointOwner.TeamB 
+                    : PointOwner.TeamA;
+
+                // 2. Evaluate relative to us (+1 for us, -1 for enemy, 0 for neutral)
+                float controlValue = 0f;
+                if (capPoint.controllingTeam != PointOwner.Neutral)
+                {
+                    controlValue = (capPoint.controllingTeam == agentTeamOwner) ? 1f : -1f;
+                }
+
+                sensor.AddObservation(controlValue);
+            }
+            else
+            {
+                sensor.AddObservation(0f);
+                sensor.AddObservation(0f);
+            }
+        }
+        else
+        {
+            sensor.AddObservation(Vector3.zero);
+            sensor.AddObservation(1f);
+            sensor.AddObservation(0f);
+            sensor.AddObservation(0f);
+        }
+
+        // 4. Nearest NavMesh edge (3 values): lets the policy learn not to get knocked or dashed off the map
         AddEdgeObservations(sensor);
+
+
     }
 
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
@@ -443,6 +506,57 @@ public class RLEnemyCombatAgent : Agent
             sensor.AddObservation(1f);
             sensor.AddObservation(0f);
             sensor.AddObservation(0f);
+        }
+    }
+    private void EvaluateObjectiveRewards()
+    {
+        if (defaultObjective == null) return;
+        
+        if (defaultObjective.TryGetComponent<CapturePoint>(out var capPoint))
+        {
+            // Determine what PointOwner matches this agent's team
+            TeamMember teamMember = GetComponent<TeamMember>();
+            PointOwner agentTeamOwner = (teamMember != null && teamMember.team == Team.TeamB) 
+                ? PointOwner.TeamB 
+                : PointOwner.TeamA;
+
+            // 1. Continuous presence shaping (standing near the point)
+            float distToObjective = Vector3.Distance(transform.position, defaultObjective.position);
+            float captureRadius = 2f; // Default radius if no BoxCollider is found
+            if (defaultObjective.TryGetComponent<BoxCollider>(out var box))
+            {
+                // Take the largest horizontal dimension of the box scale/size
+                Vector3 scaledSize = Vector3.Scale(box.size, defaultObjective.localScale);
+                captureRadius = Mathf.Max(scaledSize.x, scaledSize.z) * 0.5f;
+            }
+    
+            if (distToObjective <= captureRadius) 
+            {
+                AddReward(objectivePresenceReward);
+
+                // If our team is actively pushing or capturing the point, grant a progress reward
+                if (capPoint.currentChallenger == teamMember.team)
+                {
+                    AddReward(objectiveCaptureProgressReward * Time.deltaTime);
+                }
+            }
+
+            // 2. Milestone detection: Did the point ownership change this episode/round?
+            if (capPoint.controllingTeam != _lastObservedControl)
+            {
+                // If it just became ours
+                if (capPoint.controllingTeam == agentTeamOwner)
+                {
+                    AddReward(objectiveCapturedReward);
+                }
+                // If it became neutral from an enemy hold (successful neutralization)
+                else if (capPoint.controllingTeam == PointOwner.Neutral && _lastObservedControl != PointOwner.Neutral && _lastObservedControl != agentTeamOwner)
+                {
+                    AddReward(objectiveNeutralizedReward);
+                }
+                
+                _lastObservedControl = capPoint.controllingTeam;
+            }
         }
     }
 

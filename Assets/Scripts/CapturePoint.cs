@@ -225,5 +225,19 @@ public class CapturePoint : MonoBehaviour
     {
         enabled = false;
         Debug.Log($"Temple secured! Victor: {winner}");
+
+        TrainingArena arena = GetComponentInParent<TrainingArena>();
+        if (arena != null)
+        {
+            if (arena.agent != null) arena.agent.EndEpisodeOnce();
+            if (arena.opponent != null) arena.opponent.EndEpisodeOnce();
+
+            captureProgress = 0f;
+            teamAScore = 0f;
+            teamBScore = 0f;
+            controllingTeam = PointOwner.Neutral;
+            isOvertime = false;
+            enabled = true;
+        }
     }
 }

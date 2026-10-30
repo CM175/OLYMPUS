@@ -27,7 +27,7 @@ public class MoonlightTrap : BaseProjectile
     private void ArmTrap()
     {
         _isArmed = true;
-        rb.linearVelocity = Vector3.zero;
+        //rb.linearVelocity = Vector3.zero;
         rb.isKinematic = true; // Freeze physics translation safely
     }
 

@@ -1252,7 +1252,11 @@ PrefabInstance:
       objectReference: {fileID: 4388727752609113279}
     - target: {fileID: 3580547885085713394, guid: 4ef76c8fa89acee47ab6a92c7d1c78e9, type: 3}
       propertyPath: teamAMaxPlayers
-      value: 2
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3580547885085713394, guid: 4ef76c8fa89acee47ab6a92c7d1c78e9, type: 3}
+      propertyPath: teamBMaxPlayers
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3580547885085713394, guid: 4ef76c8fa89acee47ab6a92c7d1c78e9, type: 3}
       propertyPath: deathSpectatorCamera
@@ -1369,7 +1373,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7814838594826426375, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8146278305993708959, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8146278305993708959, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8146278305993708959, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8146278305993708959, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
       propertyPath: m_LocalPosition.x

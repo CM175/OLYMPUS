@@ -1,9 +1,8 @@
-# v2 - retuned after HybridCombat_01 (reward scale fix, larger batches, longer horizon)
 behaviors:
   CombatAgent:
     trainer_type: ppo
     hyperparameters:
-      batch_size: 512
+      batch_size: 1024
       buffer_size: 10240
       learning_rate: 0.0003
       beta: 0.005
@@ -11,8 +10,6 @@ behaviors:
       lambd: 0.95
       num_epoch: 3
       learning_rate_schedule: linear
-      beta_schedule: constant
-      epsilon_schedule: linear
     network_settings:
       normalize: true
       hidden_units: 256
@@ -21,76 +18,15 @@ behaviors:
       extrinsic:
         gamma: 0.99
         strength: 1.0
-    keep_checkpoints: 10
-    checkpoint_interval: 100000
-    max_steps: 3000000
-    time_horizon: 256
-    summary_freq: 10000
-
-# Curriculum: the training arena reads these as environment parameters (dummy_*).
-# A lesson advances once the smoothed mean episode reward passes its threshold (a clean kill is worth about +2).
-environment_parameters:
-  spawn_distance_scale:
-    curriculum:
-      - name: InRange
-        completion_criteria:
-          measure: reward
-          behavior: CombatAgent
-          signal_smoothing: true
-          min_lesson_length: 100
-          threshold: 0.8
-        value: 0.8
-      - name: Close
-        completion_criteria:
-          measure: reward
-          behavior: CombatAgent
-          signal_smoothing: true
-          min_lesson_length: 100
-          threshold: 1.0
-        value: 2.0
-      - name: Anywhere
-        value: 0.0
-  dummy_health:
-    curriculum:
-      - name: Fragile
-        completion_criteria:
-          measure: reward
-          behavior: CombatAgent
-          signal_smoothing: true
-          min_lesson_length: 100
-          threshold: 1.0
-        value: 300.0
-      - name: FullHealth
-        value: 600.0
-  dummy_attacks:
-    curriculum:
-      - name: Passive
-        completion_criteria:
-          measure: reward
-          behavior: CombatAgent
-          signal_smoothing: true
-          min_lesson_length: 100
-          threshold: 1.5
-        value: 0.0
-      - name: FightsBack
-        value: 1.0
-  dummy_speed:
-    curriculum:
-      - name: Stationary
-        completion_criteria:
-          measure: reward
-          behavior: CombatAgent
-          signal_smoothing: true
-          min_lesson_length: 100
-          threshold: 1.6
-        value: 0.0
-      - name: Walking
-        completion_criteria:
-          measure: reward
-          behavior: CombatAgent
-          signal_smoothing: true
-          min_lesson_length: 100
-          threshold: 1.7
-        value: 2.0
-      - name: Chasing
-        value: 4.0
+    max_steps: 2000000
+    time_horizon: 64
+    summary_freq: 50000
+    
+    self_play:
+      window: 10
+      team_change: 100000
+      initial_elo: 0.0
+      save_steps: 20000
+      swap_steps: 10000
+      play_against_latest_model_ratio: 0.5
+      track_stats_steps: 10000
