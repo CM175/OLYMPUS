@@ -19,8 +19,8 @@ public class TrainingMatchManager : MonoBehaviour
     [SerializeField] private float restartDelay = 0.25f;
 
     [Header("Match Rewards")]
-    [SerializeField] private float winReward = 2f;
-    [SerializeField] private float lossReward = -2f;
+    [SerializeField] private float winReward = 1f;
+    [SerializeField] private float lossReward = -1f;
 
     public TrainingMatchState State { get; private set; } = TrainingMatchState.Waiting;
     public int TeamAScore { get; private set; }
@@ -62,6 +62,8 @@ public class TrainingMatchManager : MonoBehaviour
 
     public void StartMatch()
     {
+        // Prevent huge physics/movement jumps when training at high time scales
+        Time.maximumDeltaTime = 0.05f;
         TeamAScore = 0;
         TeamBScore = 0;
         TimeRemaining = matchDuration;
@@ -135,7 +137,11 @@ public class TrainingMatchManager : MonoBehaviour
     private IEnumerator RestartMatchRoutine()
     {
         yield return new WaitForSeconds(restartDelay);
-        if (_arena != null) _arena.ResetObjectiveState();
+        if (_arena != null)
+        {
+            _arena.ResetObjectiveState();
+            _arena.RerollHeroes();
+        }
         StartMatch();
     }
 

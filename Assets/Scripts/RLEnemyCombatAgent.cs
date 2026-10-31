@@ -29,12 +29,13 @@ public class RLEnemyCombatAgent : Agent
 
     [Header("Reward Shaping (damage terms are fractions of max health, so a full kill is about +1)")]
     [SerializeField] private float damageDealtReward = 1.0f;
-    [SerializeField] private float damageTakenPenalty = 0.5f;
+    [SerializeField] private float damageTakenPenalty = 1.0f;   // equal to damageDealtReward so even trades aren't net-positive in self-play
     [SerializeField] private float killReward = 1.0f;
     [SerializeField] private float deathPenalty = -1.0f;
-    [SerializeField] private float existentialPenaltyPerStep = -0.0005f;
     [SerializeField] private float rangeShaping = 0.1f;
     [Header("Objective Reward Shaping")]
+    [Tooltip("Off by default: navigation is scripted, so the policy cannot influence these rewards yet.")]
+    [SerializeField] private bool useObjectiveRewards = true;
     [SerializeField] private float objectivePresenceReward = 0.02f; // Rewarded per step spent on the point
     [SerializeField] private float objectiveCaptureProgressReward = 0.2f; // Rewarded when progress increases for our team
     private PointOwner _lastObservedControl = PointOwner.Neutral;
@@ -84,6 +85,14 @@ public class RLEnemyCombatAgent : Agent
     private int _epDecisions, _epWithTarget, _epWithLos, _epInRange, _epAttackUses, _epAbilityUses;
     private EnemyHealth _trainingDummy;
 
+    // Hero one-hot slots (roster size must be <= HeroSlots; changing this changes the observation size)
+    private const int HeroSlots = 8;
+    private HeroManager _selfHeroManager;
+    private Transform _cachedTarget;
+    private AbilityManager _targetAbilities;
+    private IMovementController _targetMovement;
+    private HeroManager _targetHeroManager;
+
     public LayerMask SearchMask => searchMask;
     public float CombatRange => GetCombatRange();
     protected override void Awake()
@@ -122,6 +131,7 @@ public class RLEnemyCombatAgent : Agent
         _abilityManager = GetComponent<AbilityManager>();
         _teamMember = GetComponent<TeamMember>();
         _selfDamageable = GetComponent<IDamageable>();
+        _selfHeroManager = GetComponent<HeroManager>();
 
         if (defaultObjective == null)
             defaultObjective = GameObject.FindWithTag("Objective")?.transform;
@@ -379,7 +389,7 @@ public class RLEnemyCombatAgent : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        // 1. Self state (9 values)
+        // 1. Self state (9 + 2 velocity + HeroSlots hero one-hot)
         if (_selfDamageable != null) _selfHpKnown = _selfDamageable.CurrentHealth;
         sensor.AddObservation(_selfDamageable != null ? (float)_selfDamageable.CurrentHealth / _selfDamageable.MaxHealth : 1f);
         sensor.AddObservation(_movement.IsStunned ? 1f : 0f);
@@ -390,8 +400,14 @@ public class RLEnemyCombatAgent : Agent
         sensor.AddObservation(GetCooldownNormalized(_abilityManager.mobilityAbility));
         sensor.AddObservation(GetCooldownNormalized(_abilityManager.ultimateAbility));
         sensor.AddObservation(_agent != null ? Mathf.Clamp01(_agent.velocity.magnitude / Mathf.Max(_agent.speed, 0.01f)) : 0f);
+        Vector3 localVel = (_agent != null && _agent.enabled && _agent.isOnNavMesh)
+            ? transform.InverseTransformDirection(Vector3.ClampMagnitude(_agent.velocity / Mathf.Max(_agent.speed, 0.01f), 1f))
+            : Vector3.zero;
+        sensor.AddObservation(localVel.x);
+        sensor.AddObservation(localVel.z);
+        AddHeroOneHot(sensor, _selfHeroManager);
 
-        // 2. Target context (10 values), directions in the agent's local frame
+        // 2. Target context (10 + 9 opponent state + HeroSlots hero one-hot), directions in the agent's local frame
         if (_currentTarget != null)
         {
             Vector3 toTarget = _currentTarget.position - transform.position;
@@ -404,6 +420,19 @@ public class RLEnemyCombatAgent : Agent
             sensor.AddObservation(transform.InverseTransformDirection(Vector3.ClampMagnitude(_targetVelocity / 10f, 1f)));
             sensor.AddObservation(_targetDamageable != null ? (float)_targetDamageable.CurrentHealth / _targetDamageable.MaxHealth : 1f);
             sensor.AddObservation(_hasLineOfSight ? 1f : 0f);
+
+            RefreshTargetCache();
+            sensor.AddObservation(_targetMovement != null && _targetMovement.IsStunned ? 1f : 0f);
+            sensor.AddObservation(_targetMovement != null && _targetMovement.IsDashing ? 1f : 0f);
+            sensor.AddObservation(GetCooldownNormalized(_targetAbilities != null ? _targetAbilities.primaryAttack : null));
+            sensor.AddObservation(GetCooldownNormalized(_targetAbilities != null ? _targetAbilities.primaryAbility : null));
+            sensor.AddObservation(GetCooldownNormalized(_targetAbilities != null ? _targetAbilities.secondaryAbility : null));
+            sensor.AddObservation(GetCooldownNormalized(_targetAbilities != null ? _targetAbilities.mobilityAbility : null));
+            sensor.AddObservation(GetCooldownNormalized(_targetAbilities != null ? _targetAbilities.ultimateAbility : null));
+            Vector3 targetFacing = transform.InverseTransformDirection(_currentTarget.forward);
+            sensor.AddObservation(targetFacing.x);
+            sensor.AddObservation(targetFacing.z);
+            AddHeroOneHot(sensor, _targetHeroManager);
         }
         else
         {
@@ -413,9 +442,10 @@ public class RLEnemyCombatAgent : Agent
             sensor.AddObservation(Vector3.zero);
             sensor.AddObservation(0f);
             sensor.AddObservation(0f);
+            for (int i = 0; i < 9 + HeroSlots; i++) sensor.AddObservation(0f);   // opponent state + hero one-hot
         }
 
-        // 3. Add Objective Observations (4 values): direction and distance to the default objective, plus capture progress and ownership if applicable
+        // 3. Add Objective Observations (6 values): direction and distance to the default objective, plus capture progress and ownership if applicable
         if (defaultObjective != null)
         {
             Vector3 toObjective = defaultObjective.position - transform.position;
@@ -460,6 +490,30 @@ public class RLEnemyCombatAgent : Agent
 
     }
 
+    private void RefreshTargetCache()
+    {
+        if (_currentTarget == _cachedTarget) return;
+        _cachedTarget = _currentTarget;
+        _targetAbilities = _currentTarget != null ? _currentTarget.GetComponent<AbilityManager>() : null;
+        _targetMovement = _currentTarget != null ? _currentTarget.GetComponent<IMovementController>() : null;
+        _targetHeroManager = _currentTarget != null ? _currentTarget.GetComponent<HeroManager>() : null;
+    }
+
+    private void AddHeroOneHot(VectorSensor sensor, HeroManager hm)
+    {
+        int idx = GetHeroIndex(hm);
+        for (int i = 0; i < HeroSlots; i++) sensor.AddObservation(i == idx ? 1f : 0f);
+    }
+
+    private int GetHeroIndex(HeroManager hm)
+    {
+        if (hm == null || hm.currentHero == null || _arena == null || _arena.characterDatabase == null) return -1;
+        var heroes = _arena.characterDatabase.GetAllHeroes();
+        for (int i = 0; i < heroes.Count && i < HeroSlots; i++)
+            if (heroes[i] != null && heroes[i].heroName == hm.currentHero.heroName) return i;
+        return -1;
+    }
+
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         bool exclusiveLocked = _abilityManager.HasActiveExclusiveAbility();
@@ -502,10 +556,17 @@ public class RLEnemyCombatAgent : Agent
     }
     private void EvaluateObjectiveRewards()
     {
-        if (defaultObjective == null) return;
-        
+        if (!useObjectiveRewards || defaultObjective == null) return;
+
         if (defaultObjective.TryGetComponent<CapturePoint>(out var capPoint))
         {
+            // Between matches the point is reset after OnEpisodeBegin has already run: resync instead of rewarding the reset.
+            if (_arena != null && _arena.MatchManager != null && !_arena.MatchManager.IsMatchActive)
+            {
+                _lastObservedControl = capPoint.controllingTeam;
+                return;
+            }
+
             // Determine what PointOwner matches this agent's team
             TeamMember teamMember = GetComponent<TeamMember>();
             PointOwner agentTeamOwner = (teamMember != null && teamMember.team == Team.TeamB) 
@@ -527,7 +588,7 @@ public class RLEnemyCombatAgent : Agent
                 AddReward(objectivePresenceReward * Time.deltaTime);
 
                 // If our team is actively pushing or capturing the point, grant a progress reward
-                if (capPoint.currentChallenger == teamMember.team)
+                if (capPoint.captureProgress > 0f && capPoint.currentChallenger == teamMember.team)
                 {
                     AddReward(objectiveCaptureProgressReward * Time.deltaTime);
                 }
@@ -644,7 +705,6 @@ public class RLEnemyCombatAgent : Agent
     {
         if (_isTrainingDead) return;
 
-        AddReward(existentialPenaltyPerStep);
         ApplyRangeShaping();
         TrackDecision();
 
@@ -669,7 +729,7 @@ public class RLEnemyCombatAgent : Agent
 
         // Branch 0: Aim
         int aimAction = discreteActions[0];
-        float aimAngleOffset = (aimAction - 1) * maxAimLeadAngle;
+        float aimAngleOffset = (aimAction - 2) * (maxAimLeadAngle * 0.5f);   // 5 options: -max, -max/2, 0, +max/2, +max
         Vector3 directionToTarget = _currentTarget.position - transform.position;
         directionToTarget.y = 0f;
 
@@ -778,7 +838,7 @@ public class RLEnemyCombatAgent : Agent
         _selfHpKnown = hpNow;
 
         // Environment damage (KillZone etc.) has no attacker: the death penalty already covers it.
-        if (attacker == null || attacker == gameObject || _selfDamageable == null) return;
+        if (attacker == null || attacker.transform.root == transform.root || _selfDamageable == null) return;
 
         _epDamageTaken += lost / Mathf.Max(1, _selfDamageable.MaxHealth);
         AddReward(-damageTakenPenalty * lost / Mathf.Max(1, _selfDamageable.MaxHealth));
@@ -911,7 +971,7 @@ public class RLEnemyCombatAgent : Agent
         float lost = hpNow > 0 ? damage : Mathf.Min(damage, _targetHpKnown);  // ignore overkill
         _targetHpKnown = hpNow;
 
-        if (attacker != gameObject) return;
+        if (attacker == null || attacker.transform.root != transform.root) return;
         _epDamageDealt += lost / Mathf.Max(1, _targetDamageable.MaxHealth);
         AddReward(damageDealtReward * lost / Mathf.Max(1, _targetDamageable.MaxHealth));
     }
@@ -931,7 +991,7 @@ public class RLEnemyCombatAgent : Agent
         var discreteActions = actionsOut.DiscreteActions;
 
         if (discreteActions.Length > 0)
-            discreteActions[0] = 1;
+            discreteActions[0] = 2;
 
         if (discreteActions.Length > 1)
             discreteActions[1] = Input.GetKey(KeyCode.Space) ? 1 : 0;

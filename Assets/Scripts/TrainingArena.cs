@@ -116,6 +116,17 @@ public class TrainingArena : MonoBehaviour
         if (_spawnedOpponent && opponent != null) Destroy(opponent.gameObject);
     }
 
+    /// <summary>Re-rolls both heroes between matches so a single policy sees every matchup (skipped when heroIndex pins them).</summary>
+    public void RerollHeroes()
+    {
+        if (heroIndex >= 0 || characterDatabase == null || characterDatabase.CharacterCount == 0) return;
+        int count = characterDatabase.CharacterCount;
+        if (agent != null && agent.TryGetComponent<HeroManager>(out var hm))
+            hm.LoadHero(characterDatabase.GetHeroAtIndex(Random.Range(0, count)));
+        if (opponent != null && opponent.TryGetComponent<HeroManager>(out var ohm))
+            ohm.LoadHero(characterDatabase.GetHeroAtIndex(Random.Range(0, count)));
+    }
+
     /// <summary>Returns a spawn pose for one agent without moving or resetting its opponent.</summary>
     public void GetSpawnPose(RLEnemyCombatAgent requestingAgent, out Vector3 position, out Quaternion rotation)
     {

@@ -109,6 +109,7 @@
     <Compile Include="Assets\Scripts\Abilities\Minotaur\Charge.cs" />
     <Compile Include="Assets\Scripts\Abilities\Zeus\BarrierDamage.cs" />
     <Compile Include="Assets\Scripts\Abilities\Hermes\AmbushInvisibility.cs" />
+    <Compile Include="Assets\Scripts\FallDiagnostics.cs" />
     <Compile Include="Assets\Scripts\Abilities\Achillies\ShieldBash.cs" />
     <Compile Include="Assets\Scripts\Abilities\Achillies\SlayerOfTroy.cs" />
     <Compile Include="Assets\Scripts\Abilities\Poseidon\TidalSurgeProjectile.cs" />

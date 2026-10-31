@@ -31,7 +31,14 @@ public class AIMovementController : MonoBehaviour, IMovementController
         {
             if (_isDashing == value) return;
             _isDashing = value;
-            if (!_isDashing) SyncAgentToTransform();
+            if (_isDashing)
+            {
+                if (_agent != null) _agent.enabled = false;
+            }
+            else 
+            {
+                SyncAgentToTransform();
+            }
             EvaluateAgentControl();
         }
     }
@@ -111,7 +118,6 @@ public class AIMovementController : MonoBehaviour, IMovementController
             StopCoroutine(_slowCoroutine);
             _slowCoroutine = null;
         }
-
         _isStunned = false;
         _isDashing = false;
         _isUnderExternalForce = false;
@@ -120,21 +126,22 @@ public class AIMovementController : MonoBehaviour, IMovementController
         _speedMultiplier = 1f;
         _preSlowMultiplier = 1f;
 
-        if (_agent != null)
+        if (_agent != null) _agent.enabled = false;
+
+        // Sample valid NavMesh position near the requested spawn pose
+        Vector3 validPosition = position;
+        if (NavMesh.SamplePosition(position, out NavMeshHit hit, navMeshRecoveryRadius + 4f, NavMesh.AllAreas))
         {
-            if (!_agent.enabled) _agent.enabled = true;
-            _agent.speed = _baseSpeed;
+            validPosition = hit.position;
         }
 
-        transform.SetPositionAndRotation(position, rotation);
-        if (NavMesh.SamplePosition(position, out NavMeshHit hit, navMeshRecoveryRadius + 4f, NavMesh.AllAreas))
-            transform.position = hit.position;
+        transform.SetPositionAndRotation(validPosition, rotation);
 
         if (_agent != null)
         {
-            if (!_agent.enabled) _agent.enabled = true;
-            if (_agent.isOnNavMesh) _agent.Warp(transform.position);
-            else _agent.Warp(transform.position);
+            _agent.enabled = true;
+            _agent.Warp(validPosition);
+            _agent.speed = _baseSpeed;
             _agent.ResetPath();
             _agent.velocity = Vector3.zero;
             _agent.isStopped = false;
@@ -144,8 +151,39 @@ public class AIMovementController : MonoBehaviour, IMovementController
 
     public void Move(Vector3 displacement)
     {
-        if (_isUnderExternalForce || _isDashing) transform.position += displacement;
-        else if (_agent != null && _agent.enabled && _agent.isOnNavMesh) _agent.Move(displacement);
+        if (_isUnderExternalForce || _isDashing)
+        {
+            float distance = displacement.magnitude;
+            if (distance > 0.0001f)
+            {
+                Vector3 dir = displacement / distance;
+                float radius = _agent.radius; // Approximate character radius
+
+                // SphereCast along the movement path to guarantee we never tunnel through walls or floors
+                if (Physics.SphereCast(transform.position + Vector3.up * radius, radius, dir, out RaycastHit hit, distance + radius, obstacleMask, QueryTriggerInteraction.Ignore))
+                {
+                    // Snap position right up against the collider surface we hit, minus a tiny skin width
+                    transform.position = hit.point - (dir * 0.05f) + (hit.normal * 0.01f);
+                    _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal);
+                    
+                    // If we hit the floor or a steep wall downwards, halt vertical fall velocity
+                    if (hit.normal.y > 0.2f)
+                    {
+                        _velocity.y = 0f;
+                        _isUnderExternalForce = false;
+                        _isDashing = false;
+                    }
+                    return;
+                }
+            }
+
+            // Safe fallback if path is clear
+            transform.position += displacement;
+        }
+        else if (_agent != null && _agent.enabled && _agent.isOnNavMesh)
+        {
+            _agent.Move(displacement);
+        }
     }
 
     public void Teleport(Vector3 position)
