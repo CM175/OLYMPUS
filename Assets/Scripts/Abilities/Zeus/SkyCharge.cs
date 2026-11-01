@@ -13,6 +13,11 @@ public class SkyCharge : Ability, IInitializable
     private IMovementController _movementController;
     private Transform _rootTransform;
 
+    // Layer collision is a global physics setting: count active dashes so one dash ending (or being cancelled)
+    // cannot re-enable collisions mid-dash for another character, and a cancelled dash cannot leave it off forever.
+    private static int _activeDashes;
+    private bool _dashCounted;
+
     public void Initialize(GameObject playerRoot)
     {
         _rootTransform = playerRoot.transform;
@@ -32,11 +37,7 @@ public class SkyCharge : Ability, IInitializable
 
     private IEnumerator Dash()
     {
-        int characterLayer = LayerMask.NameToLayer("Character");
-        if (characterLayer != -1)
-        {
-            Physics.IgnoreLayerCollision(characterLayer, characterLayer, true);
-        }
+        BeginDashCollisionIgnore();
 
         _movementController.IsDashing = true;
 
@@ -85,14 +86,41 @@ public class SkyCharge : Ability, IInitializable
             yield return null; 
         }
 
-        if (characterLayer != -1)
-        {
-            Physics.IgnoreLayerCollision(characterLayer, characterLayer, false);
-        }
+        EndDashCollisionIgnore();
 
         _movementController.HaltVelocity();
         _movementController.IsDashing = false;
         
         StartCooldown();
+    }
+
+    private void BeginDashCollisionIgnore()
+    {
+        if (_dashCounted) return;
+        _dashCounted = true;
+        _activeDashes++;
+        int layer = LayerMask.NameToLayer("Character");
+        if (layer != -1) Physics.IgnoreLayerCollision(layer, layer, true);
+    }
+
+    private void EndDashCollisionIgnore()
+    {
+        if (!_dashCounted) return;
+        _dashCounted = false;
+        _activeDashes = Mathf.Max(0, _activeDashes - 1);
+        if (_activeDashes > 0) return;
+        int layer = LayerMask.NameToLayer("Character");
+        if (layer != -1) Physics.IgnoreLayerCollision(layer, layer, false);
+    }
+
+    public override void Cancel()
+    {
+        base.Cancel();
+        EndDashCollisionIgnore();
+    }
+
+    private void OnDisable()
+    {
+        EndDashCollisionIgnore();
     }
 }

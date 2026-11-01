@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class OlympianWrath : Ultimate
@@ -35,10 +36,12 @@ public class OlympianWrath : Ultimate
         while (elapsed < duration)
         {
             Collider[] targets = Physics.OverlapSphere(center, radius);
+            var hitThisTick = new HashSet<GameObject>();   // one strike per character, not one per collider
             foreach (var col in targets)
             {
                 Transform victimRoot = col.transform.root;
                 if (victimRoot.gameObject == attackerRoot) continue;
+                if (!hitThisTick.Add(victimRoot.gameObject)) continue;
 
                 if (myTeam != null && !myTeam.IsEnemy(victimRoot.gameObject))
                 {

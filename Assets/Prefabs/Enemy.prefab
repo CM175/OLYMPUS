@@ -203,8 +203,8 @@ MonoBehaviour:
   damageTakenPenalty: 1
   killReward: 1
   deathPenalty: -1
-  existentialPenaltyPerStep: -0.0005
   rangeShaping: 0.1
+  useObjectiveRewards: 0
   objectivePresenceReward: 0.002
   objectiveCaptureProgressReward: 0.05
   objectiveCapturedReward: 2
@@ -345,7 +345,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 0}
+  m_Model: {fileID: 5022602860645237092, guid: 2c6c92d017cd46d4f9656a7c28c531b4, type: 3}
   m_InferenceDevice: 0
   m_BehaviorType: 0
   m_BehaviorName: CombatAgent

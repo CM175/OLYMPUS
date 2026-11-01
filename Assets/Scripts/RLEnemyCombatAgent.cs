@@ -33,9 +33,27 @@ public class RLEnemyCombatAgent : Agent
     [SerializeField] private float killReward = 1.0f;
     [SerializeField] private float deathPenalty = -1.0f;
     [SerializeField] private float rangeShaping = 0.1f;
+    [Header("Ability Rewards (outcome-based: pays for what an ability achieves, not for pressing it)")]
+    [SerializeField] private bool useAbilityRewards = true;
+    [Tooltip("Index 0..3 = primary ability, secondary ability, mobility, ultimate. Seconds after a press in which damage is credited to that ability.")]
+    [SerializeField] private float[] abilityWindow = { 2.5f, 2.5f, 1.5f, 6f };
+    [Tooltip("Extra reward per full target health dealt inside the window (on top of damageDealtReward).")]
+    [SerializeField] private float[] abilityDamageBonus = { 0.25f, 0.25f, 0f, 0.5f };
+    [Tooltip("Penalty when the window closes with zero damage. Leave 0 for utility slots (shields, heals, mobility) that are not meant to deal damage.")]
+    [SerializeField] private float[] abilityWastePenalty = { 0.05f, 0f, 0f, 0.3f };
+    [Tooltip("Reward per full max-health actually healed. Keep below damageTakenPenalty.")]
+    [SerializeField] private float healReward = 0.5f;
+    [Tooltip("Healthy: mobility is rewarded for ending closer to ideal range (scaled gain in the range potential).")]
+    [SerializeField] private float mobilityRangeBonus = 0.5f;
+    [Tooltip("At or below this health fraction when mobility is pressed, it is judged as an escape instead of an engage.")]
+    [SerializeField, Range(0f, 1f)] private float escapeHpThreshold = 0.4f;
+    [Tooltip("Max reward for a successful escape. Keep below the damage already lost to get that low, so it can never pay to get hurt on purpose.")]
+    [SerializeField] private float escapeReward = 0.4f;
+    [Tooltip("Metres of extra distance that count as a full escape.")]
+    [SerializeField] private float escapeDistance = 10f;
     [Header("Objective Reward Shaping")]
     [Tooltip("Off by default: navigation is scripted, so the policy cannot influence these rewards yet.")]
-    [SerializeField] private bool useObjectiveRewards = true;
+    [SerializeField] private bool useObjectiveRewards = false;
     [SerializeField] private float objectivePresenceReward = 0.02f; // Rewarded per step spent on the point
     [SerializeField] private float objectiveCaptureProgressReward = 0.2f; // Rewarded when progress increases for our team
     private PointOwner _lastObservedControl = PointOwner.Neutral;
@@ -85,6 +103,18 @@ public class RLEnemyCombatAgent : Agent
     private int _epDecisions, _epWithTarget, _epWithLos, _epInRange, _epAttackUses, _epAbilityUses;
     private EnemyHealth _trainingDummy;
 
+    // ability reward window state (slot index 0..3, -1 = no open window)
+    private const int AbilitySlots = 4;
+    private static readonly string[] AbilitySlotNames = { "Primary", "Secondary", "Mobility", "Ultimate" };
+    private int _abilitySlot = -1;
+    private int _lastHealCheckHp = -1;
+    private float _abilityStartHpFrac, _abilityStartDist, _abilityDamageTaken;
+    private bool _abilityStartLos;
+    private float _epHealed;
+    private float _abilityWindowEnd, _abilityDamage, _abilityStartPotential;
+    private readonly float[] _epSlotUses = new float[AbilitySlots];
+    private readonly float[] _epSlotDamage = new float[AbilitySlots];
+
     // Hero one-hot slots (roster size must be <= HeroSlots; changing this changes the observation size)
     private const int HeroSlots = 8;
     private HeroManager _selfHeroManager;
@@ -92,6 +122,12 @@ public class RLEnemyCombatAgent : Agent
     private AbilityManager _targetAbilities;
     private IMovementController _targetMovement;
     private HeroManager _targetHeroManager;
+
+    private readonly Collider[] _overlapBuffer = new Collider[256];   // other arenas inside detectionRange also land here; too small a buffer can drop the real opponent
+    private bool _warnedHeroOverflow;
+
+    // False between a match ending and the next one starting; rewards booked in that window leak into the next episode.
+    private bool MatchLive => _arena == null || _arena.MatchManager == null || _arena.MatchManager.IsMatchActive;
 
     public LayerMask SearchMask => searchMask;
     public float CombatRange => GetCombatRange();
@@ -145,18 +181,16 @@ public class RLEnemyCombatAgent : Agent
             _selfDamageable.OnDied += HandleSelfDeath;
         }
 
-        // Automatically set dummy mode on health if training
-        if (TryGetComponent<EnemyHealth>(out var eh))
-        {
-            eh.isTrainingDummy = true;
-        }
-
-        _initialSpawnPosition = transform.position;
-        _initialSpawnRotation = transform.rotation;
+        CacheSpawnPosition();   // Awake already cached it; don't overwrite a pose set via SetSpawnPoint
         // The TrainingMatchManager ends both agents together at match end.
         // Disable per-agent MaxStep timeouts so one agent cannot reset mid-match.
         MaxStep = 0;
         if (_arena == null) SetArena(GetComponentInParent<TrainingArena>());
+
+        // Only flag training-dummy health inside a training arena, so the same prefab behaves normally in the real game
+        if (_arena != null && TryGetComponent<EnemyHealth>(out var eh))
+            eh.isTrainingDummy = true;
+
         _isInitialized = true;
     }
 
@@ -167,6 +201,8 @@ public class RLEnemyCombatAgent : Agent
         ReportEpisodeStats();
 
         _isTrainingDead = false;
+        _abilitySlot = -1;
+        _lastHealCheckHp = -1;
         _strafeSide = Random.value < 0.5f ? 1f : -1f;
         _hasPrevPotential = false;
         _currentTarget = null;
@@ -228,6 +264,8 @@ public class RLEnemyCombatAgent : Agent
         }
         ApplyAimRotation();
         EvaluateObjectiveRewards();
+        if (_abilitySlot >= 0 && Time.time >= _abilityWindowEnd) CloseAbilityWindow();
+        UpdateHealReward();
     }
 
     private void ExecuteMacroNavigation()
@@ -318,13 +356,16 @@ public class RLEnemyCombatAgent : Agent
 
         if (_currentTarget != null) return;
 
-        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRange, searchMask);
+        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, detectionRange, _overlapBuffer, searchMask);
         float closestDist = float.MaxValue;
         Transform bestTarget = null;
         IDamageable bestDamageable = null;
 
-        foreach (var col in colliders)
+        if (hitCount == _overlapBuffer.Length)
+            Debug.LogWarning($"{name}: overlap buffer full ({hitCount}); the opponent may be missed. Space arenas further apart or raise the buffer size.", this);
+        for (int c = 0; c < hitCount; c++)
         {
+            var col = _overlapBuffer[c];
             if (col.gameObject == gameObject) continue;
             if (_arena != null && !_arena.Contains(col.transform)) continue;   // only fight inside our own arena
             GameObject rootObj = col.transform.root.gameObject;
@@ -509,6 +550,11 @@ public class RLEnemyCombatAgent : Agent
     {
         if (hm == null || hm.currentHero == null || _arena == null || _arena.characterDatabase == null) return -1;
         var heroes = _arena.characterDatabase.GetAllHeroes();
+        if (heroes.Count > HeroSlots && !_warnedHeroOverflow)
+        {
+            _warnedHeroOverflow = true;
+            Debug.LogWarning($"Roster has {heroes.Count} heroes but HeroSlots is {HeroSlots}; extra heroes are invisible to the policy.", this);
+        }
         for (int i = 0; i < heroes.Count && i < HeroSlots; i++)
             if (heroes[i] != null && heroes[i].heroName == hm.currentHero.heroName) return i;
         return -1;
@@ -526,7 +572,7 @@ public class RLEnemyCombatAgent : Agent
 
     private void MaskAbilitySlot(IDiscreteActionMask actionMask, int actionIndex, Ability ability, bool exclusiveLocked)
     {
-        bool unavailable = ability == null || exclusiveLocked || (actionIndex != 1 && ability.IsOnCooldown());   // slot 1 = "hold attack": stays selectable while cooling down
+        bool unavailable = ability == null || exclusiveLocked || (actionIndex != 1 && (ability.IsOnCooldown() || ability.isExecuting));   // slot 1 = "hold attack": stays selectable while cooling down
         if (unavailable)
             actionMask.SetActionEnabled(1, actionIndex, false);
     }
@@ -669,12 +715,17 @@ public class RLEnemyCombatAgent : Agent
             stats.Add("Combat/DamageTaken", _epDamageTaken);   // fraction of own max health
             stats.Add("Combat/Killed", _epKilled);
             stats.Add("Combat/Died", _epDied);
-            stats.Add("Combat/TimedOut", (_epKilled + _epDied) > 0f ? 0f : 1f);
             stats.Add("Combat/HasTarget", _epWithTarget / d);
             stats.Add("Combat/LineOfSight", _epWithLos / d);
             stats.Add("Combat/InAttackRange", _epInRange / d);
             stats.Add("Combat/AttackUses", _epAttackUses);
             stats.Add("Combat/AbilityUses", _epAbilityUses);
+            stats.Add("Combat/Healed", _epHealed);
+            for (int i = 0; i < AbilitySlots; i++)
+            {
+                stats.Add($"Ability/{AbilitySlotNames[i]}/Uses", _epSlotUses[i]);
+                stats.Add($"Ability/{AbilitySlotNames[i]}/Damage", _epSlotDamage[i]);
+            }
             stats.Add("Combat/EpisodeDecisions", d);
             string hero = GetHeroName();
             stats.Add($"Hero/{hero}/DamageDealt", _epDamageDealt);
@@ -683,6 +734,9 @@ public class RLEnemyCombatAgent : Agent
         }
 
         _epDamageDealt = _epDamageTaken = _epKilled = _epDied = 0f;
+        _epHealed = 0f;
+        System.Array.Clear(_epSlotUses, 0, AbilitySlots);
+        System.Array.Clear(_epSlotDamage, 0, AbilitySlots);
         _epDecisions = _epWithTarget = _epWithLos = _epInRange = _epAttackUses = _epAbilityUses = 0;
     }
 
@@ -705,7 +759,6 @@ public class RLEnemyCombatAgent : Agent
     {
         if (_isTrainingDead) return;
 
-        ApplyRangeShaping();
         TrackDecision();
 
         if (_movement == null || _currentTarget == null)
@@ -779,10 +832,104 @@ public class RLEnemyCombatAgent : Agent
         }
 
         if (targetAbility == null) return;
-        if (targetAbility.IsOnCooldown() || _abilityManager.HasActiveExclusiveAbility()) return;
+        if (targetAbility.IsOnCooldown() || targetAbility.isExecuting || _abilityManager.HasActiveExclusiveAbility()) return;
 
-        _epAbilityUses++;
         targetAbility.Use();
+
+        // Use() silently refuses (stunned, etc.), so only count it if it really started
+        if (targetAbility.isExecuting || targetAbility.IsOnCooldown())
+        {
+            _epAbilityUses++;
+            OpenAbilityWindow(actionIndex - 2);
+        }
+    }
+
+    // Which of our own slots (0..3) an ability belongs to. -1 = unknown source, -2 = primary attack / anything else.
+    private int SlotOf(Ability a)
+    {
+        if (a == null || _abilityManager == null) return -1;
+        if (a == _abilityManager.primaryAbility) return 0;
+        if (a == _abilityManager.secondaryAbility) return 1;
+        if (a == _abilityManager.mobilityAbility) return 2;
+        if (a == _abilityManager.ultimateAbility) return 3;
+        return -2;
+    }
+
+    // Reward HP actually restored (overheal pays nothing). healReward < damageTakenPenalty, so taking damage
+    // just to heal it back can never be profitable.
+    private void UpdateHealReward()
+    {
+        if (_selfDamageable == null) return;
+        int hp = _selfDamageable.CurrentHealth;
+        if (_lastHealCheckHp >= 0 && hp > _lastHealCheckHp && MatchLive)
+        {
+            float gained = (hp - _lastHealCheckHp) / (float)Mathf.Max(1, _selfDamageable.MaxHealth);
+            _epHealed += gained;
+            AddReward(healReward * gained);
+        }
+        _lastHealCheckHp = hp;
+    }
+
+    private static float SlotValue(float[] values, int i, float fallback = 0f)
+        => values != null && i >= 0 && i < values.Length ? values[i] : fallback;
+
+    private float CurrentRangePotential()
+    {
+        if (_currentTarget == null) return 0f;
+        float ideal = GetCombatRange() * 0.7f;
+        return -Mathf.Abs(Vector3.Distance(transform.position, _currentTarget.position) - ideal) / detectionRange;
+    }
+
+    private void OpenAbilityWindow(int slot)
+    {
+        if (slot < 0 || slot >= AbilitySlots) return;
+        _epSlotUses[slot] += 1f;
+        CloseAbilityWindow();   // a new press settles the previous one
+        if (!useAbilityRewards) return;
+        _abilitySlot = slot;
+        _abilityWindowEnd = Time.time + Mathf.Max(0.1f, SlotValue(abilityWindow, slot, 2f));
+        _abilityDamage = 0f;
+        _abilityStartPotential = CurrentRangePotential();
+        _abilityStartHpFrac = _selfDamageable != null
+            ? _selfDamageable.CurrentHealth / (float)Mathf.Max(1, _selfDamageable.MaxHealth)
+            : 1f;
+        _abilityStartDist = _currentTarget != null ? Vector3.Distance(transform.position, _currentTarget.position) : 0f;
+        _abilityStartLos = _hasLineOfSight;
+        _abilityDamageTaken = 0f;
+    }
+
+    private void CloseAbilityWindow()
+    {
+        if (_abilitySlot < 0) return;
+        int slot = _abilitySlot;
+        _abilitySlot = -1;
+        if (!MatchLive) return;
+
+        _epSlotDamage[slot] += _abilityDamage;
+        if (_abilityDamage > 0f)
+            AddReward(SlotValue(abilityDamageBonus, slot) * _abilityDamage);
+        else
+            AddReward(-SlotValue(abilityWastePenalty, slot));
+
+        if (slot == 2)   // mobility: judged by intent (escape when hurt, engage when healthy)
+        {
+            bool hadTarget = _abilityStartDist > 0f;
+            if (hadTarget && _abilityStartHpFrac <= escapeHpThreshold)
+            {
+                // Low health: reward breaking away. Closing in is deliberately NOT rewarded here.
+                float distFrac = _currentTarget == null
+                    ? 1f   // target lost entirely (left detection range)
+                    : Mathf.Clamp01((Vector3.Distance(transform.position, _currentTarget.position) - _abilityStartDist) / Mathf.Max(1f, escapeDistance));
+                float losBroken = _abilityStartLos && !_hasLineOfSight ? 1f : 0f;
+                float survived = 1f - Mathf.Clamp01(_abilityDamageTaken / 0.25f);   // got hit hard on the way out = not an escape
+                AddReward(escapeReward * Mathf.Max(distFrac, losBroken) * survived);
+            }
+            else if (_currentTarget != null)
+            {
+                float gain = CurrentRangePotential() - _abilityStartPotential;
+                if (gain > 0f) AddReward(mobilityRangeBonus * gain);
+            }
+        }
     }
 
     // The primary attack is driven exactly like a player's mouse button: press starts it (Attack.Update then fires it
@@ -838,20 +985,28 @@ public class RLEnemyCombatAgent : Agent
         _selfHpKnown = hpNow;
 
         // Environment damage (KillZone etc.) has no attacker: the death penalty already covers it.
+        if (!MatchLive) return;
         if (attacker == null || attacker.transform.root == transform.root || _selfDamageable == null) return;
 
         _epDamageTaken += lost / Mathf.Max(1, _selfDamageable.MaxHealth);
         AddReward(-damageTakenPenalty * lost / Mathf.Max(1, _selfDamageable.MaxHealth));
+        if (_abilitySlot >= 0) _abilityDamageTaken += lost / Mathf.Max(1, _selfDamageable.MaxHealth);
     }
 
     private void HandleSelfDeath(GameObject killer)
     {
         if (_isTrainingDead) return;
 
+        bool live = MatchLive;
         _isTrainingDead = true;
-        _epDied = 1f;
-        AddReward(deathPenalty);
+        if (live)
+        {
+            _epDied += 1f;
+            AddReward(deathPenalty);
+        }
         _hasAimTarget = false;
+        _abilitySlot = -1;   // death is already penalised; do not also settle the window
+        _lastHealCheckHp = -1;
         UnsubscribeFromTarget();
         _currentTarget = null;
         _targetDamageable = null;
@@ -868,6 +1023,8 @@ public class RLEnemyCombatAgent : Agent
                 _agent.isStopped = true;
             }
         }
+
+        if (!live) return;   // died in the gap between matches: no elimination, no respawn timer (manager revives at next start)
 
         if (_arena != null && _arena.MatchManager != null)
         {
@@ -890,10 +1047,10 @@ public class RLEnemyCombatAgent : Agent
     {
         bool wasKilledByThisAgent = killer != null && killer.transform.root == transform.root;
 
-        if (wasKilledByThisAgent)
+        if (wasKilledByThisAgent && MatchLive)
         {
             AddReward(killReward);
-            _epKilled = 1f;
+            _epKilled += 1f;
         }
 
         // The victim handles the elimination and respawn. A kill does not end either episode.
@@ -955,6 +1112,21 @@ public class RLEnemyCombatAgent : Agent
         _isTrainingDead = false;
     }
 
+    // EndEpisode() runs OnEpisodeBegin immediately, i.e. BEFORE the arena rerolls heroes. Call this after a hero swap
+    // so health, cooldown state and known-HP bookkeeping match the new hero.
+    public void ResyncAfterHeroChange()
+    {
+        _lastHealCheckHp = -1;
+        ReleasePrimary();
+        if (_abilityManager != null)
+            _abilityManager.InterruptAllAbilities();
+        if (TryGetComponent<EnemyHealth>(out var health))
+            health.ResetHealth();
+        if (_selfDamageable != null)
+            _selfHpKnown = _selfDamageable.CurrentHealth;
+        _hasPrevPotential = false;
+    }
+
     public void ApplyMatchOutcome(Team? winner, float winRewardValue, float lossRewardValue)
     {
         if (!winner.HasValue) return;
@@ -971,9 +1143,16 @@ public class RLEnemyCombatAgent : Agent
         float lost = hpNow > 0 ? damage : Mathf.Min(damage, _targetHpKnown);  // ignore overkill
         _targetHpKnown = hpNow;
 
+        if (!MatchLive) return;
         if (attacker == null || attacker.transform.root != transform.root) return;
-        _epDamageDealt += lost / Mathf.Max(1, _targetDamageable.MaxHealth);
-        AddReward(damageDealtReward * lost / Mathf.Max(1, _targetDamageable.MaxHealth));
+        float fraction = lost / Mathf.Max(1, _targetDamageable.MaxHealth);
+        _epDamageDealt += fraction;
+        AddReward(damageDealtReward * fraction);
+        if (_abilitySlot >= 0 && Time.time <= _abilityWindowEnd)
+        {
+            int dealer = SlotOf(Ability.CurrentDealer);
+            if (dealer == _abilitySlot || dealer == -1) _abilityDamage += fraction;   // -1: unknown source (DoT/projectile) falls back to the window
+        }
     }
 
 

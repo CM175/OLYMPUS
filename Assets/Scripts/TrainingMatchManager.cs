@@ -35,6 +35,8 @@ public class TrainingMatchManager : MonoBehaviour
     private TrainingArena _arena;
     private readonly HashSet<RLEnemyCombatAgent> _respawning = new HashSet<RLEnemyCombatAgent>();
     private bool _restartQueued;
+    private int _matchId;
+    private bool _finishPending;
 
     private void Awake()
     {
@@ -69,7 +71,10 @@ public class TrainingMatchManager : MonoBehaviour
         TimeRemaining = matchDuration;
         _respawning.Clear();
         _restartQueued = false;
+        _finishPending = false;
+        _matchId++;   // invalidates respawn timers left over from the previous match
         State = TrainingMatchState.Playing;
+        ReviveDeadAgents();
         Debug.Log("[TrainingMatch] Match started.");
         OnMatchStarted?.Invoke();
     }
@@ -84,19 +89,39 @@ public class TrainingMatchManager : MonoBehaviour
 
         Debug.Log($"[TrainingMatch] Team A: {TeamAScore} | Team B: {TeamBScore}");
 
-        if (TeamAScore >= eliminationScoreLimit) FinishMatch(Team.TeamA);
-        else if (TeamBScore >= eliminationScoreLimit) FinishMatch(Team.TeamB);
+        // Don't finish inside the death event: the killer's kill reward is booked by a later subscriber,
+        // and EndEpisode() before it would push that reward into the next episode. Resolve in LateUpdate.
+        if (TeamAScore >= eliminationScoreLimit || TeamBScore >= eliminationScoreLimit)
+            _finishPending = true;
+    }
+
+    private void LateUpdate()
+    {
+        if (!_finishPending || !IsMatchActive) return;
+        _finishPending = false;
+
+        if (TeamAScore > TeamBScore) FinishMatch(Team.TeamA);
+        else if (TeamBScore > TeamAScore) FinishMatch(Team.TeamB);
+        else FinishMatch(null);
+    }
+
+    private void ReviveDeadAgents()
+    {
+        if (_arena == null) return;
+        if (_arena.agent != null && _arena.agent.IsTrainingDead) _arena.agent.RespawnForTraining();
+        if (_arena.opponent != null && _arena.opponent.IsTrainingDead) _arena.opponent.RespawnForTraining();
     }
 
     public void ScheduleRespawn(RLEnemyCombatAgent agent)
     {
         if (!IsMatchActive || agent == null || !_respawning.Add(agent)) return;
-        StartCoroutine(RespawnRoutine(agent));
+        StartCoroutine(RespawnRoutine(agent, _matchId));
     }
 
-    private IEnumerator RespawnRoutine(RLEnemyCombatAgent agent)
+    private IEnumerator RespawnRoutine(RLEnemyCombatAgent agent, int matchId)
     {
         yield return new WaitForSeconds(respawnDelay);
+        if (matchId != _matchId) yield break;   // match ended/restarted while waiting
         _respawning.Remove(agent);
 
         if (IsMatchActive && agent != null && agent.IsTrainingDead)
@@ -141,6 +166,8 @@ public class TrainingMatchManager : MonoBehaviour
         {
             _arena.ResetObjectiveState();
             _arena.RerollHeroes();
+            if (_arena.agent != null) _arena.agent.ResyncAfterHeroChange();
+            if (_arena.opponent != null) _arena.opponent.ResyncAfterHeroChange();
         }
         StartMatch();
     }

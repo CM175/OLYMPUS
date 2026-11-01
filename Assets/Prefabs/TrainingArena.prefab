@@ -671,8 +671,8 @@ MonoBehaviour:
   eliminationScoreLimit: 10
   respawnDelay: 5
   restartDelay: 0.25
-  winReward: 2
-  lossReward: -2
+  winReward: 5
+  lossReward: -5
 --- !u!1001 &6913694118252115586
 PrefabInstance:
   m_ObjectHideFlags: 0

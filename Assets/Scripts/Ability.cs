@@ -25,8 +25,25 @@ public abstract class Ability : MonoBehaviour
 
     // Outgoing damage always goes through these so the attacker is explicit
     // and PlayerStats.DamageMultiplier is applied exactly once.
-    protected void Deal(IDamageable target, int baseDamage) => DamageDealer.Deal(Owner, target, baseDamage);
-    protected void DealOverTime(IDamageable target, int baseTotalDamage, float duration) => DamageDealer.DealOverTime(Owner, target, baseTotalDamage, duration);
+    // The ability currently dealing damage. Damage events fire synchronously inside Deal(), so listeners
+    // (e.g. the RL agent) can read this to know which ability caused a hit. Null = unknown / not via an ability.
+    public static Ability CurrentDealer { get; private set; }
+
+    protected void Deal(IDamageable target, int baseDamage)
+    {
+        Ability previous = CurrentDealer;
+        CurrentDealer = this;
+        try { DamageDealer.Deal(Owner, target, baseDamage); }
+        finally { CurrentDealer = previous; }
+    }
+
+    protected void DealOverTime(IDamageable target, int baseTotalDamage, float duration)
+    {
+        Ability previous = CurrentDealer;
+        CurrentDealer = this;
+        try { DamageDealer.DealOverTime(Owner, target, baseTotalDamage, duration); }
+        finally { CurrentDealer = previous; }
+    }
 
     public virtual void OnPress() {}
     public virtual void OnRelease() {}
