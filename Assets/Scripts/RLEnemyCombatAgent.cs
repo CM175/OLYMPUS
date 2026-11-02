@@ -10,7 +10,9 @@ using UnityEngine.AI;
 [RequireComponent(typeof(TeamMember))]
 public class RLEnemyCombatAgent : Agent
 {
-    private enum PositioningAction { Hold = 0, Advance = 1, Retreat = 2, Strafe = 3 }
+    // Branch 2 = free movement: 0 = stand still, 1..8 = move in one of 8 directions, 45 degrees apart, clockwise,
+    // starting from "straight at the opponent" (1 = toward, 3 = right, 5 = directly away, 7 = left).
+    private const int MoveActions = 9;
 
     [Header("Macro / Navigation")]
     [SerializeField] private float detectionRange = 25f;
@@ -18,6 +20,8 @@ public class RLEnemyCombatAgent : Agent
     [SerializeField] private LayerMask lineOfSightBlockMask; 
     [SerializeField] private Transform defaultObjective;
     [SerializeField] private Transform trainingSpawnPoint;
+    [Tooltip("How far ahead (metres) a movement action aims. Keep above speed * navRepathInterval so the agent never stalls between decisions.")]
+    [SerializeField] private float moveLookahead = 5f;
     
     private Vector3 _initialSpawnPosition;
     
@@ -44,7 +48,7 @@ public class RLEnemyCombatAgent : Agent
     [Tooltip("Reward per full max-health actually healed. Keep below damageTakenPenalty.")]
     [SerializeField] private float healReward = 0.5f;
     [Tooltip("Healthy: mobility is rewarded for ending closer to ideal range (scaled gain in the range potential).")]
-    [SerializeField] private float mobilityRangeBonus = 0.5f;
+    [SerializeField] private float mobilityRangeBonus = 0f;
     [Tooltip("At or below this health fraction when mobility is pressed, it is judged as an escape instead of an engage.")]
     [SerializeField, Range(0f, 1f)] private float escapeHpThreshold = 0.4f;
     [Tooltip("Max reward for a successful escape. Keep below the damage already lost to get that low, so it can never pay to get hurt on purpose.")]
@@ -80,7 +84,7 @@ public class RLEnemyCombatAgent : Agent
 
     private Quaternion _desiredAimRotation;
     private bool _hasAimTarget;
-    private PositioningAction _positioningAction = PositioningAction.Hold;
+    private int _moveAction = 0;
     private bool _isInitialized = false;
     private bool _hasSpawnCached = false;
 
@@ -210,7 +214,7 @@ public class RLEnemyCombatAgent : Agent
         _targetVelocity = Vector3.zero;
         _hasLineOfSight = false;
         _hasAimTarget = false;
-        _positioningAction = PositioningAction.Hold;
+        _moveAction = 0;
         _nextNavTime = 0f;
         _lastObservedControl = PointOwner.Neutral;
 
@@ -275,11 +279,9 @@ public class RLEnemyCombatAgent : Agent
 
         if (_currentTarget != null)
         {
-            float combatRange = GetCombatRange();
-            Vector3 destination = ComputePositioningDestination(combatRange);
-            _agent.stoppingDistance = 0.5f;
+            _agent.stoppingDistance = 0f;
             if (_agent.isOnNavMesh)
-                _agent.SetDestination(destination);
+                _agent.SetDestination(ComputeMoveDestination());
         }
         else if (defaultObjective != null)
         {
@@ -302,47 +304,29 @@ public class RLEnemyCombatAgent : Agent
         }
     }
 
-    private Vector3 ComputePositioningDestination(float combatRange)
+    // The policy fully controls where to go: it picks a direction (relative to the opponent) every decision and the
+    // NavMeshAgent walks it. Nothing here knows about ideal range, cover or flanking; that all has to be learned.
+    private Vector3 ComputeMoveDestination()
     {
-        Vector3 targetPos = _currentTarget.position;
-        Vector3 awayFromTarget = (transform.position - targetPos);
-        awayFromTarget.y = 0f;
-        float currentDistance = awayFromTarget.magnitude;
-        Vector3 awayDir = awayFromTarget.sqrMagnitude > 0.001f ? awayFromTarget.normalized : transform.forward;
+        Vector3 pos = transform.position;
+        if (_moveAction <= 0) return pos;   // 0 = stand still
 
-        Vector3 rawDestination = targetPos + awayDir * (combatRange * 0.7f);
+        Vector3 forward = _currentTarget.position - pos;
+        forward.y = 0f;
+        forward = forward.sqrMagnitude > 0.001f ? forward.normalized : transform.forward;
 
-        switch (_positioningAction)
-        {
-            case PositioningAction.Advance:
-                rawDestination = targetPos + awayDir * (combatRange * 0.4f);
-                break;
-            case PositioningAction.Retreat:
-                rawDestination = targetPos + awayDir * (combatRange * 1.2f);
-                break;
-            case PositioningAction.Strafe:
-                float orbitDistance = Mathf.Clamp(currentDistance, combatRange * 0.5f, combatRange * 1.1f);
-                Vector3 lateral = Vector3.Cross(Vector3.up, awayDir).normalized;
-                float side = _strafeSide;
-                Vector3 orbitDir = (awayDir + lateral * side * 0.6f).normalized;
-                rawDestination = targetPos + orbitDir * orbitDistance;
-                break;
-            case PositioningAction.Hold:
-            default:
-                rawDestination = targetPos + awayDir * (combatRange * 0.7f);
-                break;
-        }
+        Vector3 dir = Quaternion.Euler(0f, (_moveAction - 1) * 45f, 0f) * forward;
+        Vector3 dest = pos + dir * moveLookahead;
+        if (_arena != null) dest = _arena.ClampToBounds(dest);
 
-        if (_arena != null) rawDestination = _arena.ClampToBounds(rawDestination);
+        if (!NavMesh.SamplePosition(dest, out NavMeshHit sample, 2f, NavMesh.AllAreas))
+            return pos;
+        dest = sample.position;
 
-        // CLAMP TO VALID NAVMESH SURFACE: Never send the agent over an edge
-        if (NavMesh.SamplePosition(rawDestination, out NavMeshHit hit, 4.0f, NavMesh.AllAreas))
-        {
-            return hit.position;
-        }
-
-        // If candidate point is off-island, retreat to the central objective
-        return defaultObjective != null ? defaultObjective.position : transform.position;
+        // Stop at the first edge or obstacle on the way instead of pathing around it, so a move never becomes a detour.
+        if (NavMesh.Raycast(pos, dest, out NavMeshHit blocked, NavMesh.AllAreas))
+            dest = blocked.position;
+        return dest;
     }
 
     private void FindTarget()
@@ -380,8 +364,8 @@ public class RLEnemyCombatAgent : Agent
                 Vector3 targetPoint = rootObj.transform.position + Vector3.up * 1.0f;
                 Vector3 dir = targetPoint - origin;
                 
-                if (Physics.Raycast(origin, dir.normalized, dir.magnitude, lineOfSightBlockMask))
-                    continue; // Hidden behind obstacle
+                if (_arena == null && Physics.Raycast(origin, dir.normalized, dir.magnitude, lineOfSightBlockMask))
+                    continue; // Hidden behind obstacle (outside training only; in an arena the policy sees LOS as an observation)
 
                 float dist = Vector3.Distance(transform.position, rootObj.transform.position);
                 if (dist < closestDist)
@@ -523,6 +507,7 @@ public class RLEnemyCombatAgent : Agent
             sensor.AddObservation(1f);
             sensor.AddObservation(0f);
             sensor.AddObservation(0f);
+            sensor.AddObservation(0f);   // keep size at 6 to match the objective branch
         }
 
         // 4. Nearest NavMesh edge (3 values): lets the policy learn not to get knocked or dashed off the map
@@ -801,7 +786,7 @@ public class RLEnemyCombatAgent : Agent
         ExecuteCombatSlot(combatAction);
 
         // Branch 2: Positioning
-        _positioningAction = (PositioningAction)discreteActions[2];
+        _moveAction = Mathf.Clamp(discreteActions[2], 0, MoveActions - 1);
     }
 
     private void ApplyAimRotation()
@@ -1177,14 +1162,12 @@ public class RLEnemyCombatAgent : Agent
 
         if (discreteActions.Length > 2)
         {
-            if (Input.GetKey(KeyCode.LeftShift))
-                discreteActions[2] = (int)PositioningAction.Retreat;
-            else if (Input.GetKey(KeyCode.LeftControl))
-                discreteActions[2] = (int)PositioningAction.Advance;
-            else if (Input.GetKey(KeyCode.LeftAlt))
-                discreteActions[2] = (int)PositioningAction.Strafe;
-            else
-                discreteActions[2] = (int)PositioningAction.Hold;
+            // Arrow keys: up = toward the opponent, down = away, left/right = strafe
+            float x = (Input.GetKey(KeyCode.RightArrow) ? 1f : 0f) - (Input.GetKey(KeyCode.LeftArrow) ? 1f : 0f);
+            float z = (Input.GetKey(KeyCode.UpArrow) ? 1f : 0f) - (Input.GetKey(KeyCode.DownArrow) ? 1f : 0f);
+            discreteActions[2] = (x == 0f && z == 0f)
+                ? 0
+                : (Mathf.RoundToInt(Mathf.Atan2(x, z) * Mathf.Rad2Deg / 45f) + 8) % 8 + 1;
         }
     }
 

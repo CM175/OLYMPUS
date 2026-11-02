@@ -7,6 +7,8 @@ using UnityEngine.AI;
 /// <summary>
 /// One self-contained training cell: an agent, an opponent agent, and the bounds they fight in.
 /// </summary>
+// Runs before the agents' own Awake/OnEnable so TeamId is set before ML-Agents registers each behaviour.
+[DefaultExecutionOrder(-1000)]
 public class TrainingArena : MonoBehaviour
 {
     [Header("Training Match")]
@@ -34,6 +36,7 @@ public class TrainingArena : MonoBehaviour
 
     private bool _spawnedAgent;
     private bool _spawnedOpponent;
+    private GameObject _spawnHolder;
 
     public Transform Objective => objective != null ? objective : transform;
 
@@ -49,14 +52,12 @@ public class TrainingArena : MonoBehaviour
     {
         if (agent == null && agentPrefab != null)
         {
-            agent = Instantiate(agentPrefab, transform.position, transform.rotation);
-            agent.name = name + "_Agent";
+            agent = SpawnDormant(agentPrefab, transform.position, name + "_Agent");
             _spawnedAgent = true;
         }
         if (opponent == null && opponentPrefab != null)
         {
-            opponent = Instantiate(opponentPrefab, transform.position + Vector3.up, transform.rotation);
-            opponent.name = name + "_Opponent";
+            opponent = SpawnDormant(opponentPrefab, transform.position + Vector3.up, name + "_Opponent");
             _spawnedOpponent = true;
         }
 
@@ -87,6 +88,28 @@ public class TrainingArena : MonoBehaviour
 
         if (matchManager == null)
             matchManager = gameObject.AddComponent<TrainingMatchManager>();
+
+        // Everything (team, TeamId, arena) is configured: release spawned agents. Their Awake/OnEnable, and with it
+        // ML-Agents' behaviour registration ("CombatAgent?team=N"), only run now, so TeamId is actually honoured.
+        if (_spawnHolder != null)
+        {
+            if (_spawnedAgent && agent != null) agent.transform.SetParent(null, true);
+            if (_spawnedOpponent && opponent != null) opponent.transform.SetParent(null, true);
+            Destroy(_spawnHolder);
+        }
+    }
+
+    /// <summary>Instantiates under an inactive holder so the clone's Awake/OnEnable don't run until the arena has configured it.</summary>
+    private RLEnemyCombatAgent SpawnDormant(RLEnemyCombatAgent prefab, Vector3 position, string objectName)
+    {
+        if (_spawnHolder == null)
+        {
+            _spawnHolder = new GameObject(name + "_SpawnHolder");
+            _spawnHolder.SetActive(false);
+        }
+        RLEnemyCombatAgent instance = Instantiate(prefab, position, transform.rotation, _spawnHolder.transform);
+        instance.name = objectName;
+        return instance;
     }
 
     private void Start()
@@ -97,6 +120,7 @@ public class TrainingArena : MonoBehaviour
             int count = characterDatabase.CharacterCount;
             int index = heroIndex >= 0 ? heroIndex % count : Random.Range(0, count);
             heroManager.LoadHero(characterDatabase.GetHeroAtIndex(index));
+            agent.ResyncAfterHeroChange();
         }
 
         if (opponent != null && characterDatabase != null && characterDatabase.CharacterCount > 0
@@ -105,6 +129,7 @@ public class TrainingArena : MonoBehaviour
             int count = characterDatabase.CharacterCount;
             int index = heroIndex >= 0 ? (heroIndex + 1) % count : Random.Range(0, count);
             oppHeroManager.LoadHero(characterDatabase.GetHeroAtIndex(index));
+            opponent.ResyncAfterHeroChange();
         }
 
         StartCoroutine(ValidateAfterSetup());
@@ -190,6 +215,12 @@ public class TrainingArena : MonoBehaviour
 
         if (agent == null) { Fail("No agent."); return; }
         if (opponent == null) { Fail("No opponent."); return; }
+
+        if (agent.TryGetComponent<BehaviorParameters>(out var ap) && opponent.TryGetComponent<BehaviorParameters>(out var op))
+        {
+            if (ap.TeamId == op.TeamId) Fail($"Agent and opponent share TeamId {ap.TeamId}; self-play needs different team ids.");
+            if (ap.BehaviorName != op.BehaviorName) Warn($"Behaviour names differ ('{ap.BehaviorName}' vs '{op.BehaviorName}'); they won't share a policy.");
+        }
 
         if (problems == 0)
             Debug.Log(tag + "setup looks good.", this);

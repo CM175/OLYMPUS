@@ -667,8 +667,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2df282018b8aa884e91e8273c4a365b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrainingMatchManager
-  matchDuration: 300
-  eliminationScoreLimit: 10
+  matchDuration: 75
+  eliminationScoreLimit: 5
   respawnDelay: 5
   restartDelay: 0.25
   winReward: 5
@@ -684,6 +684,10 @@ PrefabInstance:
     - target: {fileID: 7814838594826426375, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
       propertyPath: m_Name
       value: CapturePoint
+      objectReference: {fileID: 0}
+    - target: {fileID: 7814838594826426375, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8146278305993708959, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
       propertyPath: m_LocalScale.x

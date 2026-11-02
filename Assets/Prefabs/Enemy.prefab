@@ -197,6 +197,7 @@ MonoBehaviour:
     m_Bits: 8
   defaultObjective: {fileID: 0}
   trainingSpawnPoint: {fileID: 0}
+  moveLookahead: 5
   maxAimLeadAngle: 15
   aimTurnSpeed: 15
   damageDealtReward: 1
@@ -204,6 +205,27 @@ MonoBehaviour:
   killReward: 1
   deathPenalty: -1
   rangeShaping: 0.1
+  useAbilityRewards: 1
+  abilityWindow:
+  - 2.5
+  - 2.5
+  - 1.5
+  - 6
+  abilityDamageBonus:
+  - 0.25
+  - 0.25
+  - 0
+  - 0.5
+  abilityWastePenalty:
+  - 0.05
+  - 0
+  - 0
+  - 0.3
+  healReward: 0.5
+  mobilityRangeBonus: 0
+  escapeHpThreshold: 0.4
+  escapeReward: 0.4
+  escapeDistance: 10
   useObjectiveRewards: 0
   objectivePresenceReward: 0.002
   objectiveCaptureProgressReward: 0.05
@@ -340,12 +362,12 @@ MonoBehaviour:
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
-      BranchSizes: 050000000600000004000000
-    VectorActionSize: 050000000600000004000000
+      BranchSizes: 050000000600000009000000
+    VectorActionSize: 050000000600000009000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 2c6c92d017cd46d4f9656a7c28c531b4, type: 3}
+  m_Model: {fileID: 5022602860645237092, guid: 4c45f9b8e579b7747b647427c8b7a2e5, type: 3}
   m_InferenceDevice: 0
   m_BehaviorType: 0
   m_BehaviorName: CombatAgent

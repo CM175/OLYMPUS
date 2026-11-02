@@ -77,6 +77,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   enemyPrefab: {fileID: 2391148793557673702, guid: db7a51463a4101849a16d6f35053f929, type: 3}
   spawnRate: 5
+  count: 0
+  maxEnemies: 3
 --- !u!1 &3166524141294157016
 GameObject:
   m_ObjectHideFlags: 0

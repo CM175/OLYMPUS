@@ -620,7 +620,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 0
@@ -757,21 +757,9 @@ PrefabInstance:
       propertyPath: m_Name
       value: KillZone
       objectReference: {fileID: 0}
-    - target: {fileID: 4468970067300481321, guid: 5c2eaf7f45d527947a7c0b25fabe1477, type: 3}
-      propertyPath: m_Enabled
+    - target: {fileID: 3166524141294157016, guid: 5c2eaf7f45d527947a7c0b25fabe1477, type: 3}
+      propertyPath: m_Layer
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4627214697327937880, guid: 5c2eaf7f45d527947a7c0b25fabe1477, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4627214697327937880, guid: 5c2eaf7f45d527947a7c0b25fabe1477, type: 3}
-      propertyPath: spawnRate
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4627214697327937880, guid: 5c2eaf7f45d527947a7c0b25fabe1477, type: 3}
-      propertyPath: maxEnemies
-      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 3977093143800818854, guid: 5c2eaf7f45d527947a7c0b25fabe1477, type: 3}
@@ -1136,18 +1124,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Plane
       objectReference: {fileID: 0}
-    - target: {fileID: 4627214697327937880, guid: 5c2eaf7f45d527947a7c0b25fabe1477, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4627214697327937880, guid: 5c2eaf7f45d527947a7c0b25fabe1477, type: 3}
-      propertyPath: spawnRate
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4627214697327937880, guid: 5c2eaf7f45d527947a7c0b25fabe1477, type: 3}
-      propertyPath: maxEnemies
-      value: 100
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 113116776609923563, guid: 5c2eaf7f45d527947a7c0b25fabe1477, type: 3}
@@ -1252,11 +1228,11 @@ PrefabInstance:
       objectReference: {fileID: 4388727752609113279}
     - target: {fileID: 3580547885085713394, guid: 4ef76c8fa89acee47ab6a92c7d1c78e9, type: 3}
       propertyPath: teamAMaxPlayers
-      value: 7
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3580547885085713394, guid: 4ef76c8fa89acee47ab6a92c7d1c78e9, type: 3}
       propertyPath: teamBMaxPlayers
-      value: 6
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3580547885085713394, guid: 4ef76c8fa89acee47ab6a92c7d1c78e9, type: 3}
       propertyPath: deathSpectatorCamera
