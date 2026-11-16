@@ -87,6 +87,7 @@
     <Compile Include="Assets\Scripts\IMovementController.cs" />
     <Compile Include="Assets\Scripts\Abilities\Zeus\SkyCharge.cs" />
     <Compile Include="Assets\Scripts\HUDController.cs" />
+    <Compile Include="Assets\Scripts\AbilityPhysics.cs" />
     <Compile Include="Assets\Scripts\Abilities\Poseidon\TridentProjectile.cs" />
     <Compile Include="Assets\Scripts\Abilities\Apollo\AscensionLeap.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />

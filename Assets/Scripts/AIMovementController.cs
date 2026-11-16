@@ -8,7 +8,10 @@ public class AIMovementController : MonoBehaviour, IMovementController
     [Header("Physics & Gravity")]
     [SerializeField] private float gravity = -20f;
     [SerializeField] private float horizontalDrag = 8f;
+    [Tooltip("Geometry that blocks dashes, knockback and ground checks. Character layers are stripped in Awake so agents never treat each other as ground or walls.")]
     [SerializeField] private LayerMask obstacleMask = ~0;
+    private static readonly string[] CharacterLayerNames = { "Enemy", "Player", "Character", "Projectile", "Objective", "ShadowRealm" };
+    private const float SkinWidth = 0.05f;
 
     [Header("NavMesh Recovery")]
     [SerializeField] private float navMeshRecoveryRadius = 1.0f;
@@ -81,6 +84,10 @@ public class AIMovementController : MonoBehaviour, IMovementController
         _agent = GetComponent<NavMeshAgent>();
         _enemyAI = GetComponent<RLEnemyCombatAgent>();
         if (_agent != null) _baseSpeed = _agent.speed;
+
+        // Applied in code (not just the inspector default) so prefabs that already serialized ~0 are fixed too.
+        int characterLayers = LayerMask.GetMask(CharacterLayerNames);
+        obstacleMask = obstacleMask & ~characterLayers;
     }
 
     private void Update()
@@ -162,8 +169,8 @@ public class AIMovementController : MonoBehaviour, IMovementController
                 // SphereCast along the movement path to guarantee we never tunnel through walls or floors
                 if (Physics.SphereCast(transform.position + Vector3.up * radius, radius, dir, out RaycastHit hit, distance + radius, obstacleMask, QueryTriggerInteraction.Ignore))
                 {
-                    // Snap position right up against the collider surface we hit, minus a tiny skin width
-                    transform.position = hit.point - (dir * 0.05f) + (hit.normal * 0.01f);
+                    float travel = Mathf.Clamp(hit.distance - SkinWidth, 0f, distance);
+                    transform.position += dir * travel;
                     _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal);
                     
                     // If we hit the floor or a steep wall downwards, halt vertical fall velocity
