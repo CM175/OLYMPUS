@@ -28,7 +28,7 @@ public class SolarBlind : Ability
             Instantiate(vfxPrefab, strikePoint, Quaternion.identity);
         }
 
-        Collider[] victims = Physics.OverlapSphere(strikePoint, flashRadius);
+        Collider[] victims = AbilityPhysics.OverlapSphere(strikePoint, flashRadius);
         foreach (var victim in victims)
         {
             Transform victimRoot = victim.transform.root;

@@ -12,7 +12,7 @@ public class HymnOfRadiance : Ability
     {
         //Debug.Log($"Activating hymn of radiance");
         Vector3 origin = transform.root.position;
-        Collider[] targets = Physics.OverlapSphere(origin, burstRadius);
+        Collider[] targets = AbilityPhysics.OverlapSphere(origin, burstRadius);
 
         foreach (var target in targets)
         {

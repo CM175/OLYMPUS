@@ -41,7 +41,7 @@ public class AxeSwing : Attack, IInitializable
 
         _isLeftSwing = !_isLeftSwing;
 
-        Collider[] potentialTargets = Physics.OverlapSphere(_rootTransform.position, range);
+        Collider[] potentialTargets = AbilityPhysics.OverlapSphere(_rootTransform.position, range);
         float cosHalfAngle = Mathf.Cos(swingAngle * 0.5f * Mathf.Deg2Rad);
         var myTeam = _rootTransform.GetComponent<TeamMember>();
 

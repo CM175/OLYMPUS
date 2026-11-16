@@ -112,7 +112,7 @@ public class Charge : Ability, IInitializable
             }
 
             Vector3 sweepCenter = _rootTransform.position + Vector3.up + (chargeDirection * 0.5f);
-            Collider[] hits = Physics.OverlapSphere(sweepCenter, hitSweepRadius);
+            Collider[] hits = AbilityPhysics.OverlapSphere(sweepCenter, hitSweepRadius);
 
             foreach (var hit in hits)
             {

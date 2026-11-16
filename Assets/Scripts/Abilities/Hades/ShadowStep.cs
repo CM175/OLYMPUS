@@ -113,7 +113,7 @@ public class ShadowStep : Ability, IInitializable
         }
 
         // 4. Erupt out with damage and crowd control
-        Collider[] victims = Physics.OverlapSphere(emergePos, emergeRadius);
+        Collider[] victims = AbilityPhysics.OverlapSphere(emergePos, emergeRadius);
         var myTeam = _rootTransform.GetComponent<TeamMember>();
 
         foreach (var col in victims)

@@ -67,7 +67,7 @@ public class BlinkDash : Ability, IInitializable
             Vector3 movementThisFrame = dashDirection * dashSpeed * Time.deltaTime;
             _movementController.Move(movementThisFrame);
 
-            Collider[] hits = Physics.OverlapSphere(_rootTransform.position, hitSweepRadius);
+            Collider[] hits = AbilityPhysics.OverlapSphere(_rootTransform.position, hitSweepRadius);
             foreach (var hit in hits)
             {
                 Transform enemyRoot = hit.transform.root;

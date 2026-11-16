@@ -43,7 +43,7 @@ public class ReleaseTheKraken : Ultimate, IInitializable
         // Stage 1: Vortex pull
         while (elapsed < suctionDuration)
         {
-            Collider[] targets = Physics.OverlapSphere(center, radius);
+            Collider[] targets = AbilityPhysics.OverlapSphere(center, radius);
             foreach (var col in targets)
             {
                 Transform victimRoot = col.transform.root;
@@ -63,7 +63,7 @@ public class ReleaseTheKraken : Ultimate, IInitializable
         }
 
         // Stage 2: Eruption & Brief Daze
-        Collider[] eruptionTargets = Physics.OverlapSphere(center, radius);
+        Collider[] eruptionTargets = AbilityPhysics.OverlapSphere(center, radius);
         HashSet<Transform> processedTargets = new();
 
         foreach (var col in eruptionTargets)

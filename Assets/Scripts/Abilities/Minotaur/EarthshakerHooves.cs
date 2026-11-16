@@ -46,7 +46,7 @@ public class EarthshakerHooves : Ability, IInitializable
             Instantiate(stompVFXPrefab, centerPos, Quaternion.identity);
         }
 
-        Collider[] hitEnemies = Physics.OverlapSphere(centerPos, stompRadius);
+        Collider[] hitEnemies = AbilityPhysics.OverlapSphere(centerPos, stompRadius);
         var myTeam = _rootTransform.GetComponent<TeamMember>();
         HashSet<Transform> processedVictims = new HashSet<Transform>();
 

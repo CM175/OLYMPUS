@@ -82,7 +82,7 @@ public class UntertowSurge : Ability, IInitializable
             _movementController.Move(moveStep);
 
             // 4. Sweep and displace nearby enemies without getting stuck
-            Collider[] hits = Physics.OverlapSphere(_rootTransform.position + Vector3.up * 0.5f, sweepRadius);
+            Collider[] hits = AbilityPhysics.OverlapSphere(_rootTransform.position + Vector3.up * 0.5f, sweepRadius);
             foreach (var hit in hits)
             {
                 Transform enemyRoot = hit.transform.root;

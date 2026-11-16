@@ -35,7 +35,7 @@ public class OlympianWrath : Ultimate
 
         while (elapsed < duration)
         {
-            Collider[] targets = Physics.OverlapSphere(center, radius);
+            Collider[] targets = AbilityPhysics.OverlapSphere(center, radius);
             var hitThisTick = new HashSet<GameObject>();   // one strike per character, not one per collider
             foreach (var col in targets)
             {

@@ -39,7 +39,7 @@ public class LightningBolt : Attack
             {
                 DealOverTime(target, damage, damageOverTimeDuration);
 
-                Collider[] nearby = Physics.OverlapSphere(hit.point, chainRange);
+                Collider[] nearby = AbilityPhysics.OverlapSphere(hit.point, chainRange);
                 Collider bestTarget = null;
                 float bestDist = float.MaxValue;
 

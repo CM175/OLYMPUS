@@ -15,7 +15,7 @@ public class ShieldBash : Ability
     {
         Transform root = transform.root;
 
-        Collider[] colliders = Physics.OverlapSphere(root.position, bashRange);
+        Collider[] colliders = AbilityPhysics.OverlapSphere(root.position, bashRange);
 
         foreach (var col in colliders)
         {

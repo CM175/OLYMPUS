@@ -39,9 +39,8 @@ public class MoonlightTrap : BaseProjectile
             return;
         }
 
-        // Search for target elements walking across the trigger volume
-        searchMask = LayerMask.GetMask("Character"); 
-        Collider[] victims = Physics.OverlapSphere(transform.position, triggerRadius, searchMask);
+        // Search for target elements walking across the trigger volum
+        Collider[] victims = AbilityPhysics.OverlapSphere(transform.position, triggerRadius);
         if (victims.Length > 0)
         {
             TriggerTrap(victims[0]);

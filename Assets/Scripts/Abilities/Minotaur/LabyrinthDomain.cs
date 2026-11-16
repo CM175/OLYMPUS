@@ -28,7 +28,7 @@ public class LabyrinthDomain : Ultimate, IInitializable
     private IEnumerator ErectLabyrinth()
     {
         Vector3 center = _rootTransform.position;
-        Collider[] victims = Physics.OverlapSphere(center, arenaRadius);
+        Collider[] victims = AbilityPhysics.OverlapSphere(center, arenaRadius);
         var myTeam = _rootTransform.GetComponent<TeamMember>();
 
         foreach (var col in victims)

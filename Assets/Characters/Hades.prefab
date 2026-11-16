@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 127376535958184308}
   - component: {fileID: 4609262338801882522}
   - component: {fileID: -8669206489900329946}
+  - component: {fileID: -2222921334054951340}
   m_Layer: 8
   m_Name: Hades
   m_TagString: Untagged
@@ -51,9 +52,9 @@ MonoBehaviour:
   role: Striker
   health: 250
   primaryAttack: {fileID: 4609262338801882522}
-  primaryAbility: {fileID: -8669206489900329946}
+  primaryAbility: {fileID: -2222921334054951340}
   secondaryAbility: {fileID: 0}
-  mobilityAbility: {fileID: 0}
+  mobilityAbility: {fileID: -8669206489900329946}
   ultimateAbility: {fileID: 0}
   passiveAbility: {fileID: 0}
 --- !u!114 &4609262338801882522
@@ -105,9 +106,34 @@ MonoBehaviour:
   emergeRadius: 4.5
   emergeDamage: 40
   upwardLaunchForce: 8
-  staggerDuration: 0.5
   sinkVFXPrefab: {fileID: 0}
   emergeVFXPrefab: {fileID: 0}
+--- !u!114 &-2222921334054951340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2953670537729376099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6c0f3a4dfa57e5408825ef5ddb07d3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Hellfire
+  cooldown: 10
+  playerCamera: {fileID: 0}
+  CanBeCancelled: 0
+  isChargeable: 0
+  vfxPrefab: {fileID: 0}
+  sprite: {fileID: 0}
+  exclusiveState: 0
+  radius: 6
+  initialDamage: 40
+  duration: 4
+  tickRate: 0.5
+  damagePerTick: 10
+  slowMultiplier: 0.5
+  slowDuration: 1
 --- !u!1 &5242437835640223054
 GameObject:
   m_ObjectHideFlags: 0

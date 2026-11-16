@@ -110,7 +110,7 @@ public class ChariotOfTheSun : Ultimate
             Destroy(fx, tickRate);
         }
 
-        Collider[] targets = Physics.OverlapSphere(centerPoint, beamRadius);
+        Collider[] targets = AbilityPhysics.OverlapSphere(centerPoint, beamRadius);
         foreach (var col in targets)
         {
             Transform targetRoot = col.transform.root;

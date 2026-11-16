@@ -139,6 +139,7 @@
     <Compile Include="Assets\Scripts\Abilities\Artemis\MoonlightTrapAbility.cs" />
     <Compile Include="Assets\Scripts\CharacterDatabase.cs" />
     <Compile Include="Assets\Scripts\UICharacterSelectMenu.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Hades\HellFire.cs" />
     <Compile Include="Assets\Scripts\CapturePointVisuals.cs" />
     <Compile Include="Assets\Scripts\Abilities\Apollo\GoldenBow.cs" />
   </ItemGroup>
