@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2039291353265439493}
   - component: {fileID: 1391238738752247509}
   - component: {fileID: 8181644889907678770}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: SolarArrowPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -103,11 +103,12 @@ MonoBehaviour:
   damage: 20
   piercesTargets: 0
   impactEffect: {fileID: 0}
+  _hasImpacted: 0
   minSpeed: 25
   maxSpeed: 80
   minDamageOrHealing: 15
   maxDamageOrHealing: 60
-  isHealingArrow: 0
+  damageOverTimeDuration: 0.5
 --- !u!1 &4295534023486264695
 GameObject:
   m_ObjectHideFlags: 0
@@ -119,7 +120,7 @@ GameObject:
   - component: {fileID: 3456364727699998074}
   - component: {fileID: 2131838384006404639}
   - component: {fileID: 690912118290926836}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}

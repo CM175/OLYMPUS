@@ -199,6 +199,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TridentStrike
   cooldown: 0.65
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -223,6 +224,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TidalSurge
   cooldown: 8
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -243,16 +245,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UndertowSurge
   cooldown: 7
   playerCamera: {fileID: 0}
+  CanBeCancelled: 1
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 1
-  dashSpeed: 24
-  dashDuration: 0.5
-  popUpRadius: 4
-  emergeDamage: 25
-  verticalImpulse: 10
-  interruptStun: 0.2
+  surgeSpeed: 10
+  surgeDuration: 5
+  sweepRadius: 2.5
+  turnRate: 360
+  surgeDamage: 30
+  pushForce: 20
+  damageReductionPercentage: 0.3
+  waveVFXPrefab: {fileID: 0}
+  wallSplashVFXPrefab: {fileID: 0}
 --- !u!114 &4712429978848764771
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -267,12 +273,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ReleaseTheKraken
   cooldown: 0
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 612544311509272817, guid: d9291d56c2bb78c4380a82f736764db8, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 0
   cost: 1200
-  radius: 10
+  radius: 15
   eruptionDamage: 70
   suctionDuration: 1.2
   suctionForce: 9

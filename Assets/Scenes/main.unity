@@ -1228,11 +1228,11 @@ PrefabInstance:
       objectReference: {fileID: 4388727752609113279}
     - target: {fileID: 3580547885085713394, guid: 4ef76c8fa89acee47ab6a92c7d1c78e9, type: 3}
       propertyPath: teamAMaxPlayers
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3580547885085713394, guid: 4ef76c8fa89acee47ab6a92c7d1c78e9, type: 3}
       propertyPath: teamBMaxPlayers
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3580547885085713394, guid: 4ef76c8fa89acee47ab6a92c7d1c78e9, type: 3}
       propertyPath: deathSpectatorCamera
@@ -1343,9 +1343,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 360166185}
     m_Modifications:
+    - target: {fileID: 7721069730251711050, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 7814838594826426375, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
       propertyPath: m_Name
       value: CapturePoint
+      objectReference: {fileID: 0}
+    - target: {fileID: 7814838594826426375, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 7814838594826426375, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
       propertyPath: m_IsActive

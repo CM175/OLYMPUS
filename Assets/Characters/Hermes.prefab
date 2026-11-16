@@ -78,10 +78,13 @@ MonoBehaviour:
   sprite: {fileID: 0}
   exclusiveState: 0
   damage: 15
-  range: 2.5
+  range: 10
   isHolding: 0
-  baseSpeedThreshold: 6
-  velocityScaleFactor: 0.15
+  daggerPrefab: {fileID: 3150148930126200046, guid: a5374ea1dee73c144a49c220c1ae15ea, type: 3}
+  daggersPerBurst: 2
+  burstInterval: 0.08
+  throwForce: 50
+  fireCooldown: 1
 --- !u!114 &1473492060491585570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -154,6 +157,7 @@ MonoBehaviour:
   allowVerticalDashing: 1
   hitSweepRadius: 2.5
   dashDamage: 25
+  hitRefund: 1
 --- !u!114 &8224165050478367327
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -173,6 +177,8 @@ MonoBehaviour:
   sprite: {fileID: 0}
   exclusiveState: 1
   duration: 3
+  speedMultiplier: 1.25
+  damageRevealDuration: 1
 --- !u!1 &4026967088270080055
 GameObject:
   m_ObjectHideFlags: 0

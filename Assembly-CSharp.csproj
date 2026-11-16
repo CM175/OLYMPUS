@@ -56,6 +56,7 @@
     <Compile Include="Assets\Scripts\TeamColorVisuals.cs" />
     <Compile Include="Assets\Scripts\RLEnemyCombatAgent.cs" />
     <Compile Include="Assets\Scripts\IInitializable.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Hermes\DaggerProjectile.cs" />
     <Compile Include="Assets\Scripts\Abilities\Artemis\StormArrow.cs" />
     <Compile Include="Assets\Scripts\PassiveAbility.cs" />
     <Compile Include="Assets\Scripts\HeroManager.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="Assets\Scripts\Outline.cs" />
     <Compile Include="Assets\Scripts\TrainingMatchManager.cs" />
     <Compile Include="Assets\Scripts\Abilities\Artemis\HuntersLeap.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Hades\BidentPrimary.cs" />
     <Compile Include="Assets\Scripts\Abilities\Zeus\LightningBarrier.cs" />
     <Compile Include="Assets\Scripts\KillZone.cs" />
     <Compile Include="Assets\Scripts\Abilities\Hermes\SonicBoom.cs" />
@@ -91,9 +93,11 @@
     <Compile Include="Assets\Scripts\Abilities\Poseidon\ReleaseTheKraken.cs" />
     <Compile Include="Assets\Scripts\Abilities\Minotaur\LabyrinthDomain.cs" />
     <Compile Include="Assets\Scripts\Abilities\Zeus\LightningBolt.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Hades\ShadowStep.cs" />
     <Compile Include="Assets\Scripts\Abilities\Artemis\MoonlightChase.cs" />
     <Compile Include="Assets\Scripts\PlayerStats.cs" />
     <Compile Include="Assets\Scripts\Abilities\Achillies\SpearProjectile.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Minotaur\EarthshakerHooves.cs" />
     <Compile Include="Assets\Scripts\Abilities\Hermes\WingedDaggers.cs" />
     <Compile Include="Assets\Scripts\Abilities\Achillies\AchillesFury.cs" />
     <Compile Include="Assets\Scripts\MatchManager.cs" />
@@ -113,7 +117,6 @@
     <Compile Include="Assets\Scripts\Abilities\Achillies\ShieldBash.cs" />
     <Compile Include="Assets\Scripts\Abilities\Achillies\SlayerOfTroy.cs" />
     <Compile Include="Assets\Scripts\Abilities\Poseidon\TidalSurgeProjectile.cs" />
-    <Compile Include="Assets\Scripts\Abilities\Minotaur\GroundSlam.cs" />
     <Compile Include="Assets\Scripts\TeamMember.cs" />
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
     <Compile Include="Assets\Scripts\LightningShieldEffect.cs" />

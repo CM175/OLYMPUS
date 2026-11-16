@@ -210,6 +210,8 @@ MonoBehaviour:
   pinWallCrushDamage: 150
   horizontalImpulse: 20
   verticalImpulse: 5
+  turnRate: 45
+  wallCrushStunDuration: 0.5
 --- !u!114 &5517210552183172876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -228,14 +230,13 @@ MonoBehaviour:
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 1
-  leapForwardSpeed: 20
-  leapUpwardVelocity: 12
-  gravityScale: 30
-  slamRadius: 7.5
-  slamDamage: 45
-  knockupHeight: 5
-  knockupDuration: 0.5
-  inwardPullForce: 20
+  stompRadius: 6
+  baseDamage: 30
+  slowMultiplier: 0.4
+  slowDuration: 1.5
+  knockbackForce: 30
+  upwardPop: 10
+  stompVFXPrefab: {fileID: 0}
 --- !u!114 &-3766891880228399788
 MonoBehaviour:
   m_ObjectHideFlags: 0

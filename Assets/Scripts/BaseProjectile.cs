@@ -16,6 +16,7 @@ public class BaseProjectile : MonoBehaviour
     protected Rigidbody rb;
     protected GameObject attackerRoot;
     public bool _hasImpacted = false;
+    public int projectileLayer;
 
     public virtual void SetAttacker(GameObject attacker)
     {
@@ -24,8 +25,10 @@ public class BaseProjectile : MonoBehaviour
 
     protected virtual void Start()
     {
+        projectileLayer = LayerMask.NameToLayer("Projectile");
         spawnPosition = transform.position;
         rb = GetComponent<Rigidbody>();
+        SetLayerRecursively(gameObject);
         InitializeMovement();
     }
 
@@ -48,6 +51,7 @@ public class BaseProjectile : MonoBehaviour
 
     protected virtual void OnTriggerEnter(Collider other)
     {
+        if (other.CompareTag("Objective")) return;
         if (_hasImpacted) return;
         if (attackerRoot != null && other.transform.root.gameObject == attackerRoot) return;
         OnImpact(other);
@@ -94,6 +98,15 @@ public class BaseProjectile : MonoBehaviour
         if (impactEffect != null)
         {
             Instantiate(impactEffect, transform.position, Quaternion.identity);
+        }
+    }
+
+    private void SetLayerRecursively(GameObject obj)
+    {
+        obj.layer = projectileLayer;
+        foreach (Transform child in obj.transform)
+        {
+            SetLayerRecursively(child.gameObject);
         }
     }
 }

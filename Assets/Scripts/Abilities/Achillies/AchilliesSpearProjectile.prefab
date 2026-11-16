@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: -4302171584488589728}
   - component: {fileID: 5837125268486669363}
   - component: {fileID: 6280134735461966319}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: AchilliesSpearProjectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -53,6 +53,7 @@ MonoBehaviour:
   damage: 20
   piercesTargets: 0
   impactEffect: {fileID: 0}
+  _hasImpacted: 0
   knockbackForce: 50
 --- !u!54 &5837125268486669363
 Rigidbody:
@@ -115,7 +116,7 @@ GameObject:
   - component: {fileID: 8922918336679194071}
   - component: {fileID: 7849890932142260075}
   - component: {fileID: 646966309312074547}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Capsule
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: -4242586976223258991}
   - component: {fileID: 5687011606432237170}
   - component: {fileID: 4503724439563728638}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: MoonlightTrap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -53,11 +53,12 @@ MonoBehaviour:
   damage: 20
   piercesTargets: 0
   impactEffect: {fileID: 0}
+  _hasImpacted: 0
   triggerRadius: 0.5
   trappedDuration: 2
-  enemyLayer:
+  searchMask:
     serializedVersion: 2
-    m_Bits: 320
+    m_Bits: 0
 --- !u!54 &5687011606432237170
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -117,7 +118,7 @@ GameObject:
   - component: {fileID: 720508278883718162}
   - component: {fileID: 3607909817947250709}
   - component: {fileID: 6879383796226413540}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: MoonlightTrap
   m_TagString: Untagged
   m_Icon: {fileID: 0}

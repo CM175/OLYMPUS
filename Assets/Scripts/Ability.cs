@@ -4,6 +4,7 @@ public abstract class Ability : MonoBehaviour
 {
     public float cooldown;
     public Camera playerCamera;
+    public bool CanBeCancelled = false;
     
     [System.NonSerialized] public float lastUsedTime = -999f;
     [System.NonSerialized] public bool isExecuting = false;
@@ -62,6 +63,12 @@ public abstract class Ability : MonoBehaviour
 
     protected virtual bool CanUse()
     {
+        
+        if (isExecuting && CanBeCancelled)
+        {
+            Cancel();
+            return false;
+        }
         // 1. Gate execution if the character is stunned
         if (movementController != null && movementController.IsStunned) 
             return false;
@@ -71,6 +78,7 @@ public abstract class Ability : MonoBehaviour
         {
             return false;
         }
+
 
         return !IsOnCooldown() && !isExecuting;
     }

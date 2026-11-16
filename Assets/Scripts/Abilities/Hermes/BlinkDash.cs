@@ -9,10 +9,15 @@ public class BlinkDash : Ability, IInitializable
     public bool allowVerticalDashing = true;
     public float hitSweepRadius = 2.5f;
     public int dashDamage = 25;
+    public float hitRefund = 1f;
 
     private IMovementController _movementController;
     private Transform _rootTransform;
 
+    public void Start()
+    {
+        hitRefund = cooldown * 0.2f;
+    }
     public void Initialize(GameObject playerRoot)
     {
         _rootTransform = playerRoot.transform;
@@ -94,5 +99,6 @@ public class BlinkDash : Ability, IInitializable
         _movementController.IsDashing = false;
         
         StartCooldown();
+        lastUsedTime -= hitRefund * hitTargets.Count;
     }
 }

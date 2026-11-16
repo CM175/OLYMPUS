@@ -1,61 +1,67 @@
+using System.Collections;
 using UnityEngine;
 
 public class WingedDaggers : Attack
 {
-    [Header("Hermes Velocity Damage Settings")]
-    public float baseSpeedThreshold = 6f;
-    public float velocityScaleFactor = 0.15f;
+    [Header("Burst Settings")]
+    [SerializeField] private GameObject daggerPrefab;
+    [SerializeField] private int daggersPerBurst = 2;
+    [SerializeField] private float burstInterval = 0.08f; // Time between each dagger in the burst
+    [SerializeField] private float throwForce = 50f;
+    [SerializeField] private float fireCooldown = 1f;   // Cooldown after a full burst
 
-    private Vector3 _lastPos;
-    private float _estimatedSpeed;
+    private float _nextCanUseTime;
+    private Transform _rootTransform;
 
-    private void Start()
+    public void Initialize(GameObject playerRoot)
     {
-        _lastPos = transform.root.position;
+        _rootTransform = playerRoot.transform;
     }
 
-    private void Update()
+    protected override bool CanUse()
     {
-        _estimatedSpeed = (transform.root.position - _lastPos).magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
-        _lastPos = transform.root.position;
+        return Time.time >= _nextCanUseTime && base.CanUse();
     }
 
     protected override void Activate()
     {
-        Transform root = transform.root;
-        Vector3 attackPoint = root.position + root.forward * (range / 2f);
-        Collider[] hitEnemies = Physics.OverlapSphere(attackPoint, range / 2f);
-        var myTeam = root.GetComponent<TeamMember>();
-
-        foreach (var enemy in hitEnemies)
-        {
-            Transform enemyRoot = enemy.transform.root;
-            if (enemyRoot == root) continue;
-            if (myTeam != null && !myTeam.IsEnemy(enemyRoot.gameObject)) continue;
-
-            IDamageable target = enemyRoot.GetComponent<IDamageable>() ?? enemy.GetComponent<IDamageable>();
-            if (target != null)
-            {
-                ApplyDamage(target);
-            }
-        }
+        _nextCanUseTime = Time.time + fireCooldown;
+        StartCoroutine(FireBurstRoutine());
     }
 
-    private void ApplyDamage(IDamageable target)
+    private IEnumerator FireBurstRoutine()
     {
-        Transform root = transform.root;
-        CharacterController cc = root.GetComponent<CharacterController>();
+        Transform root = _rootTransform != null ? _rootTransform : transform.root;
 
-        int finalDamage = damage;
-
-        float actualSpeed = cc != null ? cc.velocity.magnitude : _estimatedSpeed;
-        if (actualSpeed > baseSpeedThreshold)
+        for (int i = 0; i < daggersPerBurst; i++)
         {
-            float excessSpeed = actualSpeed - baseSpeedThreshold;
-            float damageMultiplier = 1f + (excessSpeed * velocityScaleFactor);
-            finalDamage = Mathf.RoundToInt(finalDamage * damageMultiplier);
-        }
+            // Re-evaluate aim direction slightly during the burst for smooth tracking
+            Vector3 aimDir = playerCamera != null 
+                ? playerCamera.transform.forward 
+                : (movementController != null ? movementController.GetAimDirection() : root.forward);
+            aimDir.Normalize();
 
-        Deal(target, finalDamage);
+            Vector3 spawnPos = playerCamera != null 
+                ? playerCamera.transform.position + playerCamera.transform.forward * 1.0f + (playerCamera.transform.right * (i * 0.1f - 0.1f)) // Slight horizontal spread per dagger
+                : root.position + Vector3.up * 1.5f + aimDir * 1.0f;
+
+            if (daggerPrefab != null)
+            {
+                GameObject dagger = Instantiate(daggerPrefab, spawnPos, Quaternion.LookRotation(aimDir));
+                DaggerProjectile proj = dagger.GetComponent<DaggerProjectile>();
+                if (proj != null)
+                {
+                    proj.SetAttacker(root.gameObject);
+                    proj.damage = damage;
+                    proj.SetSpawnPosition(spawnPos);
+                }
+            }
+
+            // Wait for the next dagger in the burst (skip delay on the final shot)
+            if (i < daggersPerBurst - 1)
+            {
+                yield return new WaitForSeconds(burstInterval);
+            }
+        }
     }
 }
