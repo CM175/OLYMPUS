@@ -73,6 +73,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WingedDaggers
   cooldown: 0.5
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -99,6 +100,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FleetFooted
   cooldown: 0
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -118,6 +120,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MessengerOfTheGods
   cooldown: 0
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -132,8 +135,8 @@ MonoBehaviour:
   baseDamage: 75
   silenceDuration: 1.5
   pushbackImpulse: 10
-  sonicTrailVfxPrefab: {fileID: 0}
-  impactBurstVfxPrefab: {fileID: 0}
+  sonicTrailVfxPrefab: {fileID: 1788617512228869260, guid: 62c0094be20d61946b4813fccbd67212, type: 3}
+  impactBurstVfxPrefab: {fileID: 1390680640295490229, guid: 4f70a21ce365eb446b8409364f825bdc, type: 3}
 --- !u!114 &3086645997603996126
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -148,8 +151,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlinkDash
   cooldown: 6
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 7214881736684780505, guid: cb7d2933400a0b34e94366280c065a34, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 0
   dashSpeed: 50
@@ -172,6 +176,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AmbushInvisibility
   cooldown: 8
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}

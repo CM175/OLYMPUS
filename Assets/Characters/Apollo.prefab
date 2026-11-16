@@ -73,6 +73,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GoldenBow
   cooldown: 0.5
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 1
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -96,8 +97,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HymnOfRadiance
   cooldown: 8
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 3617012628818986013, guid: e09ebb7a338f00548b0b03478ede2d6c, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 0
   burstRadius: 8
@@ -119,8 +121,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChariotOfTheSun
   cooldown: 0
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 7089945604295130231, guid: 58957ef6c3eafef4d9abb6c08b66d309, type: 3}
+  vfxPrefab: {fileID: 1734187930427620710, guid: c39cab3af47202f4c9fc55273affe8f5, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 1
   cost: 3000
@@ -148,8 +151,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SolarBlind
   cooldown: 10
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 1794513171578903340, guid: 09fff69c891d9b34d8d16d617e1c2730, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 0
   flashRadius: 5
@@ -170,8 +174,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AscensionLeap
   cooldown: 5
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 2611563234271782148, guid: d118ab8d69f9f324db69c2a1a65d4c4f, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 0
   upwardForce: 14

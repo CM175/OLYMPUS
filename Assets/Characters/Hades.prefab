@@ -106,8 +106,8 @@ MonoBehaviour:
   emergeRadius: 4.5
   emergeDamage: 40
   upwardLaunchForce: 8
-  sinkVFXPrefab: {fileID: 0}
-  emergeVFXPrefab: {fileID: 0}
+  sinkVFXPrefab: {fileID: 8432389886387853219, guid: ba6a606213c047b4194543a0d101c147, type: 3}
+  emergeVFXPrefab: {fileID: 2139194099074248822, guid: 718cbe4d622e2084e87badf4efa7c3f5, type: 3}
 --- !u!114 &-2222921334054951340
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -124,7 +124,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 2312469853892102716, guid: fea9d6dcbefc6c247b097c7be855138f, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 0
   radius: 6

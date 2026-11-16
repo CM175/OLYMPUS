@@ -199,8 +199,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Charge
   cooldown: 8
   playerCamera: {fileID: 0}
+  CanBeCancelled: 1
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 3686221576256152464, guid: c2025ad431034e6429526a902c0d9c43, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 1
   chargeSpeed: 10
@@ -226,6 +227,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GroundSlam
   cooldown: 10
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -236,7 +238,7 @@ MonoBehaviour:
   slowDuration: 1.5
   knockbackForce: 30
   upwardPop: 10
-  stompVFXPrefab: {fileID: 0}
+  stompVFXPrefab: {fileID: 2011607795650305325, guid: b31629401e7a7d14a9b34dd6797b693c, type: 3}
 --- !u!114 &-3766891880228399788
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251,6 +253,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AxeSwing
   cooldown: 0.9
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -259,8 +262,8 @@ MonoBehaviour:
   range: 3.5
   isHolding: 0
   swingAngle: 90
-  vfxSwingLeftPrefab: {fileID: 0}
-  vfxSwingRightPrefab: {fileID: 0}
+  vfxSwingLeftPrefab: {fileID: 6577781969580077574, guid: 53e42c76f71c7284994a5c33b327de18, type: 3}
+  vfxSwingRightPrefab: {fileID: 7899582061865133473, guid: d0ce8a4f7e430de47bb60cdc6c351970, type: 3}
 --- !u!114 &7390377453136858302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -275,6 +278,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LabyrinthDomain
   cooldown: 0
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}

@@ -72,6 +72,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LightningBolt
   cooldown: 1
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -82,6 +83,7 @@ MonoBehaviour:
   chainRange: 15
   boltLine: {fileID: 1296805581021919717, guid: 8401c1cf4a97053448e1ef8c8e2ab404, type: 3}
   beamDuration: 0.1
+  damageOverTimeDuration: 0
 --- !u!114 &204290176932405347
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96,8 +98,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OlympianWrath
   cooldown: 0
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 9032819149719097012, guid: 02b75287dd698614f99816a27e8c329a, type: 3}
+  vfxPrefab: {fileID: 3660803384501889622, guid: 4893636430285eb4c8adc86ba35f51af, type: 3}
   sprite: {fileID: 21300000, guid: f68e3626cf1c7c34ab1064c4dba43755, type: 3}
   exclusiveState: 0
   cost: 5000
@@ -121,6 +124,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LightningBarrier
   cooldown: 10
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 4259436044319103786, guid: a91c56ed49e736f4ba8f61e4ed848614, type: 3}
   sprite: {fileID: 21300000, guid: 6868b430b09f9bf41bc59369f818063a, type: 3}
@@ -141,8 +145,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SkyCharge
   cooldown: 6
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 148356011539963347, guid: ea667b4ba21988b47b67cd6a5ba38392, type: 3}
   sprite: {fileID: 21300000, guid: 21a8a9158a0a9de41a4e644dddcff575, type: 3}
   exclusiveState: 0
   dashSpeed: 50

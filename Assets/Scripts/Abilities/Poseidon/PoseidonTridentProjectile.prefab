@@ -465,8 +465,9 @@ MonoBehaviour:
   maxRange: 100
   damage: 20
   piercesTargets: 0
-  impactEffect: {fileID: 0}
+  impactEffect: {fileID: 2750622715127926166, guid: 030474b78e11c7b4aa0536e73f6076a5, type: 3}
   _hasImpacted: 0
+  projectileLayer: 0
   minSpeed: 30
   maxSpeed: 70
   minDamage: 30

@@ -201,7 +201,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 5878333139948176916, guid: 24d83b00f86389740a47b77e80808c33, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 1
   damage: 35
@@ -247,7 +247,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   CanBeCancelled: 1
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 613807330277917634, guid: 734afa0d744cfbd42a005eca9d6c77a0, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 1
   surgeSpeed: 10
@@ -257,8 +257,8 @@ MonoBehaviour:
   surgeDamage: 30
   pushForce: 20
   damageReductionPercentage: 0.3
-  waveVFXPrefab: {fileID: 0}
-  wallSplashVFXPrefab: {fileID: 0}
+  waveVFXPrefab: {fileID: 613807330277917634, guid: 734afa0d744cfbd42a005eca9d6c77a0, type: 3}
+  wallSplashVFXPrefab: {fileID: 6750103983602606646, guid: b7f8d19fe9992c24a868a123fb25a84d, type: 3}
 --- !u!114 &4712429978848764771
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -275,7 +275,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 612544311509272817, guid: d9291d56c2bb78c4380a82f736764db8, type: 3}
+  vfxPrefab: {fileID: 8571755384216836654, guid: b338ca980521aad4db4d982bf98f61e9, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 0
   cost: 1200

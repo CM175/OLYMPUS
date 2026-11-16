@@ -75,8 +75,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShieldBash
   cooldown: 8
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 903016634479619544, guid: d60f0c9cfeb520e49a4d4584575934ea, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 1
   bashRange: 4
@@ -97,6 +98,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpearThrow
   cooldown: 10
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -117,6 +119,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FrontalArmor
   cooldown: 0
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
@@ -136,8 +139,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BattleCry
   cooldown: 8
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 3660554609135146149, guid: 92a441a6de9392f43a0216e9c6b3ebdf, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 0
   duration: 5
@@ -156,8 +160,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AchillesFury
   cooldown: 0
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 5369045776593153690, guid: 7a327ce91c69d584da48a7de834de68a, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 0
   cost: 5000
@@ -288,8 +293,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   cooldown: 0.5
   playerCamera: {fileID: 0}
+  CanBeCancelled: 0
   isChargeable: 0
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 980020930575051002, guid: 861fb436dfc0ccc43bdcbf8d51391754, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 1
   damage: 30

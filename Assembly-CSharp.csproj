@@ -59,6 +59,7 @@
     <Compile Include="Assets\Scripts\Abilities\Hermes\DaggerProjectile.cs" />
     <Compile Include="Assets\Scripts\Abilities\Artemis\StormArrow.cs" />
     <Compile Include="Assets\Scripts\PassiveAbility.cs" />
+    <Compile Include="Assets\Scripts\AutoDestroyVFX.cs" />
     <Compile Include="Assets\Scripts\HeroManager.cs" />
     <Compile Include="Assets\Scripts\Hero.cs" />
     <Compile Include="Assets\Scripts\MapGenerator.cs" />
