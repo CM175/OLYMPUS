@@ -24,6 +24,11 @@ public class AscensionLeap : Ability
         {
             Instantiate(vfxPrefab, transform.root.position, Quaternion.identity);
         }
+        else
+        {
+            AbilityVfx.Ring(transform.root.position + Vector3.up * 0.1f, AbilityVfx.Gold, 3.5f);
+            AbilityVfx.Aura(transform.root, AbilityVfx.Gold, healDuration, 0.7f);
+        }
 
         StartCooldown();
     }

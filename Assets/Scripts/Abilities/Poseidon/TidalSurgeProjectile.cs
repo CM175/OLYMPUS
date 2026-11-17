@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class TidalSurgeProjectile : BaseProjectile
 {
+    protected override Color DefaultVfxColor => AbilityVfx.Azure;
+
     [Header("Wave Displacement")]
     public float pushImpulse = 16f;
     public float liftImpulse = 4f;

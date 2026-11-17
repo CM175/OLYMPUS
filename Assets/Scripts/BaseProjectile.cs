@@ -12,6 +12,14 @@ public class BaseProjectile : MonoBehaviour
     public bool piercesTargets = false;
     public GameObject impactEffect;
 
+    [Header("Generated VFX")]
+    [Tooltip("Adds a code-generated trail and impact burst when the prefab has no particle effects of its own.")]
+    public bool useGeneratedVfx = true;
+    [Tooltip("Leave alpha at 0 to use the projectile type's default colour.")]
+    public Color vfxColor = new Color(0f, 0f, 0f, 0f);
+    protected virtual Color DefaultVfxColor => new Color(1f, 0.9f, 0.6f);
+    protected Color VfxColor => vfxColor.a > 0f ? vfxColor : DefaultVfxColor;
+
     protected Vector3 spawnPosition;
     protected Rigidbody rb;
     protected GameObject attackerRoot;
@@ -29,7 +37,15 @@ public class BaseProjectile : MonoBehaviour
         spawnPosition = transform.position;
         rb = GetComponent<Rigidbody>();
         SetLayerRecursively(gameObject);
+        AttachGeneratedVfx();
         InitializeMovement();
+    }
+
+    private void AttachGeneratedVfx()
+    {
+        if (!useGeneratedVfx) return;
+        if (GetComponentInChildren<ParticleSystem>() != null || GetComponentInChildren<TrailRenderer>() != null) return;
+        AbilityVfx.Trail(gameObject, VfxColor);
     }
 
     protected virtual void InitializeMovement()
@@ -98,6 +114,10 @@ public class BaseProjectile : MonoBehaviour
         if (impactEffect != null)
         {
             Instantiate(impactEffect, transform.position, Quaternion.identity);
+        }
+        else if (useGeneratedVfx)
+        {
+            AbilityVfx.Impact(transform.position, VfxColor);
         }
     }
 

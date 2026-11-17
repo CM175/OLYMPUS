@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class TridentProjectile : BaseProjectile
 {
+    protected override Color DefaultVfxColor => AbilityVfx.Teal;
+
     [Header("Charge Scale Bounds")]
     public float minSpeed = 30f;
     public float maxSpeed = 70f;

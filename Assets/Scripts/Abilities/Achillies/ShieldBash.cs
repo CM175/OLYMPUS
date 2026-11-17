@@ -8,12 +8,15 @@ public class ShieldBash : Ability
     public float stunDuration = 1.5f;
 
     [Header("Cone")]
-    [Tooltip("Dot-product threshold. 0.5 ≈ 60° half-angle cone in front of the player.")]
+    [Tooltip("Dot-product threshold. 0.5 â‰ˆ 60Â° half-angle cone in front of the player.")]
     public float minDotProduct = 0.5f;
 
     protected override void Activate()
     {
         Transform root = transform.root;
+
+        AbilityVfx.Cone(root.position + Vector3.up, root.forward, AbilityVfx.Gold, bashRange,
+                        Mathf.Acos(Mathf.Clamp(minDotProduct, -1f, 1f)) * Mathf.Rad2Deg);
 
         Collider[] colliders = AbilityPhysics.OverlapSphere(root.position, bashRange);
 

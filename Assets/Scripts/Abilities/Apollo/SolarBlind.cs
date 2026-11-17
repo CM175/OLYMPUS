@@ -18,7 +18,7 @@ public class SolarBlind : Ability
         }
 
         Vector3 strikePoint = playerCamera.transform.position + playerCamera.transform.forward * range;
-        if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit hit, range))
+        if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit hit, range, AbilityPhysics.HittableMask))
         {
             strikePoint = hit.point;
         }
@@ -26,6 +26,11 @@ public class SolarBlind : Ability
         if (vfxPrefab != null)
         {
             Instantiate(vfxPrefab, strikePoint, Quaternion.identity);
+        }
+        else
+        {
+            AbilityVfx.Flash(strikePoint, AbilityVfx.Gold, flashRadius * 0.8f);
+            AbilityVfx.Ring(strikePoint, AbilityVfx.Gold, flashRadius, 0.35f);
         }
 
         Collider[] victims = AbilityPhysics.OverlapSphere(strikePoint, flashRadius);

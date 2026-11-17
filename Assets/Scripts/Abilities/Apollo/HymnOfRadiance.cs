@@ -47,6 +47,11 @@ public class HymnOfRadiance : Ability
         {
             Instantiate(vfxPrefab, origin, Quaternion.identity);
         }
+        else
+        {
+            AbilityVfx.Ring(origin + Vector3.up * 0.1f, AbilityVfx.Gold, burstRadius, 0.55f);
+            AbilityVfx.Burst(origin + Vector3.up, AbilityVfx.Gold, 1.8f, 36);
+        }
 
         StartCooldown();
     }

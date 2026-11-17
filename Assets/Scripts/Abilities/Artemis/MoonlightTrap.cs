@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class MoonlightTrap : BaseProjectile
 {
+    protected override Color DefaultVfxColor => AbilityVfx.Silver;
+
     [Header("Trap Settings")]
     public float triggerRadius = 2f;
     public float trappedDuration = 1.5f;
@@ -29,6 +31,12 @@ public class MoonlightTrap : BaseProjectile
         _isArmed = true;
         //rb.linearVelocity = Vector3.zero;
         rb.isKinematic = true; // Freeze physics translation safely
+
+        if (useGeneratedVfx)
+        {
+            AbilityVfx.Ring(transform.position + Vector3.up * 0.1f, VfxColor, triggerRadius);
+            AbilityVfx.Glow(transform, Vector3.zero, VfxColor, triggerRadius * 0.5f);
+        }
     }
 
     protected override void Update()

@@ -76,7 +76,7 @@ public class ChariotOfTheSun : Ultimate
             }
 
             Ray ray = new Ray(rayOrigin, rayDirection);
-            if (Physics.Raycast(ray, out RaycastHit hit, maxRange))
+            if (Physics.Raycast(ray, out RaycastHit hit, maxRange, AbilityPhysics.HittableMask))
             {
                 if (Time.time >= nextTick)
                 {
@@ -108,6 +108,11 @@ public class ChariotOfTheSun : Ultimate
             GameObject fx = Instantiate(vfxPrefab, centerPoint, Quaternion.identity);
             fx.transform.localScale = Vector3.one * (beamRadius * 2);
             Destroy(fx, tickRate);
+        }
+        else
+        {
+            AbilityVfx.Ring(centerPoint + Vector3.up * 0.1f, AbilityVfx.Gold, beamRadius, tickRate);
+            AbilityVfx.Burst(centerPoint + Vector3.up * 0.5f, AbilityVfx.Gold, 1.5f, 16, -0.3f);
         }
 
         Collider[] targets = AbilityPhysics.OverlapSphere(centerPoint, beamRadius);

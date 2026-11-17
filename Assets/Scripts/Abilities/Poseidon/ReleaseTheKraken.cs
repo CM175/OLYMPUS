@@ -11,6 +11,7 @@ public class ReleaseTheKraken : Ultimate, IInitializable
     public float suctionForce = 9f;
     public float upwardEruptionForce = 12f;
     public float dazeDuration = 0.5f;
+    public float pauseDuration = 0.5f;
 
     private Transform _rootTransform;
 
@@ -36,6 +37,11 @@ public class ReleaseTheKraken : Ultimate, IInitializable
             vfxInstance.transform.localScale = Vector3.one * (radius * 2);
             Destroy(vfxInstance, suctionDuration + 1.5f);
         }
+        else
+        {
+            AbilityVfx.Ring(center + Vector3.up * 0.1f, AbilityVfx.Teal, radius, suctionDuration);
+            AbilityVfx.Burst(center + Vector3.up * 0.5f, AbilityVfx.Azure, 2.2f, 45);
+        }
 
         TeamMember myTeam = _rootTransform.GetComponent<TeamMember>();
         float elapsed = 0f;
@@ -53,7 +59,7 @@ public class ReleaseTheKraken : Ultimate, IInitializable
                 IMovementController move = victimRoot.GetComponent<IMovementController>();
                 if (move != null)
                 {
-                    Vector3 pullDir = (center - victimRoot.position);
+                    Vector3 pullDir = center - victimRoot.position;
                     pullDir.y = 0f;
                     move.Move(pullDir.normalized * (suctionForce * Time.deltaTime));
                 }
@@ -61,7 +67,7 @@ public class ReleaseTheKraken : Ultimate, IInitializable
             elapsed += Time.deltaTime;
             yield return null;
         }
-
+        yield return new WaitForSeconds(pauseDuration); // Small pause before eruption
         // Stage 2: Eruption & Brief Daze
         Collider[] eruptionTargets = AbilityPhysics.OverlapSphere(center, radius);
         HashSet<Transform> processedTargets = new();

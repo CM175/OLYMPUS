@@ -13,7 +13,7 @@ public class BattleCry : Ability
 
         if (stats == null)
         {
-            //Debug.LogWarning("[BattleCry] No PlayerStats found — ability has no effect.");
+            //Debug.LogWarning("[BattleCry] No PlayerStats found â€” ability has no effect.");
             StartCooldown();
             return;
         }
@@ -24,7 +24,9 @@ public class BattleCry : Ability
     private IEnumerator ApplyBuff(PlayerStats stats)
     {
         stats.DamageMultiplier = damageMultiplier;
-        //Debug.Log($"[BattleCry] Active — {damageMultiplier}x damage for {duration}s");
+        AbilityVfx.Ring(transform.root.position + Vector3.up * 0.1f, AbilityVfx.Gold, 3.5f);
+        AbilityVfx.Aura(transform.root, AbilityVfx.Gold, duration, 0.7f);
+        //Debug.Log($"[BattleCry] Active â€” {damageMultiplier}x damage for {duration}s");
 
         yield return new WaitForSeconds(duration);
 

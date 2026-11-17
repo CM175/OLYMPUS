@@ -54,6 +54,11 @@ public class SkyCharge : Ability, IInitializable
         {
             Instantiate(vfxPrefab, _rootTransform.position, Quaternion.LookRotation(dashDirection));
         }
+        else
+        {
+            AbilityVfx.Burst(_rootTransform.position + Vector3.up, AbilityVfx.Storm, 1.3f, 25);
+            AbilityVfx.Aura(_rootTransform, AbilityVfx.Storm, dashDuration + 0.15f, 0.6f);
+        }
 
         float elapsedTime = 0f;
         HashSet<Transform> hitTargets = new HashSet<Transform>();

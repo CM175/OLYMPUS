@@ -22,6 +22,8 @@ public class SlayerOfTroy : PassiveAbility
         if (killer == transform.root.gameObject)
         {
             _timer = duration;
+            AbilityVfx.Burst(transform.root.position + Vector3.up, AbilityVfx.Gold, 1.2f, 24);
+            AbilityVfx.Aura(transform.root, AbilityVfx.Gold, duration, 0.6f);
         }
     }
 

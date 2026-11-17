@@ -35,6 +35,11 @@ public class HellFire : Ability, IInitializable
             fx.transform.localScale = Vector3.one * (radius * 2);
             Destroy(fx, duration + 0.5f);
         }
+        else
+        {
+            AbilityVfx.Ring(centerPos + Vector3.up * 0.1f, AbilityVfx.Violet, radius, 0.6f);
+            AbilityVfx.Burst(centerPos + Vector3.up * 0.5f, AbilityVfx.Violet, 2f, 45);
+        }
 
         StartCoroutine(HellfireRoutine(centerPos));
         StartCooldown();
@@ -70,13 +75,11 @@ public class HellFire : Ability, IInitializable
                 if (target != null && !target.IsDead)
                 {
                     Deal(target, damagePerTick);
-                    Debug.Log($"Applied {damagePerTick} burn damage to {victimRoot.name} at time {elapsed:F2}s.");
                 }
 
                 if (movement != null)
                 {
                     movement.ApplySlow(slowMultiplier, slowDuration, decaying: false);
-                    Debug.Log($"Applied slow to {victimRoot.name} for {slowDuration} seconds at {slowMultiplier * 100}% speed.");
                 }
             }
 

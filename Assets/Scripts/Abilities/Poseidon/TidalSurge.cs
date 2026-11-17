@@ -24,6 +24,9 @@ public class TidalSurge : Ability, IInitializable
         Vector3 spawnPos = _rootTransform.position + (_rootTransform.forward * forwardSpawnOffset) + Vector3.up * 0.2f;
         Quaternion spawnRot = Quaternion.LookRotation(_rootTransform.forward);
 
+        AbilityVfx.Burst(spawnPos, AbilityVfx.Azure, 1.5f, 30);
+        AbilityVfx.Ring(spawnPos, AbilityVfx.Azure, 3f);
+
         GameObject wave = Instantiate(waveProjectilePrefab, spawnPos, spawnRot);
         TidalSurgeProjectile waveScript = wave.GetComponent<TidalSurgeProjectile>();
         if (waveScript != null)

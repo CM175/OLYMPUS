@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class SpearProjectile : BaseProjectile
 {
+    protected override Color DefaultVfxColor => AbilityVfx.Crimson;
+
     public float knockbackForce = 10f;
     // Override start to ensure we don't fire movement until instructed or ready
     protected override void Start()

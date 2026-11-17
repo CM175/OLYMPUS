@@ -40,6 +40,8 @@ public class BidentPrimary : Attack, IInitializable
             spawnRot = Quaternion.LookRotation(aim);
         }
 
+        AbilityVfx.Muzzle(spawnPos, spawnRot * Vector3.forward, AbilityVfx.Violet, 0.8f);
+
         if (bidentBoltPrefab != null)
         {
             GameObject boltObj = Instantiate(bidentBoltPrefab, spawnPos, spawnRot);
@@ -49,6 +51,7 @@ public class BidentPrimary : Attack, IInitializable
                 projectile.SetAttacker(root.gameObject);
                 projectile.damage = damage;
                 projectile.speed = projectileSpeed;
+                projectile.vfxColor = AbilityVfx.Violet;
             }
         }
     }

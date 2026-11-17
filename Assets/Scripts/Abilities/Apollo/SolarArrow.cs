@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class SolarArrow : BaseProjectile
 {
+    protected override Color DefaultVfxColor => AbilityVfx.Gold;
+
     [Header("Dynamic Scaling Bounds")]
     public float minSpeed = 25f;
     public float maxSpeed = 80f;
@@ -32,21 +34,19 @@ public class SolarArrow : BaseProjectile
         _hasImpacted = true;
         SpawnImpactVisuals(other);
         
-        var myTeam = attackerRoot.GetComponent<TeamMember>();
+        var myTeam = attackerRoot?.GetComponent<TeamMember>();
         // Custom Support Interface Logic
-        
+
         if (myTeam != null)
         {
             
-            IDamageable health = other.GetComponent<IDamageable>();
+            IDamageable health = other.transform.root.GetComponent<IDamageable>();
             if (!myTeam.IsEnemy(other.transform.root.gameObject))
             {
-            
                 health?.ApplyHeal(damage);
             }
             else
             {
-                
                 DamageDealer.DealOverTime(attackerRoot, health, damage, damageOverTimeDuration); 
             }
         }

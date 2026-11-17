@@ -22,6 +22,7 @@ public class BarrierDamage : MonoBehaviour
 
         IDamageable target = victimTransform.GetComponent<IDamageable>() ?? col.GetComponent<IDamageable>();
         DamageDealer.Deal(attackerTransform.gameObject, target, damage);
+        if (target != null) AbilityVfx.Impact(victimTransform.position + Vector3.up, AbilityVfx.Storm, 0.7f);
 
         _nextHitTime[col] = Time.time + 0.5f;
     }

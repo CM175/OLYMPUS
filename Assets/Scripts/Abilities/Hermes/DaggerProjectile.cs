@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class DaggerProjectile : BaseProjectile
 {
+    protected override Color DefaultVfxColor => AbilityVfx.Cyan;
+
     [Header("Damage Fall-Off Settings")]
     [SerializeField] private float minDamageRange = 10f;  // Full damage up to this distance
     [SerializeField] private float maxDamageRange = 25.0f; // Minimum damage past this distance

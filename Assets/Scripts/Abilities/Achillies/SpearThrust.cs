@@ -15,7 +15,7 @@ public class SpearThrust : Attack
         Vector3 origin = (playerCamera != null) ? playerCamera.transform.position : root.position + Vector3.up;
         Vector3 direction = (movement != null) ? movement.GetAimDirection() : root.forward;
 
-        if (Physics.SphereCast(origin, thrustRadius, direction, out RaycastHit hit, range))
+        if (Physics.SphereCast(origin, thrustRadius, direction, out RaycastHit hit, range, AbilityPhysics.HittableMask))
         {
             
             Transform targetRoot = hit.collider.transform.root;
@@ -38,6 +38,10 @@ public class SpearThrust : Attack
         if (vfxPrefab != null)
         {
             Instantiate(vfxPrefab, origin + (direction * 1.5f), Quaternion.LookRotation(direction));
+        }
+        else
+        {
+            AbilityVfx.Cone(root.position + Vector3.up, direction, AbilityVfx.Gold, range, 20f);
         }
     }
 }

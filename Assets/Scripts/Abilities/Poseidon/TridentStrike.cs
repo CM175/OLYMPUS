@@ -51,7 +51,7 @@ public class TridentStrike : Attack, IInitializable
         Vector3 origin = (playerCamera != null) ? playerCamera.transform.position : _rootTransform.position + Vector3.up * 1.5f;
         Vector3 dir = (playerCamera != null) ? playerCamera.transform.forward : (movement != null ? movement.GetAimDirection() : _rootTransform.forward);
 
-        if (Physics.SphereCast(origin, thrustRadius, dir, out RaycastHit hit, range))
+        if (Physics.SphereCast(origin, thrustRadius, dir, out RaycastHit hit, range, AbilityPhysics.HittableMask))
         {
             Transform targetRoot = hit.collider.transform.root;
             var myTeam = _rootTransform.GetComponent<TeamMember>();
@@ -67,6 +67,10 @@ public class TridentStrike : Attack, IInitializable
         if (vfxPrefab != null)
         {
             Instantiate(vfxPrefab, origin + dir * 1.5f, Quaternion.LookRotation(dir), _rootTransform);
+        }
+        else
+        {
+            AbilityVfx.Cone(_rootTransform.position + Vector3.up, dir, AbilityVfx.Teal, range, 25f);
         }
     }
 

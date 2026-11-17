@@ -58,6 +58,11 @@ public class BlinkDash : Ability, IInitializable
         {
             Instantiate(vfxPrefab, _rootTransform.position, Quaternion.LookRotation(dashDirection));
         }
+        else
+        {
+            AbilityVfx.Burst(_rootTransform.position + Vector3.up, AbilityVfx.Cyan, 1.1f, 20);
+            AbilityVfx.Aura(_rootTransform, AbilityVfx.Cyan, dashDuration + 0.15f, 0.5f);
+        }
 
         float elapsedTime = 0f;
         HashSet<Transform> hitTargets = new HashSet<Transform>();

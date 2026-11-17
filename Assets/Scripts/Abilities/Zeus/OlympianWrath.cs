@@ -28,6 +28,10 @@ public class OlympianWrath : Ultimate
             visual.transform.localScale = Vector3.one * (radius * 2);
             Destroy(visual, duration + 0.5f);
         }
+        else
+        {
+            AbilityVfx.Ring(center + Vector3.up * 0.1f, AbilityVfx.Storm, radius, 0.6f);
+        }
 
         float elapsed = 0f;
         GameObject attackerRoot = transform.root.gameObject;
@@ -68,7 +72,12 @@ public class OlympianWrath : Ultimate
 
     private IEnumerator AnimateSkyBolt(Vector3 targetPos)
     {
-        if (strikeBoltPrefab == null) yield break;
+        if (strikeBoltPrefab == null)
+        {
+            AbilityVfx.Bolt(targetPos + Vector3.up * skyHeight, targetPos, AbilityVfx.Storm, 0.35f, 0.15f, 0.4f);
+            AbilityVfx.Impact(targetPos, AbilityVfx.Storm, 0.9f);
+            yield break;
+        }
 
         Vector3 skyPos = targetPos + Vector3.up * skyHeight;
         LineRenderer bolt = Instantiate(strikeBoltPrefab);

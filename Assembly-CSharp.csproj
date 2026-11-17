@@ -58,6 +58,7 @@
     <Compile Include="Assets\Scripts\IInitializable.cs" />
     <Compile Include="Assets\Scripts\Abilities\Hermes\DaggerProjectile.cs" />
     <Compile Include="Assets\Scripts\Abilities\Artemis\StormArrow.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Poseidon\TidalWaveMeshGenerator.cs" />
     <Compile Include="Assets\Scripts\PassiveAbility.cs" />
     <Compile Include="Assets\Scripts\AutoDestroyVFX.cs" />
     <Compile Include="Assets\Scripts\HeroManager.cs" />
@@ -143,6 +144,7 @@
     <Compile Include="Assets\Scripts\Abilities\Hades\HellFire.cs" />
     <Compile Include="Assets\Scripts\CapturePointVisuals.cs" />
     <Compile Include="Assets\Scripts\Abilities\Apollo\GoldenBow.cs" />
+    <Compile Include="Assets\Scripts\AbilityVfx.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
@@ -165,6 +167,7 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
     <None Include="Assets\Materials\OutlineShader.shader" />
+    <None Include="Assets\Materials\TidalSurgeWater.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />

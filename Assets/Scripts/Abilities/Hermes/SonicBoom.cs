@@ -75,6 +75,10 @@ public class SonicBoom : Ultimate, IInitializable
             _activeVfxInstance = Instantiate(sonicTrailVfxPrefab, startPos, Quaternion.LookRotation(aimDirection));
             Destroy(_activeVfxInstance, 2.0f);
         }
+        else
+        {
+            AbilityVfx.Bolt(startPos + Vector3.up, endPos + Vector3.up, AbilityVfx.Cyan, 0.6f, 0.35f, 0.2f);
+        }
 
        // 4. Ultra-Fast Dash Execution (~0.1s duration)
         int charLayer = LayerMask.NameToLayer("Character");
@@ -104,6 +108,11 @@ public class SonicBoom : Ultimate, IInitializable
             GameObject burst = Instantiate(impactBurstVfxPrefab, endPos, Quaternion.identity);
             Destroy(burst, 2.0f);
         }
+        else
+        {
+            AbilityVfx.Ring(endPos + Vector3.up * 0.1f, AbilityVfx.Cyan, sweepRadius * 1.5f, 0.4f);
+            AbilityVfx.Burst(endPos + Vector3.up, AbilityVfx.Cyan, 1.8f, 36);
+        }
 
         exclusiveState = false;
         StartCooldown();
@@ -111,7 +120,7 @@ public class SonicBoom : Ultimate, IInitializable
 
     private void ProcessSonicHits(Vector3 start, Vector3 end, Vector3 dir, float dist)
     {
-        RaycastHit[] hits = Physics.SphereCastAll(start + Vector3.up * 0.5f, sweepRadius, dir, dist);
+        RaycastHit[] hits = Physics.SphereCastAll(start + Vector3.up * 0.5f, sweepRadius, dir, dist, AbilityPhysics.HittableMask);
         TeamMember myTeam = _rootTransform.GetComponent<TeamMember>();
 
         HashSet<Transform> hitVictims = new HashSet<Transform>();

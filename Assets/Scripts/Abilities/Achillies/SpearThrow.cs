@@ -24,6 +24,8 @@ public class SpearThrow : Ability
             spawnRot = Quaternion.LookRotation(aim);
         }
 
+        AbilityVfx.Muzzle(spawnPos, spawnRot * Vector3.forward, AbilityVfx.Crimson, 1f);
+
         GameObject spearObj = Instantiate(spearPrefab, spawnPos, spawnRot);
         SpearProjectile projectile = spearObj.GetComponent<SpearProjectile>();
         if (projectile != null)

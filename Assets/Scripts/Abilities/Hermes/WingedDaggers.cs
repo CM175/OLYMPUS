@@ -45,6 +45,8 @@ public class WingedDaggers : Attack
                 ? playerCamera.transform.position + playerCamera.transform.forward * 1.0f + (playerCamera.transform.right * (i * 0.1f - 0.1f)) // Slight horizontal spread per dagger
                 : root.position + Vector3.up * 1.5f + aimDir * 1.0f;
 
+            AbilityVfx.Muzzle(spawnPos, aimDir, AbilityVfx.Cyan, 0.6f);
+
             if (daggerPrefab != null)
             {
                 GameObject dagger = Instantiate(daggerPrefab, spawnPos, Quaternion.LookRotation(aimDir));

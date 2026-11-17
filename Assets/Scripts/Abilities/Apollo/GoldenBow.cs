@@ -47,6 +47,8 @@ public class GoldenBow : Attack
             spawnRot = Quaternion.LookRotation(aim);
         }
 
+        AbilityVfx.Muzzle(spawnPos, spawnRot * Vector3.forward, AbilityVfx.Gold, 0.6f + chargePercent);
+
         GameObject arrow = Instantiate(arrowPrefab, spawnPos, spawnRot);
         SolarArrow arrowScript = arrow.GetComponent<SolarArrow>();
         arrowScript?.SetAttacker(root.gameObject);

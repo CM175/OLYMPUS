@@ -32,6 +32,7 @@ public class HuntersLeap : Ability, IInitializable
     {
         _movementController.HaltVelocity();
         _movementController.IsDashing = true;
+        AbilityVfx.Burst(_rootTransform.position + Vector3.up * 0.2f, AbilityVfx.Dust, 1.2f, 20, 0.5f);
         Vector3 leapDirection = -_rootTransform.forward;
         leapDirection.y = 0f;
         leapDirection.Normalize();
@@ -61,6 +62,9 @@ public class HuntersLeap : Ability, IInitializable
         
         _movementController.HaltVelocity();
         _movementController.IsDashing = false;
+
+        AbilityVfx.Ring(_rootTransform.position + Vector3.up * 0.1f, AbilityVfx.Silver, 3f);
+        AbilityVfx.Burst(_rootTransform.position + Vector3.up * 0.2f, AbilityVfx.Dust, 1.5f, 24, 0.5f);
 
         StartCooldown();
     }

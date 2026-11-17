@@ -210,7 +210,7 @@ MonoBehaviour:
   range: 30
   isHolding: 0
   maxChargeTime: 0.8
-  arrowPrefab: {fileID: 7647197124771894346, guid: 711c1685bafdb9944b56d140fbb6b068, type: 3}
+  arrowPrefab: {fileID: 7647197124771894346, guid: 5268b13d70d812e48b4eafe296c33393, type: 3}
 --- !u!114 &2271320762536309116
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -50,6 +50,7 @@ public class TrainingArena : MonoBehaviour
 
     private void Awake()
     {
+        AbilityVfx.Suppressed = true; // no generated VFX while training
         if (agent == null && agentPrefab != null)
         {
             agent = SpawnDormant(agentPrefab, transform.position, name + "_Agent");

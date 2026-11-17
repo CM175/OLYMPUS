@@ -5,6 +5,8 @@ public class LabyrinthDomain : Ultimate, IInitializable
 {
     [Header("Arena Settings")]
     [SerializeField] private GameObject pillarPrefab;
+    [SerializeField] private Vector3 pillarScale = new Vector3(100f, 100f, 100f);
+    [SerializeField] private Vector3 pillarRotationOffset = new Vector3(-90f, 0f, 0f);
     [SerializeField] private int pillarCount = 10;
     [SerializeField] private float arenaRadius = 7.5f;
     [SerializeField] private float arenaDuration = 6.0f;
@@ -28,6 +30,9 @@ public class LabyrinthDomain : Ultimate, IInitializable
     private IEnumerator ErectLabyrinth()
     {
         Vector3 center = _rootTransform.position;
+        AbilityVfx.Ring(center + Vector3.up * 0.1f, AbilityVfx.Crimson, arenaRadius, 0.6f);
+        AbilityVfx.Burst(center + Vector3.up, AbilityVfx.Crimson, 2f, 50);
+
         Collider[] victims = AbilityPhysics.OverlapSphere(center, arenaRadius);
         var myTeam = _rootTransform.GetComponent<TeamMember>();
 
@@ -35,7 +40,6 @@ public class LabyrinthDomain : Ultimate, IInitializable
         {
             Transform targetRoot = col.transform.root;
             if (targetRoot == _rootTransform) continue;
-
             if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject))
                 continue;
 
@@ -43,15 +47,17 @@ public class LabyrinthDomain : Ultimate, IInitializable
             Deal(dmg, slamDamage);
 
             IMovementController targetMovement = targetRoot.GetComponent<IMovementController>();
-    
-            Vector3 toCenter = center - targetRoot.position;
-            toCenter.y = 0f;
-            Vector3 pullDirection = toCenter.normalized;
+            if (targetMovement != null)
+            {
+                Vector3 toCenter = center - targetRoot.position;
+                toCenter.y = 0f;
+                Vector3 pullDirection = toCenter.normalized;
+                Vector3 pullImpulse = pullDirection * pullForce;
 
-            Vector3 pullImpulse = pullDirection * pullForce;
-            targetMovement.HaltVelocity();
-            targetMovement.Stun(stunDuration); 
-            targetMovement.ApplyImpulseForce(pullImpulse);
+                targetMovement.HaltVelocity();
+                targetMovement.Stun(stunDuration);
+                targetMovement.ApplyImpulseForce(pullImpulse);
+            }
         }
 
         GameObject[] spawnedPillars = new GameObject[pillarCount];
@@ -62,9 +68,17 @@ public class LabyrinthDomain : Ultimate, IInitializable
             float angle = i * angleStep * Mathf.Deg2Rad;
             Vector3 offset = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * arenaRadius;
             Vector3 spawnPos = center + offset;
-            Quaternion rotation = Quaternion.LookRotation(center - spawnPos);
+            spawnPos.y = 0f;
+
+            Vector3 toCenter = center - spawnPos;
+            toCenter.y = 0f;
+            Quaternion rotation = Quaternion.LookRotation(toCenter) * Quaternion.Euler(pillarRotationOffset);
+
             spawnedPillars[i] = Instantiate(pillarPrefab, spawnPos, rotation);
-            Destroy(spawnedPillars[i], arenaDuration+ 1.5f);
+            spawnedPillars[i].transform.localScale = pillarScale;
+
+            AbilityVfx.Burst(spawnPos, AbilityVfx.Dust, 1.5f, 24, 0.5f);
+            Destroy(spawnedPillars[i], arenaDuration + 1.5f);
         }
 
         StartCooldown();

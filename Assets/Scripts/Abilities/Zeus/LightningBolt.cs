@@ -22,7 +22,7 @@ public class LightningBolt : Attack
         Ray ray = new Ray(rayOrigin, rayDir);
         Vector3 endPoint = ray.GetPoint(range);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, range))
+        if (Physics.Raycast(ray, out RaycastHit hit, range, AbilityPhysics.HittableMask))
         {
             endPoint = hit.point;
             var myTeam = root.GetComponent<TeamMember>();
@@ -72,7 +72,12 @@ public class LightningBolt : Attack
 
     private IEnumerator ShowBolt(Vector3 start, Vector3 end)
     {
-        if (boltLine == null) yield break;
+        if (boltLine == null)
+        {
+            AbilityVfx.Bolt(start, end, AbilityVfx.Storm, 0.3f, beamDuration, 0.5f);
+            AbilityVfx.Impact(end, AbilityVfx.Storm, 0.8f);
+            yield break;
+        }
         LineRenderer arc = Instantiate(boltLine);
         Destroy(arc.gameObject, beamDuration + 0.5f);
         arc.enabled = true;
@@ -101,7 +106,12 @@ public class LightningBolt : Attack
 
     private IEnumerator ShowChainArc(Vector3 start, Vector3 end)
     {
-        if (boltLine == null) yield break;
+        if (boltLine == null)
+        {
+            AbilityVfx.Bolt(start, end, AbilityVfx.Storm, 0.18f, 0.15f, 0.3f);
+            AbilityVfx.Impact(end, AbilityVfx.Storm, 0.6f);
+            yield break;
+        }
         LineRenderer arc = Instantiate(boltLine);
         arc.enabled = true;
         float elapsed = 0;

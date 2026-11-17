@@ -59,6 +59,11 @@ public class ShadowStep : Ability, IInitializable
         {
             Instantiate(sinkVFXPrefab, _rootTransform.position, Quaternion.identity);
         }
+        else
+        {
+            AbilityVfx.Burst(_rootTransform.position + Vector3.up * 0.5f, AbilityVfx.Violet, 1.4f, 30);
+            AbilityVfx.Aura(_rootTransform, AbilityVfx.Violet, realmDuration, 0.5f);
+        }
 
         // 3. Shift to ShadowRealm layer so bullets pass through
         if (_shadowRealmLayer != -1)
@@ -110,6 +115,11 @@ public class ShadowStep : Ability, IInitializable
         if (emergeVFXPrefab != null)
         {
             Instantiate(emergeVFXPrefab, emergePos, Quaternion.identity);
+        }
+        else
+        {
+            AbilityVfx.Ring(emergePos + Vector3.up * 0.1f, AbilityVfx.Violet, emergeRadius, 0.45f);
+            AbilityVfx.Burst(emergePos + Vector3.up, AbilityVfx.Violet, 1.8f, 36);
         }
 
         // 4. Erupt out with damage and crowd control

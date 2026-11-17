@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class StormArrow : BaseProjectile
 {
+    protected override Color DefaultVfxColor => AbilityVfx.Silver;
+
     public float minSpeed = 20f;
     
     public float maxSpeed = 100f;

@@ -16,7 +16,7 @@ public class AchillesFury : Ultimate
 
     private IEnumerator FuryRoutine()
     {
-        // Cache components — they live on the Player root, not the hero child
+        // Cache components â€” they live on the Player root, not the hero child
         IDamageable health         = transform.root.GetComponent<IDamageable>();
         PlayerStats stats           = transform.root.GetComponent<PlayerStats>();
         IMovementController controller = transform.root.GetComponent<IMovementController>();
@@ -26,7 +26,10 @@ public class AchillesFury : Ultimate
         if (stats      != null) stats.DamageMultiplier        = damageMultiplier;
         if (controller != null) controller.SpeedMultiplier    = speedMultiplier;
 
-        //Debug.Log($"[AchillesFury] Active — {duration}s of invincibility, {damageMultiplier}x damage, {speedMultiplier}x speed.");
+        AbilityVfx.Burst(transform.root.position + Vector3.up, AbilityVfx.Crimson, 2f, 60);
+        AbilityVfx.Aura(transform.root, AbilityVfx.Crimson, duration);
+
+        //Debug.Log($"[AchillesFury] Active â€” {duration}s of invincibility, {damageMultiplier}x damage, {speedMultiplier}x speed.");
 
         yield return new WaitForSeconds(duration);
 
