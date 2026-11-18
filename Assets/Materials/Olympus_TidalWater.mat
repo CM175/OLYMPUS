@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Olympus_TidalWater
+  m_Shader: {fileID: 4800000, guid: 167e6dd161749e44a839eacb440c2470, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _Brightness: 1.3
+    - _Cull: 0
+    - _FlowSpeed: 1.5
+    - _FoamSoftness: 0.15
+    - _FoamStart: 0.72
+    - _NoiseScale: 4
+    - _NormalJitter: 0.3
+    - _RimPower: 2.5
+    - _SpecIntensity: 0.8
+    - _SpecPower: 64
+    - _Wobble: 0.05
+    m_Colors:
+    - _DeepColor: {r: 0.02, g: 0.27999997, b: 0.54999995, a: 0.8}
+    - _FoamColor: {r: 0.93, g: 1, b: 1, a: 1}
+    - _RimColor: {r: 0.65, g: 1, b: 1, a: 1}
+    - _ShallowColor: {r: 0.11999995, g: 0.85, b: 0.95, a: 0.55}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

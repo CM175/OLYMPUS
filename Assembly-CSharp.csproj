@@ -65,11 +65,12 @@
     <Compile Include="Assets\Scripts\Hero.cs" />
     <Compile Include="Assets\Scripts\MapGenerator.cs" />
     <Compile Include="Assets\Scripts\DamageProxy.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Poseidon\TidalWaveProjectile.cs" />
     <Compile Include="Assets\Scripts\Abilities\Hermes\BlinkDash.cs" />
     <Compile Include="Assets\Scripts\Abilities\Achillies\FrontalArmor.cs" />
     <Compile Include="Assets\Scripts\MouseLook.cs" />
-    <Compile Include="Assets\Scripts\Abilities\Poseidon\TidalSurge.cs" />
     <Compile Include="Assets\Scripts\PlayerHealth.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Poseidon\TidalWave.cs" />
     <Compile Include="Assets\Scripts\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Attack.cs" />
     <Compile Include="Assets\Scripts\Abilities\Minotaur\AxeSwing.cs" />
@@ -91,6 +92,7 @@
     <Compile Include="Assets\Scripts\HUDController.cs" />
     <Compile Include="Assets\Scripts\AbilityPhysics.cs" />
     <Compile Include="Assets\Scripts\Abilities\Poseidon\TridentProjectile.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Poseidon\TidalWaveVisuals.cs" />
     <Compile Include="Assets\Scripts\Abilities\Apollo\AscensionLeap.cs" />
     <Compile Include="Assets\Scripts\AbilityManager.cs" />
     <Compile Include="Assets\Scripts\Abilities\Poseidon\ReleaseTheKraken.cs" />
@@ -119,7 +121,6 @@
     <Compile Include="Assets\Scripts\FallDiagnostics.cs" />
     <Compile Include="Assets\Scripts\Abilities\Achillies\ShieldBash.cs" />
     <Compile Include="Assets\Scripts\Abilities\Achillies\SlayerOfTroy.cs" />
-    <Compile Include="Assets\Scripts\Abilities\Poseidon\TidalSurgeProjectile.cs" />
     <Compile Include="Assets\Scripts\TeamMember.cs" />
     <Compile Include="Assets\Scripts\EnemyAttack.cs" />
     <Compile Include="Assets\Scripts\LightningShieldEffect.cs" />
@@ -156,6 +157,7 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
     <None Include="Assets\Materials\LightningShield.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
+    <None Include="Assets\Materials\TidalWater.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\SDFFunctions.hlsl" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
     <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
@@ -166,8 +168,9 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
+    <None Include="Assets\Materials\TidalSpray.shader" />
     <None Include="Assets\Materials\OutlineShader.shader" />
-    <None Include="Assets\Materials\TidalSurgeWater.shader" />
+    <None Include="Assets\Materials\TidalWaveWater.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />

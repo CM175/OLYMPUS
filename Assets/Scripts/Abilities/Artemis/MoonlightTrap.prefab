@@ -57,7 +57,7 @@ MonoBehaviour:
   vfxColor: {r: 0, g: 0, b: 0, a: 0}
   _hasImpacted: 0
   projectileLayer: 0
-  triggerRadius: 0.5
+  triggerRadius: 1
   trappedDuration: 2
   searchMask:
     serializedVersion: 2

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TidalSurgeProjectile : BaseProjectile
+public class TidalWaveProjectile : BaseProjectile
 {
     protected override Color DefaultVfxColor => AbilityVfx.Azure;
 

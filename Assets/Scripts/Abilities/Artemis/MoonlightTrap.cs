@@ -49,22 +49,29 @@ public class MoonlightTrap : BaseProjectile
 
         // Search for target elements walking across the trigger volum
         Collider[] victims = AbilityPhysics.OverlapSphere(transform.position, triggerRadius);
-        if (victims.Length > 0)
+        for (int i = 0; i < victims.Length; i++)
         {
-            TriggerTrap(victims[0]);
+            if (TriggerTrap(victims[i]))
+            {
+                break;
+            }
         }
     }
 
-    private void TriggerTrap(Collider victim)
+    private bool TriggerTrap(Collider victim)
     {
         Transform victimRoot = victim.transform.root;
         var myTeam = attackerRoot.GetComponent<TeamMember>();
-                
-        if (myTeam != null && !myTeam.IsEnemy(victimRoot.gameObject))
-        {
-            return;
-        }
 
+
+        if ((myTeam != null && !myTeam.IsEnemy(victimRoot.gameObject)) )
+        {
+            return false;
+        }
+        if (victimRoot.gameObject.layer == LayerMask.NameToLayer("Character"))
+        {
+            Debug.Log($"MoonlightTrap: Triggered by {victimRoot.name}");
+        }
         ApplyDamage(victim);
         
         // OPTIMIZED: Replaced concrete EnemyAI and PlayerController lookups with our unified interface contract hook
@@ -74,7 +81,17 @@ public class MoonlightTrap : BaseProjectile
             movement.Stun(trappedDuration);
         }
 
+        
+
         SpawnImpactVisuals(victim);
         Destroy(gameObject);
+
+        return true;
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, triggerRadius);
     }
 }

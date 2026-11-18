@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class TidalSurge : Ability, IInitializable
+public class TidalWave : Ability, IInitializable
 {
     [Header("Wave Setup")]
     public GameObject waveProjectilePrefab;
@@ -28,7 +28,7 @@ public class TidalSurge : Ability, IInitializable
         AbilityVfx.Ring(spawnPos, AbilityVfx.Azure, 3f);
 
         GameObject wave = Instantiate(waveProjectilePrefab, spawnPos, spawnRot);
-        TidalSurgeProjectile waveScript = wave.GetComponent<TidalSurgeProjectile>();
+        TidalWaveProjectile waveScript = wave.GetComponent<TidalWaveProjectile>();
         if (waveScript != null)
         {
             waveScript.SetAttacker(_rootTransform.gameObject);

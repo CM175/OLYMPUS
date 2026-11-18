@@ -78,8 +78,9 @@ public class BaseProjectile : MonoBehaviour
         _hasImpacted = true;
         SpawnImpactVisuals(other);
         ApplyDamage(other);
-
-        if (!piercesTargets)
+        LayerMask layerMask = other.gameObject.layer;
+        //Debug.Log($"Projectile hit {other.gameObject.name} on layer {layerMask}. Pierces: {piercesTargets}");
+        if (!piercesTargets || layerMask != LayerMask.NameToLayer("Character"))
         {
             Destroy(gameObject);
         }
