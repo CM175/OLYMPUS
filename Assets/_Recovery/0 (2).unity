@@ -436,10 +436,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   walkSpeed: 6
-  sprintSpeed: 10
   crouchSpeed: 3
   gravity: -9.81
   jumpHeight: 2
+  horizontalDrag: 8
   standingHeight: 2
   crouchHeight: 1
   crouchTransitionSpeed: 8
@@ -503,6 +503,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad973a6993ca6ba48b83fca98053ce5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AbilityManager
+  isPlayer: 0
+  primaryAttack: {fileID: 0}
   primaryAbility: {fileID: 0}
   secondaryAbility: {fileID: 0}
   mobilityAbility: {fileID: 0}
@@ -522,6 +524,7 @@ MonoBehaviour:
   maxHealth: 100
   spawnPoint: {fileID: 101492584}
   currentHealth: 0
+  matchManager: {fileID: 0}
 --- !u!114 &351264099
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -537,6 +540,7 @@ MonoBehaviour:
   heroPrefab: {fileID: 2458631646282970328, guid: 9726485d70d048541b68ddb357834ba1, type: 3}
   playerCamera: {fileID: 963194227}
   currentHero: {fileID: 2458631646282970328, guid: 9726485d70d048541b68ddb357834ba1, type: 3}
+  isAIControlled: 0
 --- !u!114 &351264100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -551,7 +555,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   currentUltimateCharge: 0
   maxUltimateCharge: 0
-  chargePerHit: 1
+  chargePerDamagePoint: 1
   pointsPerSecond: 5
 --- !u!1 &375830220
 GameObject:
@@ -599,6 +603,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   enemyPrefab: {fileID: 2391148793557673702, guid: db7a51463a4101849a16d6f35053f929, type: 3}
   spawnRate: 5
+  count: 0
+  maxEnemies: 3
 --- !u!1 &422172736
 GameObject:
   m_ObjectHideFlags: 0
@@ -681,7 +687,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2101,16 +2107,15 @@ MonoBehaviour:
   heroManager: {fileID: 351264099}
   healthBarFill: {fileID: 1689150383}
   healthText: {fileID: 1801118754}
-  ultChargeBarFill: {fileID: 444560810}
-  ultChargeText: {fileID: 430377368}
   heroNameText: {fileID: 0}
   heroRoleText: {fileID: 0}
-  secondaryIcon: {fileID: 1502299244}
-  mobilityIcon: {fileID: 1757510038}
-  ultimateCooldownOverlay: {fileID: 444560810}
-  secondaryOverlay: {fileID: 951624930}
-  mobilityCooldownOverlay: {fileID: 1341352442}
+  primaryHUD: {fileID: 0}
+  secondaryHUD: {fileID: 0}
+  mobilityHUD: {fileID: 0}
+  ultimateHUD: {fileID: 0}
   ultReadyIndicator: {fileID: 0}
+  deathScreenPanel: {fileID: 0}
+  respawnTimerText: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

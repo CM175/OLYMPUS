@@ -47,3 +47,5 @@ TagManager:
     locked: 0
   m_RenderingLayers:
   - Default
+  - TeamA_Outline
+  - TeamB_Outline

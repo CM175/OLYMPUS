@@ -51,7 +51,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TidalWaveProjectile
   speed: 20
-  gravityScale: 0
+  gravityScale: 1
   maxRange: 20
   damage: 20
   piercesTargets: 0

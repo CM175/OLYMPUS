@@ -101,10 +101,11 @@ GameObject:
   - component: {fileID: 8492045905183251075}
   - component: {fileID: 2117606048965787888}
   - component: {fileID: 7172785217306823700}
-  - component: {fileID: 1296108845960250951}
   - component: {fileID: 5111741522757223891}
   - component: {fileID: 5020004130006532914}
   - component: {fileID: -199001585297649089}
+  - component: {fileID: 6346547376928634690}
+  - component: {fileID: 2254561037275938026}
   m_Layer: 8
   m_Name: Enemy
   m_TagString: Enemy
@@ -329,22 +330,6 @@ MonoBehaviour:
   navMeshRecoveryRadius: 1
   groundCheckTolerance: 0.25
   aimErrorAngle: 10
---- !u!114 &1296108845960250951
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2391148793557673702}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3dc1dc4d8b20cf1488c0d9b44cc75723, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TeamColorVisuals
-  teamAColor: {r: 0.2, g: 0.6, b: 1, a: 1}
-  teamBColor: {r: 1, g: 0.2, b: 0.2, a: 1}
-  colorPropertyName: _BaseColor
-  emissionPropertyName: _EmissionColor
 --- !u!114 &5111741522757223891
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -418,3 +403,33 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &6346547376928634690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2391148793557673702}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc42f92cb212b0a48b45d6d814cdabef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeamOutlineVisuals
+  teamAOutlineLayerBit: 2
+  teamBOutlineLayerBit: 4
+--- !u!114 &2254561037275938026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2391148793557673702}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11d20320b5068d04eb0a737e2cb168dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterHealthBarAnchor
+  healthBarPrefab: {fileID: 6703253117819276203, guid: fd7ffd2824f0fb445b7ea41c49de2f98, type: 3}
+  allyColor: {r: 1, g: 1, b: 1, a: 1}
+  enemyColor: {r: 0.9, g: 0.2, b: 0.2, a: 1}
+  hideForLocalPlayer: 1

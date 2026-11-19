@@ -50,6 +50,8 @@ public class HeroManager : MonoBehaviour
         currentHero = Instantiate(prefab, transform.position, transform.rotation);
         currentHero.transform.SetParent(transform);
 
+        PositionCameraToHead();
+
         _abilityManager.primaryAttack    = currentHero.primaryAttack;
         _abilityManager.primaryAbility   = currentHero.primaryAbility;
         _abilityManager.secondaryAbility = currentHero.secondaryAbility;
@@ -65,9 +67,9 @@ public class HeroManager : MonoBehaviour
 
         OnHeroLoaded?.Invoke(currentHero);
 
-        if (TryGetComponent<TeamColorVisuals>(out var teamVisuals))
+        if (TryGetComponent<TeamOutlineVisuals>(out var outlineVisuals))
         {
-            teamVisuals.ApplyVisuals();
+            outlineVisuals.ApplyVisuals();
         }
 
         if (!isAIControlled)
@@ -143,5 +145,29 @@ public class HeroManager : MonoBehaviour
             init.Initialize(gameObject);
         }
         currentHero.passiveAbility.Use();
+    }
+
+    private void PositionCameraToHead()
+    {
+        if (playerCamera == null) return;
+
+        
+        // Fallback: calculate top of the model's renderers if headPoint wasn't assigned
+        Renderer[] renderers = currentHero.GetComponentsInChildren<Renderer>();
+        if (renderers.Length > 0)
+        {
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+            // Place at ~70% of total model height (approximate eye level)
+            float eyeY = Mathf.Lerp(bounds.min.y, bounds.max.y, 0.7f);
+            Vector3 targetPos = playerCamera.transform.position;
+            targetPos.z += 0.2f;
+            targetPos.y = eyeY;
+            playerCamera.transform.position = targetPos;
+        }
+        
     }
 }

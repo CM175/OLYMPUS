@@ -16,8 +16,8 @@ GameObject:
   - component: {fileID: 5314131021646493146}
   - component: {fileID: 6019712462396341325}
   - component: {fileID: 2945150499789069994}
-  - component: {fileID: 2953813353661969110}
   - component: {fileID: 4312241246734217674}
+  - component: {fileID: 4044853292506913221}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -171,22 +171,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TeamMember
   team: 0
---- !u!114 &2953813353661969110
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 560230799114539144}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3dc1dc4d8b20cf1488c0d9b44cc75723, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TeamColorVisuals
-  teamAColor: {r: 0.2, g: 0.6, b: 1, a: 1}
-  teamBColor: {r: 1, g: 0.2, b: 0.2, a: 1}
-  colorPropertyName: _BaseColor
-  emissionPropertyName: _EmissionColor
 --- !u!54 &4312241246734217674
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -214,6 +198,20 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &4044853292506913221
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 560230799114539144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc42f92cb212b0a48b45d6d814cdabef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeamOutlineVisuals
+  teamAOutlineLayerBit: 2
+  teamBOutlineLayerBit: 4
 --- !u!1 &1052349920367589121
 GameObject:
   m_ObjectHideFlags: 0
@@ -257,6 +255,7 @@ GameObject:
   - component: {fileID: 3257070645609897952}
   - component: {fileID: 2541005533603392223}
   - component: {fileID: 6646547199273161230}
+  - component: {fileID: 1044404874400289182}
   m_Layer: 8
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -310,7 +309,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.1
   far clip plane: 1000
   field of view: 60
   orthographic: 0
@@ -355,3 +354,47 @@ MonoBehaviour:
   minPitch: -90
   maxPitch: 90
   playerBody: {fileID: 7889903877807829942}
+--- !u!114 &1044404874400289182
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3334946938482652645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2

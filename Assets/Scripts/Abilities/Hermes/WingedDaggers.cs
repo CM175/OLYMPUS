@@ -7,7 +7,6 @@ public class WingedDaggers : Attack
     [SerializeField] private GameObject daggerPrefab;
     [SerializeField] private int daggersPerBurst = 2;
     [SerializeField] private float burstInterval = 0.08f; // Time between each dagger in the burst
-    [SerializeField] private float throwForce = 50f;
     [SerializeField] private float fireCooldown = 1f;   // Cooldown after a full burst
 
     private float _nextCanUseTime;

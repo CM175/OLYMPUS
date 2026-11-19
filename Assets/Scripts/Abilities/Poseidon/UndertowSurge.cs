@@ -14,9 +14,6 @@ public class UntertowSurge : Ability, IInitializable
     [SerializeField] private int surgeDamage = 30;
     [SerializeField] private float pushForce = 20f;
 
-    [Header("Defense")]
-    [SerializeField] private float damageReductionPercentage = 0.3f;
-
     [Header("Visuals")]
     [SerializeField] private GameObject waveVFXPrefab;
     [SerializeField] private GameObject wallSplashVFXPrefab;

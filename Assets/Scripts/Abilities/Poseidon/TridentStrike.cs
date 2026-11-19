@@ -3,7 +3,7 @@ using UnityEngine;
 public class TridentStrike : Attack, IInitializable
 {
     [Header("Melee Settings")]
-    [SerializeField] private float thrustRadius = 1.2f;
+    [SerializeField] private float thrustRadius = 0.6f;
 
     [Header("Ranged Throw Settings")]
     [SerializeField] private GameObject tridentProjectilePrefab;
@@ -21,6 +21,7 @@ public class TridentStrike : Attack, IInitializable
     public override void OnPress()
     {
         base.OnPress();
+        if (!CanUse()) return;
         _isCharging = true;
         _pressStartTime = Time.time;
     }
@@ -51,13 +52,34 @@ public class TridentStrike : Attack, IInitializable
         Vector3 origin = (playerCamera != null) ? playerCamera.transform.position : _rootTransform.position + Vector3.up * 1.5f;
         Vector3 dir = (playerCamera != null) ? playerCamera.transform.forward : (movement != null ? movement.GetAimDirection() : _rootTransform.forward);
 
-        if (Physics.SphereCast(origin, thrustRadius, dir, out RaycastHit hit, range, AbilityPhysics.HittableMask))
-        {
-            Transform targetRoot = hit.collider.transform.root;
-            var myTeam = _rootTransform.GetComponent<TeamMember>();
-            if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject)) return;
+        // Define the two sphere centers of the capsule along the thrust vector
+        Vector3 point1 = origin + dir * thrustRadius;
+        Vector3 point2 = origin + dir * Mathf.Max(thrustRadius, range - thrustRadius);
 
-            IDamageable target = targetRoot.GetComponent<IDamageable>() ?? hit.collider.GetComponent<IDamageable>();
+        Collider[] hits = Physics.OverlapCapsule(point1, point2, thrustRadius, AbilityPhysics.HittableMask);
+        var myTeam = _rootTransform.GetComponent<TeamMember>();
+
+        Collider closestHit = null;
+        float closestDistSqr = float.MaxValue;
+
+        foreach (Collider col in hits)
+        {
+            Transform targetRoot = col.transform.root;
+            if (targetRoot == _rootTransform) continue;
+            if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject)) continue;
+
+            float distSqr = (col.ClosestPoint(origin) - origin).sqrMagnitude;
+            if (distSqr < closestDistSqr)
+            {
+                closestDistSqr = distSqr;
+                closestHit = col;
+            }
+        }
+
+        if (closestHit != null)
+        {
+            Transform targetRoot = closestHit.transform.root;
+            IDamageable target = targetRoot.GetComponent<IDamageable>() ?? closestHit.GetComponent<IDamageable>();
             if (target != null)
             {
                 Deal(target, damage);
@@ -101,5 +123,23 @@ public class TridentStrike : Attack, IInitializable
             script.SetAttacker(_rootTransform.gameObject);
             script.SetCharge(chargeRatio);
         }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Transform root = _rootTransform != null ? _rootTransform : transform.root;
+        Gizmos.color = Color.cyan;
+
+        Vector3 origin = root.position + Vector3.up * 1.5f;
+        Vector3 dir = root.forward;
+        Vector3 point1 = origin + dir * thrustRadius;
+        Vector3 point2 = origin + dir * Mathf.Max(thrustRadius, range - thrustRadius);
+
+        Gizmos.DrawWireSphere(point1, thrustRadius);
+        Gizmos.DrawWireSphere(point2, thrustRadius);
+        Gizmos.DrawLine(point1 + root.up * thrustRadius, point2 + root.up * thrustRadius);
+        Gizmos.DrawLine(point1 - root.up * thrustRadius, point2 - root.up * thrustRadius);
+        Gizmos.DrawLine(point1 + root.right * thrustRadius, point2 + root.right * thrustRadius);
+        Gizmos.DrawLine(point1 - root.right * thrustRadius, point2 - root.right * thrustRadius);
     }
 }

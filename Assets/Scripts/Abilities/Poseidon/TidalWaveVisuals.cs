@@ -97,10 +97,7 @@ public class TidalWaveVisuals : MonoBehaviour
         Bounds b = mf.sharedMesh.bounds;
         MeshRenderer rend = GetComponent<MeshRenderer>();
         Material m = rend != null ? rend.sharedMaterial : null;
-        Debug.Log($"TidalWaveVisuals: bounds {b.min}..{b.max} | renderer enabled={(rend != null && rend.enabled)} " +
-                  $"| shader={(m != null ? m.shader.name : "none")} supported={(m != null && m.shader.isSupported)} " +
-                  $"| layer={gameObject.layer} | pos={transform.position}", this);
-
+    
         if (fitColliderToMesh)
         {
             BoxCollider box = GetComponent<BoxCollider>();
@@ -196,8 +193,7 @@ public class TidalWaveVisuals : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (Application.isPlaying && gameObject.scene.isLoaded)
-            Debug.Log($"TidalWaveVisuals: wave destroyed after {Time.time - _spawnTime:F2}s at {transform.position}");
+            
         if (_waterMat != null) Destroy(_waterMat);
         if (_sprayMat != null) Destroy(_sprayMat);
     }

@@ -63,4 +63,5 @@ public class AxeSwing : Attack, IInitializable
             Deal(targetDamage, damage);
         }
     }
+
 }
