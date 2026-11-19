@@ -3,45 +3,75 @@ using UnityEngine;
 public class SpearThrust : Attack
 {
     [Header("Spear Thrust Settings")]
-    public float thrustRadius = 1.5f; 
+    public float thrustRadius = 1.5f;
 
     protected override void Activate()
     {
-        
         Transform root = transform.root;
         IMovementController movement = root.GetComponent<IMovementController>();
 
-        // OPTIMIZED: Safe origin/direction calculation fallback context for AI scripts
-        Vector3 origin = (playerCamera != null) ? playerCamera.transform.position : root.position + Vector3.up;
-        Vector3 direction = (movement != null) ? movement.GetAimDirection() : root.forward;
+        Vector3 origin = (playerCamera != null) ? playerCamera.transform.position : root.position + Vector3.up * 1.5f;
+        Vector3 dir = (playerCamera != null) ? playerCamera.transform.forward : (movement != null ? movement.GetAimDirection() : root.forward);
 
-        if (Physics.SphereCast(origin, thrustRadius, direction, out RaycastHit hit, range, AbilityPhysics.HittableMask))
+        // Define the two sphere centers of the capsule along the thrust vector
+        Vector3 point1 = origin + dir * thrustRadius;
+        Vector3 point2 = origin + dir * Mathf.Max(thrustRadius, range - thrustRadius);
+
+        Collider[] hits = Physics.OverlapCapsule(point1, point2, thrustRadius, AbilityPhysics.HittableMask);
+        var myTeam = root.GetComponent<TeamMember>();
+
+        Collider closestHit = null;
+        float closestDistSqr = float.MaxValue;
+
+        foreach (Collider col in hits)
         {
-            
-            Transform targetRoot = hit.collider.transform.root;
-            var myTeam = root.GetComponent<TeamMember>();
-            
-            if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject))
+            Transform targetRoot = col.transform.root;
+            if (targetRoot == root) continue;
+            if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject)) continue;
+
+            float distSqr = (col.ClosestPoint(origin) - origin).sqrMagnitude;
+            if (distSqr < closestDistSqr)
             {
-                return;
+                closestDistSqr = distSqr;
+                closestHit = col;
             }
-            
-            IDamageable target = hit.collider.GetComponent<IDamageable>() ?? targetRoot.GetComponent<IDamageable>();
-            
+        }
+
+        if (closestHit != null)
+        {
+            Transform targetRoot = closestHit.transform.root;
+            IDamageable target = targetRoot.GetComponent<IDamageable>() ?? closestHit.GetComponent<IDamageable>();
             if (target != null)
             {
                 Deal(target, damage);
-                //Debug.Log($"[SpearThrust] Hit {hit.collider.name} for {finalDamage} damage.");
             }
         }
 
         if (vfxPrefab != null)
         {
-            Instantiate(vfxPrefab, origin + (direction * 1.5f), Quaternion.LookRotation(direction));
+            Instantiate(vfxPrefab, origin + (dir * 1.5f), Quaternion.LookRotation(dir));
         }
         else
         {
-            AbilityVfx.Cone(root.position + Vector3.up, direction, AbilityVfx.Gold, range, 20f);
+            AbilityVfx.Cone(root.position + Vector3.up, dir, AbilityVfx.Gold, range, 20f);
         }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Transform root = transform.root;
+        Gizmos.color = Color.yellow;
+
+        Vector3 origin = root.position + Vector3.up * 1.5f;
+        Vector3 dir = root.forward;
+        Vector3 point1 = origin + dir * thrustRadius;
+        Vector3 point2 = origin + dir * Mathf.Max(thrustRadius, range - thrustRadius);
+
+        Gizmos.DrawWireSphere(point1, thrustRadius);
+        Gizmos.DrawWireSphere(point2, thrustRadius);
+        Gizmos.DrawLine(point1 + root.up * thrustRadius, point2 + root.up * thrustRadius);
+        Gizmos.DrawLine(point1 - root.up * thrustRadius, point2 - root.up * thrustRadius);
+        Gizmos.DrawLine(point1 + root.right * thrustRadius, point2 + root.right * thrustRadius);
+        Gizmos.DrawLine(point1 - root.right * thrustRadius, point2 - root.right * thrustRadius);
     }
 }

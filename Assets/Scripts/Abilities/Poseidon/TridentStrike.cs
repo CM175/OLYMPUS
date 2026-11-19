@@ -7,7 +7,7 @@ public class TridentStrike : Attack, IInitializable
 
     [Header("Ranged Throw Settings")]
     [SerializeField] private GameObject tridentProjectilePrefab;
-    [SerializeField] private float maxChargeTime = 1.2f;
+    [SerializeField] private float maxChargeTime = 1.45f;
 
     private float _pressStartTime;
     private bool _isCharging;
@@ -20,21 +20,18 @@ public class TridentStrike : Attack, IInitializable
 
     public override void OnPress()
     {
-        base.OnPress();
-        if (!CanUse()) return;
         _isCharging = true;
         _pressStartTime = Time.time;
     }
 
     public override void OnRelease()
     {
-        base.OnRelease();
         if (!_isCharging) return;
-
+        if (!CanUse()) return;
         float heldDuration = Time.time - _pressStartTime;
-        if (heldDuration >= 0.35f)
+        if (heldDuration >= cooldown)
         {
-            float chargeRatio = Mathf.Clamp01((heldDuration - 0.35f) / (maxChargeTime - 0.35f));
+            float chargeRatio = Mathf.Clamp01((heldDuration - cooldown) / (maxChargeTime - cooldown));
             ThrowTrident(chargeRatio);
         }
         else

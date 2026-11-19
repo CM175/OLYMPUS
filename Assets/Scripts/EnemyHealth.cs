@@ -23,8 +23,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable
     public event Action<int, GameObject> OnDamageReceived;
     public event Action<GameObject> OnDied;
     public UnityEvent<GameObject> OnDeathWithKiller;
-    public event Action<int, GameObject> OnDamageDealt;
-    public static event Action<int> OnAnyEnemyDamaged;
+    public static event Action<int, GameObject> OnDamageDealt;
+    public static event Action<int, GameObject> OnHealDealt;
 
     public void OnHeroLoaded(Hero hero)
     {
@@ -39,7 +39,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable
         IsDead = false;
     }
 
-    public void TakeDamage(int damage) => TakeDamage(damage, null);
+    public void TakeDamage(int damage) => TakeDamage(damage, DamageContext.CurrentAttacker);
 
     public void TakeDamage(int damage, GameObject attacker)
     {
@@ -47,24 +47,29 @@ public class EnemyHealth : MonoBehaviour, IDamageable
         currentHealth = Mathf.Max(0, currentHealth - damage);
         OnDamageReceived?.Invoke(damage, attacker);
         OnDamageDealt?.Invoke(damage, attacker);
-        OnAnyEnemyDamaged?.Invoke(damage);
         if (currentHealth <= 0) Die(attacker);
     }
 
-    public void ApplyHeal(int heal)
+    public void ApplyHeal(int heal) => ApplyHeal(heal, DamageContext.CurrentAttacker);
+    public void ApplyHeal(int heal, GameObject healer)
     {
         if (IsDead) return;
         currentHealth = Mathf.Min(currentHealth + heal, maxHealth);
+        OnHealDealt?.Invoke(heal, healer);
     }
 
-    public void HealOverTime(int totalHeal, float duration)
+    public void HealOverTime(int totalHeal, float duration, GameObject healer)
     {
         if (IsDead) return;
-        if (duration <= 0f) { ApplyHeal(totalHeal); return; }
-        StartCoroutine(SmoothHealRoutine(totalHeal, duration));
+        if (duration <= 0f) 
+        { 
+            ApplyHeal(totalHeal, healer); 
+            return; 
+        }
+        StartCoroutine(SmoothHealRoutine(totalHeal, duration, healer));
     }
 
-    private IEnumerator SmoothHealRoutine(int totalHeal, float duration)
+    private IEnumerator SmoothHealRoutine(int totalHeal, float duration, GameObject healer)
     {
         float elapsed = 0f, accumulatedHeal = 0f;
         float healRate = totalHeal / duration;
@@ -76,15 +81,15 @@ public class EnemyHealth : MonoBehaviour, IDamageable
             if (accumulatedHeal >= 1f)
             {
                 int amount = Mathf.FloorToInt(accumulatedHeal);
-                ApplyHeal(amount);
+                ApplyHeal(amount, healer);
                 accumulatedHeal -= amount;
             }
             yield return null;
         }
-        if (accumulatedHeal > 0f) ApplyHeal(Mathf.RoundToInt(accumulatedHeal));
+        if (accumulatedHeal > 0f) ApplyHeal(Mathf.RoundToInt(accumulatedHeal), healer);
     }
 
-    public void DamageOverTime(int totalDamage, float duration) => DamageOverTime(totalDamage, duration, null);
+    public void DamageOverTime(int totalDamage, float duration) => DamageOverTime(totalDamage, duration, DamageContext.CurrentAttacker);
 
     public void DamageOverTime(int totalDamage, float duration, GameObject attacker)
     {

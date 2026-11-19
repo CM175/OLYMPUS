@@ -20,8 +20,8 @@ public interface IDamageable
 
     void TakeDamage(int damage);
     void TakeDamage(int damage, GameObject attacker);
-    void ApplyHeal(int heal);
-    void HealOverTime(int totalHeal, float duration);
+    void ApplyHeal(int heal, GameObject healer = null);
+    void HealOverTime(int totalHeal, float duration, GameObject healer = null);
     void DamageOverTime(int totalDamage, float duration);
     void DamageOverTime(int totalDamage, float duration, GameObject attacker);
 }

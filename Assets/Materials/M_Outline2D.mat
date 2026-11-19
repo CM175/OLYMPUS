@@ -116,8 +116,8 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GlowIntensity: 0.5
-    - _GlowSpread: 2.5
+    - _GlowIntensity: 5
+    - _GlowSpread: 1
     - _InteriorDarken: 0.5
     - _Metallic: 0
     - _NoiseScale: 4.5

@@ -80,6 +80,7 @@ MonoBehaviour:
   damage: 35
   range: 3
   isHolding: 0
+  thrustRadius: 0.6
   tridentProjectilePrefab: {fileID: 4986571318311556195, guid: 1bbb758dacc7b814684c585dfc0d33c3, type: 3}
   maxChargeTime: 1.2
 --- !u!114 &3439894929921627425
@@ -126,9 +127,12 @@ MonoBehaviour:
   surgeDuration: 5
   sweepRadius: 2.5
   turnRate: 360
+  tidalWavePrefab: {fileID: 5197287543900479135, guid: 5eb75ca1e8d5df24fad2ac5137d347a9, type: 3}
+  poseidonVisualModel: {fileID: 0}
+  rideHeight: 1.8
+  waveGroundOffset: {x: 0, y: 0, z: -0.1}
   surgeDamage: 30
   pushForce: 20
-  waveVFXPrefab: {fileID: 613807330277917634, guid: 734afa0d744cfbd42a005eca9d6c77a0, type: 3}
   wallSplashVFXPrefab: {fileID: 6750103983602606646, guid: b7f8d19fe9992c24a868a123fb25a84d, type: 3}
 --- !u!114 &4712429978848764771
 MonoBehaviour:
@@ -389,6 +393,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6a166ea3fb044ab4682a02711e78cdc7, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
     - target: {fileID: 971589910904075524, guid: 6a166ea3fb044ab4682a02711e78cdc7, type: 3}
       propertyPath: m_Layer
       value: 8
@@ -544,7 +552,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2

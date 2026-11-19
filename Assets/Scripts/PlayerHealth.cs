@@ -53,24 +53,25 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         }
     }
 
-    public void ApplyHeal(int heal)
+    public void ApplyHeal(int heal) => ApplyHeal(heal, DamageContext.CurrentAttacker);
+    public void ApplyHeal(int heal, GameObject healer)
     {
         if (IsDead) return;
         currentHealth = Mathf.Min(currentHealth + heal, maxHealth);
     }
 
-    public void HealOverTime(int totalHeal, float duration)
+    public void HealOverTime(int totalHeal, float duration, GameObject healer)
     {
         if (IsDead) return;
         if (duration <= 0f)
         {
-            ApplyHeal(totalHeal);
+            ApplyHeal(totalHeal, healer);
             return;
         }
-        StartCoroutine(SmoothHealRoutine(totalHeal, duration));
+        StartCoroutine(SmoothHealRoutine(totalHeal, duration, healer));
     }
 
-    private IEnumerator SmoothHealRoutine(int totalHeal, float duration)
+    private IEnumerator SmoothHealRoutine(int totalHeal, float duration, GameObject healer)
     {
         float elapsed = 0f;
         float accumulatedHeal = 0f;
@@ -85,7 +86,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
             if (accumulatedHeal >= 1f)
             {
                 int healAmount = Mathf.FloorToInt(accumulatedHeal);
-                ApplyHeal(healAmount);
+                ApplyHeal(healAmount, healer);
                 accumulatedHeal -= healAmount;
             }
             yield return null;
@@ -93,7 +94,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
         if (accumulatedHeal > 0f)
         {
-            ApplyHeal(Mathf.RoundToInt(accumulatedHeal));
+            ApplyHeal(Mathf.RoundToInt(accumulatedHeal), healer);
         }
     }
 

@@ -23,13 +23,13 @@ public class TidalWaveProjectile : BaseProjectile
     protected override void OnImpact(Collider other)
     {
         Transform targetRoot = other.transform.root;
-        if (_hitTargets.Contains(targetRoot)) return;
 
         TeamMember myTeam = attackerRoot != null ? attackerRoot.GetComponent<TeamMember>() : null;
         if (myTeam != null && !myTeam.IsEnemy(targetRoot.gameObject)) return;
 
         _hitTargets.Add(targetRoot);
-        ApplyDamage(other);
+        if (!_hitTargets.Contains(targetRoot)) ApplyDamage(other);
+        
 
         IMovementController move = targetRoot.GetComponent<IMovementController>();
         if (move != null)

@@ -27,21 +27,35 @@ public class PlayerStats : MonoBehaviour
     private void OnEnable()
     {
         // Subscribe once — works for all enemies regardless of when they spawn
-        EnemyHealth.OnAnyEnemyDamaged += OnEnemyDamaged;
+        EnemyHealth.OnDamageDealt += OnEnemyDamaged;
+        EnemyHealth.OnHealDealt += OnEnemyHealed;
     }
 
     private void OnDisable()
     {
         // Always unsubscribe — prevents memory leaks and ghost callbacks
-        EnemyHealth.OnAnyEnemyDamaged -= OnEnemyDamaged;
+        EnemyHealth.OnDamageDealt -= OnEnemyDamaged;
+        EnemyHealth.OnHealDealt -= OnEnemyHealed;
     }
 
     // ── Event handler ─────────────────────────────────────────────────────────
 
-    private void OnEnemyDamaged(int damage)
+    private void OnEnemyDamaged(int damage, GameObject attacker)
     {
         // Award charge proportional to damage dealt
-        AddCharge(damage * chargePerDamagePoint);
+        if (attacker == gameObject)
+        {
+            AddCharge(damage * chargePerDamagePoint);
+        }
+    }
+
+    private void OnEnemyHealed(int heal, GameObject healer)
+    {
+        // Award charge proportional to healing done
+        if (healer == gameObject)
+        {
+            AddCharge(heal * chargePerDamagePoint);
+        }
     }
 
     // ── Charge ────────────────────────────────────────────────────────────────

@@ -134,6 +134,7 @@ MonoBehaviour:
   damage: 35
   range: 3.5
   isHolding: 0
+  swingRadius: 1.4
   swingAngle: 90
   vfxSwingLeftPrefab: {fileID: 6577781969580077574, guid: 53e42c76f71c7284994a5c33b327de18, type: 3}
   vfxSwingRightPrefab: {fileID: 7899582061865133473, guid: d0ce8a4f7e430de47bb60cdc6c351970, type: 3}
@@ -493,7 +494,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2

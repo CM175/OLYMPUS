@@ -105,7 +105,7 @@ public class AbilityManager : MonoBehaviour
         {
             foreach (var ability in abilities)
             {
-                if (ability != null) ability.Cancel();
+                if (ability != null && ability.isExecuting) ability.Cancel();
             }
         }
     }

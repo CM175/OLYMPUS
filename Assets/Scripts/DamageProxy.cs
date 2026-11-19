@@ -37,15 +37,16 @@ public class DamageProxy : MonoBehaviour, IDamageable
         _parentDamageable = transform.root.GetComponent<IDamageable>();
     }
 
-    public void TakeDamage(int damage) => TakeDamage(damage, null);
+    public void TakeDamage(int damage) => TakeDamage(damage, DamageContext.CurrentAttacker);
 
     public void TakeDamage(int damage, GameObject attacker)
     {
         _parentDamageable?.TakeDamage(damage, attacker);
     }
 
-    public void ApplyHeal(int heal) => _parentDamageable?.ApplyHeal(heal);
-    public void HealOverTime(int totalHeal, float duration) => _parentDamageable?.HealOverTime(totalHeal, duration);
+    public void ApplyHeal(int heal) => ApplyHeal(heal, DamageContext.CurrentAttacker);
+    public void ApplyHeal(int heal, GameObject healer) => _parentDamageable?.ApplyHeal(heal, healer);
+    public void HealOverTime(int totalHeal, float duration, GameObject healer) => _parentDamageable?.HealOverTime(totalHeal, duration, healer);
     public void DamageOverTime(int totalDamage, float duration) => _parentDamageable?.DamageOverTime(totalDamage, duration);
     public void DamageOverTime(int totalDamage, float duration, GameObject attacker) => _parentDamageable?.DamageOverTime(totalDamage, duration, attacker);
 }
