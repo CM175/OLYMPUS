@@ -30,3 +30,26 @@ behaviors:
       swap_steps: 10000
       play_against_latest_model_ratio: 0.5
       track_stats_steps: 10000
+
+environment_parameters:
+  # Aim/range shaping hints fade out so the final behaviour is learned from damage and kills alone.
+  shaping_scale:
+    curriculum:
+      - name: Hints
+        completion_criteria:
+          measure: progress
+          behavior: CombatAgent
+          signal_smoothing: false
+          min_lesson_length: 1
+          threshold: 0.15
+        value: 1.0
+      - name: Fading
+        completion_criteria:
+          measure: progress
+          behavior: CombatAgent
+          signal_smoothing: false
+          min_lesson_length: 1
+          threshold: 0.4
+        value: 0.3
+      - name: Off
+        value: 0.0
