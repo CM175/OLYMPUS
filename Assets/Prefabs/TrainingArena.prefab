@@ -681,13 +681,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2065973419835071831}
     m_Modifications:
+    - target: {fileID: 7721069730251711050, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 7814838594826426375, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
       propertyPath: m_Name
       value: CapturePoint
       objectReference: {fileID: 0}
     - target: {fileID: 7814838594826426375, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 7814838594826426375, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8146278305993708959, guid: 7b48d474e7948e54ca3bb46a588bbc35, type: 3}
       propertyPath: m_LocalScale.x

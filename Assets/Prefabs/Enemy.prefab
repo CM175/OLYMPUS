@@ -227,7 +227,7 @@ MonoBehaviour:
   escapeHpThreshold: 0.4
   escapeReward: 0.4
   escapeDistance: 10
-  useObjectiveRewards: 0
+  useObjectiveRewards: 1
   objectivePresenceReward: 0.002
   objectiveCaptureProgressReward: 0.05
   objectiveCapturedReward: 2
