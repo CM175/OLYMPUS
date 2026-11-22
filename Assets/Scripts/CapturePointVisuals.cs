@@ -14,6 +14,10 @@ public class CapturePointVisuals : MonoBehaviour
     [SerializeField] private Color contestedColor = new(1f, 0.85f, 0.1f, 1f);
 
     private LineRenderer line;
+    private MaterialPropertyBlock _propBlock;
+
+    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+    private static readonly int ColorId = Shader.PropertyToID("_Color");
 
     private void Awake()
     {
@@ -21,6 +25,14 @@ public class CapturePointVisuals : MonoBehaviour
         line.useWorldSpace = false;
         line.loop = true;
         line.positionCount = 4;
+
+        _propBlock = new MaterialPropertyBlock();
+
+        if (point == null)
+        {
+            point = GetComponent<CapturePoint>();
+            if (point == null) point = GetComponentInParent<CapturePoint>();
+        }
 
         if (boxCollider == null && point != null)
         {
@@ -63,10 +75,21 @@ public class CapturePointVisuals : MonoBehaviour
 
         line.startColor = targetColor;
         line.endColor = targetColor;
+
+        line.GetPropertyBlock(_propBlock);
+        _propBlock.SetColor(BaseColorId, targetColor);
+        _propBlock.SetColor(ColorId, targetColor);
+        line.SetPropertyBlock(_propBlock);
     }
 
     private void OnValidate()
     {
+        if (point == null)
+        {
+            point = GetComponent<CapturePoint>();
+            if (point == null) point = GetComponentInParent<CapturePoint>();
+        }
+
         if (boxCollider == null && point != null)
         {
             boxCollider = point.GetComponent<BoxCollider>();

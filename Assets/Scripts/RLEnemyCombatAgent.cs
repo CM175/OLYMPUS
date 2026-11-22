@@ -2,6 +2,8 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
+using Unity.MLAgents.Policies;
+using System.Collections.Generic;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
@@ -11,8 +13,49 @@ using UnityEngine.AI;
 public class RLEnemyCombatAgent : Agent
 {
     // Branch 2 = free movement: 0 = stand still, 1..8 = move in one of 8 directions, 45 degrees apart, clockwise,
-    // starting from "straight at the opponent" (1 = toward, 3 = right, 5 = directly away, 7 = left).
+    // starting from "straight at the opponent" (1 = toward, 3 = right, 5 = directly away, 7 = left). With no opponent in
+    // range the reference direction is the objective instead, so the policy can still move purposefully.
     private const int MoveActions = 9;
+
+    // Branch 3 = intent (what the agent is trying to do this decision). Learned, not scripted:
+    // 0 = engage the opponent (branch 2 movement applies), 1 = go to / hold the objective (branch 2 is ignored;
+    // aiming and attacking at any opponent in range still work, so it can capture while shooting).
+    private const int IntentEngage = 0;
+    private const int IntentObjective = 1;
+    private const int IntentActions = 2;
+    private int _intent = IntentEngage;
+    private int _epObjectiveIntent;
+
+    // Branch 4 = target choice: which of the TargetSlots nearest visible enemies to focus (slot 0 = nearest).
+    // Branch sizes must be { 5, 6, 9, IntentActions, TargetSlots }; vector observation size must be ExpectedObservationSize.
+    private const int TargetSlots = 3;
+    private const int CandidateFeatures = 9;
+    private const int ExpectedObservationSize = 89;   // 55 original + 2 objective context + 4 team context + 1 last intent + TargetSlots * CandidateFeatures
+    private static readonly int[] ExpectedBranchSizes = { 5, 6, 9, IntentActions, TargetSlots };
+    private const float ObjectiveShapingRange = 50f;
+    private const float CountNorm = 5f;
+
+    private struct Candidate
+    {
+        public Transform root;
+        public IDamageable dmg;
+        public float dist;
+        public bool los;
+    }
+    private readonly Candidate[] _candidates = new Candidate[TargetSlots];
+    private readonly HashSet<Transform> _seenRoots = new HashSet<Transform>();
+    private int _candidateCount;
+    private int _alliesNearby, _enemiesNearby, _alliesOnPoint, _enemiesOnPoint;
+    private float _nextPerceptionTime;
+
+    private float _lastOnPointTime = -1000f;
+    private bool _hasPrevObjPotential, _hasPrevRetreat;
+    private float _prevObjPotential, _prevRetreat;
+
+    // objective / target-choice diagnostics
+    private float _epTime, _epOnPointTime, _epContestTime, _epNeededAbsentTime;
+    private float _epCaptures, _epContributedCaptures, _epNeutralizes, _epTargetSwitches;
+    private int _epTargetDecisions, _epNonNearest;
 
     [Header("Macro / Navigation")]
     [SerializeField] private float detectionRange = 25f;
@@ -32,10 +75,10 @@ public class RLEnemyCombatAgent : Agent
     [SerializeField] private float aimTurnSpeed = 15f;
 
     [Header("Reward Shaping (damage terms are fractions of max health, so a full kill is about +1)")]
-    [SerializeField] private float damageDealtReward = 1.0f;
-    [SerializeField] private float damageTakenPenalty = 1.0f;   // equal to damageDealtReward so even trades aren't net-positive in self-play
-    [SerializeField] private float killReward = 1.0f;
-    [SerializeField] private float deathPenalty = -1.0f;
+    [SerializeField] private float damageDealtReward = 0.5f;
+    [SerializeField] private float damageTakenPenalty = 0.5f;   // equal to damageDealtReward so even trades aren't net-positive in self-play
+    [SerializeField] private float killReward = 0.5f;
+    [SerializeField] private float deathPenalty = -0.5f;
     [SerializeField] private float rangeShaping = 0.1f;
     [Header("Ability Rewards (outcome-based: pays for what an ability achieves, not for pressing it)")]
     [SerializeField] private bool useAbilityRewards = true;
@@ -56,18 +99,34 @@ public class RLEnemyCombatAgent : Agent
     [Tooltip("Metres of extra distance that count as a full escape.")]
     [SerializeField] private float escapeDistance = 10f;
     [Header("Objective Reward Shaping")]
-    [Tooltip("Off by default: navigation is scripted, so the policy cannot influence these rewards yet.")]
-    [SerializeField] private bool useObjectiveRewards = false;
-    [SerializeField] private float objectivePresenceReward = 0.02f; // Rewarded per step spent on the point
-    [SerializeField] private float objectiveCaptureProgressReward = 0.2f; // Rewarded when progress increases for our team
+    [Tooltip("On: the intent and movement branches let the policy reach the point, so these rewards are influenceable.")]
+    [SerializeField] private bool useObjectiveRewards = true;
+    [Tooltip("Per second on the point, ONLY while the point needs us (not ours yet, or an enemy is on it). Standing on an owned, uncontested point pays nothing.")]
+    [SerializeField] private float objectivePresenceReward = 0.02f;
+    [Tooltip("Per second while our team's capture progress is rising on a point we do not own yet.")]
+    [SerializeField] private float objectiveCaptureProgressReward = 0.2f;
+    [Tooltip("Potential-based pull toward the point (applied once per decision), only while the point needs us and we are healthy. Keep small.")]
+    [SerializeField] private float objectiveApproachShaping = 0.05f;
     private PointOwner _lastObservedControl = PointOwner.Neutral;
-[Header("Objective Milestone Rewards")]
-[SerializeField] private float objectiveCapturedReward = 2.0f;     // Rewarded when our team captures/locks the point
-[SerializeField] private float objectiveNeutralizedReward = 1.0f; // Rewarded when our team successfully neutralizes an enemy point
+    [Header("Objective Milestone Rewards")]
+    [Tooltip("Should stay above a full kill (damage + kill reward) so winning the point is worth more than farming kills.")]
+    [SerializeField] private float objectiveCapturedReward = 3.0f;
+    [SerializeField] private float objectiveNeutralizedReward = 1.5f;
+    [Tooltip("An agent counts as having contributed if it was on the point within this many seconds of the milestone.")]
+    [SerializeField] private float objectiveContributionWindow = 5f;
+    [Tooltip("Share of a milestone reward paid to teammates who did not contribute: the team still benefits, free-riding pays less.")]
+    [SerializeField, Range(0f, 1f)] private float objectiveAssistFraction = 0.25f;
+    [Header("Retreat Shaping")]
+    [Tooltip("Potential-based reward for gaining distance from the nearest enemy while at or below escapeHpThreshold (applied once per decision).")]
+    [SerializeField] private float retreatShaping = 0.05f;
 
     [Header("Episode / Performance")]
     [SerializeField] private float navRepathInterval = 0.2f;  // seconds between SetDestination calls
     [SerializeField] private float edgeObservationRange = 10f;
+    [Tooltip("Seconds between enemy/ally scans (candidate list, team counts). Cheaper than scanning every frame.")]
+    [SerializeField] private float perceptionInterval = 0.1f;
+    [Tooltip("On: the policy chooses its target via branch 4. Off: always the nearest enemy (old behaviour; useful for A/B tests).")]
+    [SerializeField] private bool policyPicksTarget = true;
 
 
     private NavMeshAgent _agent;
@@ -172,6 +231,7 @@ public class RLEnemyCombatAgent : Agent
         _teamMember = GetComponent<TeamMember>();
         _selfDamageable = GetComponent<IDamageable>();
         _selfHeroManager = GetComponent<HeroManager>();
+        ValidateBrainSetup();
 
         if (defaultObjective == null)
             defaultObjective = GameObject.FindWithTag("Objective")?.transform;
@@ -215,6 +275,7 @@ public class RLEnemyCombatAgent : Agent
         _hasLineOfSight = false;
         _hasAimTarget = false;
         _moveAction = 0;
+        ResetDecisionState();
         _nextNavTime = 0f;
         _lastObservedControl = PointOwner.Neutral;
 
@@ -258,7 +319,7 @@ public class RLEnemyCombatAgent : Agent
         if (_isTrainingDead) return;
 
         UpdatePrimaryHold();
-        FindTarget();
+        RefreshPerception();
         UpdateTargetVelocity();
         UpdateLineOfSight();
         if (Time.time >= _nextNavTime)
@@ -272,51 +333,93 @@ public class RLEnemyCombatAgent : Agent
         UpdateHealReward();
     }
 
+    private void ResetDecisionState()
+    {
+        _intent = IntentEngage;
+        _lastOnPointTime = -1000f;
+        _hasPrevObjPotential = false;
+        _hasPrevRetreat = false;
+        _nextPerceptionTime = 0f;
+        _candidateCount = 0;
+    }
+
+    private void ValidateBrainSetup()
+    {
+        var bp = GetComponent<BehaviorParameters>();
+        if (bp == null) return;
+        var brain = bp.BrainParameters;
+        if (brain.VectorObservationSize != ExpectedObservationSize)
+            Debug.LogError($"{name}: Behavior Parameters vector observation size is {brain.VectorObservationSize}, this script writes {ExpectedObservationSize}.", this);
+
+        int[] branches = brain.ActionSpec.BranchSizes;
+        bool ok = branches != null && branches.Length == ExpectedBranchSizes.Length;
+        for (int i = 0; ok && i < branches.Length; i++) ok = branches[i] == ExpectedBranchSizes[i];
+        if (!ok)
+            Debug.LogError($"{name}: discrete branch sizes must be {{ {string.Join(", ", ExpectedBranchSizes)} }} (aim, combat, move, intent, target).", this);
+    }
+
     private void ExecuteMacroNavigation()
     {
         if (_movement.IsUnderExternalForce || _movement.IsStunned)
             return;
+        if (!_agent.isOnNavMesh) return;
 
-        if (_currentTarget != null)
+        bool hasObjective = defaultObjective != null;
+
+        // Intent branch: the policy commits to the point. The NavMesh only does the walking.
+        if (hasObjective && _intent == IntentObjective)
         {
             _agent.stoppingDistance = 0f;
-            if (_agent.isOnNavMesh)
-                _agent.SetDestination(ComputeMoveDestination());
+            _agent.SetDestination(ComputeObjectiveDestination());
+            return;
         }
-        else if (defaultObjective != null)
+
+        // Engage: movement chosen by the policy, relative to the opponent (or the objective when nobody is in range).
+        if (_currentTarget != null || hasObjective)
         {
-            if (!_agent.isOnNavMesh) return;
-            _agent.stoppingDistance = 2f;
-            _agent.SetDestination(defaultObjective.position);
+            _agent.stoppingDistance = 0f;
+            _agent.SetDestination(ComputeMoveDestination(false));
+            return;
         }
-        else
+
+        // No target and no objective: wander so the agent still finds fights.
+        if (!_agent.hasPath || _agent.remainingDistance < 1f)
         {
-            // If no objective and no target, pick a random point on the NavMesh to patrol
-            if (!_agent.hasPath || _agent.remainingDistance < 1f)
-            {
-                Vector3 randomDirection = Random.insideUnitSphere * 15f;
-                randomDirection += transform.position;
-                if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, 15f, NavMesh.AllAreas))
-                {
-                    _agent.SetDestination(hit.position);
-                }
-            }
+            Vector3 randomDirection = Random.insideUnitSphere * 15f + transform.position;
+            if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, 15f, NavMesh.AllAreas))
+                _agent.SetDestination(hit.position);
         }
     }
 
-    // The policy fully controls where to go: it picks a direction (relative to the opponent) every decision and the
-    // NavMeshAgent walks it. Nothing here knows about ideal range, cover or flanking; that all has to be learned.
-    private Vector3 ComputeMoveDestination()
+    // Objective intent: walk to the point; once inside it, branch 2 becomes fine positioning that is clamped to stay on the point.
+    private Vector3 ComputeObjectiveDestination()
+    {
+        Vector3 toCentre = defaultObjective.position - transform.position;
+        toCentre.y = 0f;
+        if (toCentre.magnitude > GetObjectiveRadius() * 0.9f)
+            return defaultObjective.position;
+        return ComputeMoveDestination(true);
+    }
+
+    // The policy picks a direction (relative to the opponent, else the objective) every decision and the NavMeshAgent
+    // walks it. Nothing here knows about ideal range, cover or flanking; that all has to be learned.
+    private Vector3 ComputeMoveDestination(bool clampToObjective)
     {
         Vector3 pos = transform.position;
         if (_moveAction <= 0) return pos;   // 0 = stand still
 
-        Vector3 forward = _currentTarget.position - pos;
-        forward.y = 0f;
-        forward = forward.sqrMagnitude > 0.001f ? forward.normalized : transform.forward;
-
+        Vector3 forward = GetReferenceDirection(pos);
         Vector3 dir = Quaternion.Euler(0f, (_moveAction - 1) * 45f, 0f) * forward;
         Vector3 dest = pos + dir * moveLookahead;
+
+        if (clampToObjective && defaultObjective != null)
+        {
+            Vector3 offset = dest - defaultObjective.position;
+            offset.y = 0f;
+            float maxOffset = GetObjectiveRadius() * 0.9f;
+            if (offset.magnitude > maxOffset)
+                dest = defaultObjective.position + offset.normalized * maxOffset + Vector3.up * (dest.y - defaultObjective.position.y);
+        }
         if (_arena != null) dest = _arena.ClampToBounds(dest);
 
         if (!NavMesh.SamplePosition(dest, out NavMeshHit sample, 2f, NavMesh.AllAreas))
@@ -329,65 +432,176 @@ public class RLEnemyCombatAgent : Agent
         return dest;
     }
 
-    private void FindTarget()
+    private Vector3 GetReferenceDirection(Vector3 pos)
     {
-        if (_currentTarget != null && (!_currentTarget.gameObject.activeInHierarchy || Vector3.Distance(transform.position, _currentTarget.position) > detectionRange * 1.5f))
+        Vector3 refPoint = _currentTarget != null
+            ? _currentTarget.position
+            : (defaultObjective != null ? defaultObjective.position : pos + transform.forward);
+        Vector3 f = refPoint - pos;
+        f.y = 0f;
+        return f.sqrMagnitude > 0.001f ? f.normalized : transform.forward;
+    }
+
+    private float GetObjectiveRadius()
+    {
+        float radius = 2f;   // default if no BoxCollider is found
+        if (defaultObjective != null && defaultObjective.TryGetComponent<BoxCollider>(out var box))
         {
-            UnsubscribeFromTarget();
-            _currentTarget = null;
-            _targetDamageable = null;
+            Vector3 scaledSize = Vector3.Scale(box.size, defaultObjective.localScale);
+            radius = Mathf.Max(scaledSize.x, scaledSize.z) * 0.5f;
+        }
+        return radius;
+    }
+
+    private float FlatDistance(Vector3 a, Vector3 b)
+    {
+        a.y = 0f; b.y = 0f;
+        return Vector3.Distance(a, b);
+    }
+
+    private bool IsOnPoint()
+        => defaultObjective != null && FlatDistance(transform.position, defaultObjective.position) <= GetObjectiveRadius();
+
+    private bool IsLowHealth()
+        => _selfDamageable != null && _selfDamageable.CurrentHealth <= escapeHpThreshold * Mathf.Max(1, _selfDamageable.MaxHealth);
+
+    private static PointOwner OwnerFor(Team team) => team == Team.TeamB ? PointOwner.TeamB : PointOwner.TeamA;
+
+    private bool ObjectiveNeedsUs(CapturePoint capPoint)
+        => capPoint.controllingTeam != OwnerFor(_teamMember.team) || _enemiesOnPoint > 0;
+
+    // ---- perception: one scan every perceptionInterval builds the nearest-enemy candidate list and the team counts ----
+    private void RefreshPerception()
+    {
+        ValidateCurrentTarget();
+        if (Time.time >= _nextPerceptionTime)
+        {
+            _nextPerceptionTime = Time.time + perceptionInterval;
+            ScanSurroundings();
         }
 
-        if (_currentTarget != null) return;
+        // Old behaviour, kept as an option: lock the nearest enemy whenever there is none.
+        if (!policyPicksTarget && _currentTarget == null && _candidateCount > 0 && _candidates[0].root != null)
+            SetTarget(_candidates[0].root, _candidates[0].dmg);
+    }
+
+    private void ValidateCurrentTarget()
+    {
+        if (_currentTarget == null) return;
+        if (!_currentTarget.gameObject.activeInHierarchy
+            || (_targetDamageable != null && _targetDamageable.IsDead)
+            || Vector3.Distance(transform.position, _currentTarget.position) > detectionRange * 1.5f)
+            SetTarget(null, null);
+    }
+
+    private void ScanSurroundings()
+    {
+        _candidateCount = 0;
+        _alliesNearby = _enemiesNearby = _alliesOnPoint = _enemiesOnPoint = 0;
+        _seenRoots.Clear();
 
         int hitCount = Physics.OverlapSphereNonAlloc(transform.position, detectionRange, _overlapBuffer, searchMask);
-        float closestDist = float.MaxValue;
-        Transform bestTarget = null;
-        IDamageable bestDamageable = null;
-
         if (hitCount == _overlapBuffer.Length)
             Debug.LogWarning($"{name}: overlap buffer full ({hitCount}); the opponent may be missed. Space arenas further apart or raise the buffer size.", this);
+
+        bool hasObjective = defaultObjective != null;
+        float radius = GetObjectiveRadius();
+
         for (int c = 0; c < hitCount; c++)
         {
             var col = _overlapBuffer[c];
             if (col.gameObject == gameObject) continue;
             if (_arena != null && !_arena.Contains(col.transform)) continue;   // only fight inside our own arena
-            GameObject rootObj = col.transform.root.gameObject;
 
-            if (_teamMember.IsEnemy(rootObj))
+            Transform root = col.transform.root;
+            if (root == transform.root || !_seenRoots.Add(root)) continue;
+
+            IDamageable dmg = root.GetComponent<IDamageable>();
+            if (dmg == null || dmg.IsDead) continue;
+
+            bool enemy = _teamMember.IsEnemy(root.gameObject);
+            bool ally = !enemy && root.GetComponent<TeamMember>() != null;
+            if (!enemy && !ally) continue;
+
+            bool onPoint = hasObjective && FlatDistance(root.position, defaultObjective.position) <= radius;
+            if (ally)
             {
-                IDamageable dmg = rootObj.GetComponent<IDamageable>();
-                if (dmg == null || dmg.IsDead) continue;
-
-                // LOS Check before picking target
-                Vector3 origin = transform.position + Vector3.up * 1.5f;
-                Vector3 targetPoint = rootObj.transform.position + Vector3.up * 1.0f;
-                Vector3 dir = targetPoint - origin;
-                
-                if (_arena == null && Physics.Raycast(origin, dir.normalized, dir.magnitude, lineOfSightBlockMask))
-                    continue; // Hidden behind obstacle (outside training only; in an arena the policy sees LOS as an observation)
-
-                float dist = Vector3.Distance(transform.position, rootObj.transform.position);
-                if (dist < closestDist)
-                {
-                    closestDist = dist;
-                    bestTarget = rootObj.transform;
-                    bestDamageable = dmg;
-                }
+                _alliesNearby++;
+                if (onPoint) _alliesOnPoint++;
+                continue;
             }
+
+            _enemiesNearby++;
+            if (onPoint) _enemiesOnPoint++;
+            InsertCandidate(root, dmg, Vector3.Distance(transform.position, root.position));
         }
 
-        if (bestTarget != null)
+        for (int i = 0; i < _candidateCount; i++)
+            _candidates[i].los = HasLineOfSightTo(_candidates[i].root);
+    }
+
+    // Keeps the TargetSlots nearest enemies, sorted nearest first.
+    private void InsertCandidate(Transform root, IDamageable dmg, float dist)
+    {
+        int pos = _candidateCount;
+        if (pos == TargetSlots)
         {
-            _currentTarget = bestTarget;
-            _targetDamageable = bestDamageable;
-            _lastTargetPosition = bestTarget.position;
-
-            _targetDamageable.OnDamageReceived += HandleTargetDamageTaken;
-            _targetDamageable.OnDied += HandleTargetDeath;
-            _targetHpKnown = _targetDamageable.CurrentHealth;
-            _trainingDummy = bestTarget.TryGetComponent<EnemyHealth>(out var dummyHealth) && dummyHealth.isTrainingDummy ? dummyHealth : null;
+            if (dist >= _candidates[TargetSlots - 1].dist) return;
+            pos = TargetSlots - 1;
         }
+        else _candidateCount++;
+
+        while (pos > 0 && _candidates[pos - 1].dist > dist)
+        {
+            _candidates[pos] = _candidates[pos - 1];
+            pos--;
+        }
+        _candidates[pos] = new Candidate { root = root, dmg = dmg, dist = dist };
+    }
+
+    private bool HasLineOfSightTo(Transform t)
+    {
+        Vector3 origin = transform.position + Vector3.up * 1.5f;
+        Vector3 dir = (t.position + Vector3.up * 1.0f) - origin;
+        return !Physics.Raycast(origin, dir.normalized, dir.magnitude, lineOfSightBlockMask);
+    }
+
+    private void SetTarget(Transform target, IDamageable damageable)
+    {
+        if (target == _currentTarget) return;
+        UnsubscribeFromTarget();
+        _currentTarget = target;
+        _targetDamageable = damageable;
+        _targetVelocity = Vector3.zero;
+        _hasPrevPotential = false;
+        if (target == null)
+        {
+            _trainingDummy = null;
+            return;
+        }
+
+        _lastTargetPosition = target.position;
+        _targetDamageable.OnDamageReceived += HandleTargetDamageTaken;
+        _targetDamageable.OnDied += HandleTargetDeath;
+        _targetHpKnown = _targetDamageable.CurrentHealth;
+        _trainingDummy = target.TryGetComponent<EnemyHealth>(out var dummyHealth) && dummyHealth.isTrainingDummy ? dummyHealth : null;
+    }
+
+    // Branch 4. Damage rewards only flow from the CURRENT target, so a switch is a real commitment.
+    private void ApplyTargetChoice(int slot)
+    {
+        if (slot < 0 || slot >= _candidateCount) return;
+        Candidate c = _candidates[slot];
+        if (c.root == null || !c.root.gameObject.activeInHierarchy || c.dmg == null || c.dmg.IsDead) return;
+
+        if (_candidateCount >= 2)
+        {
+            _epTargetDecisions++;
+            if (slot > 0) _epNonNearest++;
+        }
+        if (c.root == _currentTarget) return;
+        SetTarget(c.root, c.dmg);
+        _epTargetSwitches += 1f;
     }
 
     private void UpdateTargetVelocity()
@@ -399,17 +613,7 @@ public class RLEnemyCombatAgent : Agent
 
     private void UpdateLineOfSight()
     {
-        if (_currentTarget == null)
-        {
-            _hasLineOfSight = false;
-            return;
-        }
-
-        Vector3 origin = transform.position + Vector3.up * 1.5f;
-        Vector3 targetPoint = _currentTarget.position + Vector3.up * 1.0f;
-        Vector3 dir = targetPoint - origin;
-
-        _hasLineOfSight = !Physics.Raycast(origin, dir.normalized, dir.magnitude, lineOfSightBlockMask);
+        _hasLineOfSight = _currentTarget != null && HasLineOfSightTo(_currentTarget);
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -513,7 +717,56 @@ public class RLEnemyCombatAgent : Agent
         // 4. Nearest NavMesh edge (3 values): lets the policy learn not to get knocked or dashed off the map
         AddEdgeObservations(sensor);
 
+        // 5. Objective context (2): are we on the point, and is our team's capture progress rising
+        bool pushing = false;
+        if (defaultObjective != null && _teamMember != null && defaultObjective.TryGetComponent<CapturePoint>(out var cp))
+            pushing = cp.captureProgress > 0f && cp.currentChallenger == _teamMember.team;
+        sensor.AddObservation(IsOnPoint() ? 1f : 0f);
+        sensor.AddObservation(pushing ? 1f : 0f);
 
+        // 6. Team context (4), limited to detectionRange: allies / enemies nearby and on the point
+        sensor.AddObservation(Mathf.Clamp01(_alliesNearby / CountNorm));
+        sensor.AddObservation(Mathf.Clamp01(_enemiesNearby / CountNorm));
+        sensor.AddObservation(Mathf.Clamp01(_alliesOnPoint / CountNorm));
+        sensor.AddObservation(Mathf.Clamp01(_enemiesOnPoint / CountNorm));
+
+        // 7. Previous intent (1)
+        sensor.AddObservation(_intent == IntentObjective ? 1f : 0f);
+
+        // 8. Target candidates (TargetSlots x CandidateFeatures): nearest enemies, so branch 4 can pick by health, distance, LOS and objective position
+        AddCandidateObservations(sensor);
+    }
+
+    private void AddCandidateObservations(VectorSensor sensor)
+    {
+        float radius = GetObjectiveRadius();
+        for (int i = 0; i < TargetSlots; i++)
+        {
+            if (i < _candidateCount && _candidates[i].root != null)
+            {
+                Candidate c = _candidates[i];
+                Vector3 to = c.root.position - transform.position;
+                Vector3 local = transform.InverseTransformDirection(to.normalized);
+                float hp = c.dmg != null ? (float)c.dmg.CurrentHealth / Mathf.Max(1, c.dmg.MaxHealth) : 1f;
+                float objDist = defaultObjective != null ? FlatDistance(c.root.position, defaultObjective.position) : ObjectiveShapingRange;
+
+                sensor.AddObservation(1f);                                              // present
+                sensor.AddObservation(local.x);
+                sensor.AddObservation(local.z);
+                sensor.AddObservation(Mathf.Clamp01(to.magnitude / detectionRange));
+                sensor.AddObservation(hp);
+                sensor.AddObservation(c.los ? 1f : 0f);
+                sensor.AddObservation(Mathf.Clamp01(objDist / ObjectiveShapingRange));  // how far the enemy is from the point
+                sensor.AddObservation(objDist <= radius ? 1f : 0f);                     // enemy is contesting the point
+                sensor.AddObservation(c.root == _currentTarget ? 1f : 0f);              // currently focused
+            }
+            else
+            {
+                sensor.AddObservation(0f); sensor.AddObservation(0f); sensor.AddObservation(0f);
+                sensor.AddObservation(1f); sensor.AddObservation(0f); sensor.AddObservation(0f);
+                sensor.AddObservation(1f); sensor.AddObservation(0f); sensor.AddObservation(0f);
+            }
+        }
     }
 
     private void RefreshTargetCache()
@@ -553,6 +806,14 @@ public class RLEnemyCombatAgent : Agent
         MaskAbilitySlot(actionMask, 3, _abilityManager.secondaryAbility, exclusiveLocked);
         MaskAbilitySlot(actionMask, 4, _abilityManager.mobilityAbility, exclusiveLocked);
         MaskAbilitySlot(actionMask, 5, _abilityManager.ultimateAbility, exclusiveLocked);
+
+        if (defaultObjective == null)
+            actionMask.SetActionEnabled(3, IntentObjective, false);   // nothing to go to
+
+        // Branch 4: only slots that hold an enemy. Slot 0 stays enabled so the branch is never fully masked.
+        for (int i = 1; i < TargetSlots; i++)
+            if (i >= _candidateCount)
+                actionMask.SetActionEnabled(4, i, false);
     }
 
     private void MaskAbilitySlot(IDiscreteActionMask actionMask, int actionIndex, Ability ability, bool exclusiveLocked)
@@ -585,70 +846,114 @@ public class RLEnemyCombatAgent : Agent
             sensor.AddObservation(0f);
         }
     }
+    // Always runs (stats + milestone detection); AddReward calls are gated by useObjectiveRewards.
     private void EvaluateObjectiveRewards()
     {
-        if (!useObjectiveRewards || defaultObjective == null) return;
+        if (defaultObjective == null || _teamMember == null) return;
+        if (!defaultObjective.TryGetComponent<CapturePoint>(out var capPoint)) return;
 
-        if (defaultObjective.TryGetComponent<CapturePoint>(out var capPoint))
+        // Between matches the point is reset after OnEpisodeBegin has already run: resync instead of rewarding the reset.
+        if (!MatchLive)
         {
-            // Between matches the point is reset after OnEpisodeBegin has already run: resync instead of rewarding the reset.
-            if (_arena != null && _arena.MatchManager != null && !_arena.MatchManager.IsMatchActive)
-            {
-                _lastObservedControl = capPoint.controllingTeam;
-                return;
-            }
-
-            // Determine what PointOwner matches this agent's team
-            TeamMember teamMember = GetComponent<TeamMember>();
-            PointOwner agentTeamOwner = (teamMember != null && teamMember.team == Team.TeamB) 
-                ? PointOwner.TeamB 
-                : PointOwner.TeamA;
-
-            // 1. Continuous presence shaping (standing near the point)
-            float distToObjective = Vector3.Distance(transform.position, defaultObjective.position);
-            float captureRadius = 2f; // Default radius if no BoxCollider is found
-            if (defaultObjective.TryGetComponent<BoxCollider>(out var box))
-            {
-                // Take the largest horizontal dimension of the box scale/size
-                Vector3 scaledSize = Vector3.Scale(box.size, defaultObjective.localScale);
-                captureRadius = Mathf.Max(scaledSize.x, scaledSize.z) * 0.5f;
-            }
-    
-            if (distToObjective <= captureRadius) 
-            {
-                AddReward(objectivePresenceReward * Time.deltaTime);
-
-                // If our team is actively pushing or capturing the point, grant a progress reward
-                if (capPoint.captureProgress > 0f && capPoint.currentChallenger == teamMember.team)
-                {
-                    AddReward(objectiveCaptureProgressReward * Time.deltaTime);
-                }
-            }
-
-            // 2. Milestone detection: Did the point ownership change this episode/round?
-            if (capPoint.controllingTeam != _lastObservedControl)
-            {
-                // If it just became ours
-                if (capPoint.controllingTeam == agentTeamOwner)
-                {
-                    AddReward(objectiveCapturedReward);
-                }
-                // If it became neutral from an enemy hold (successful neutralization)
-                else if (capPoint.controllingTeam == PointOwner.Neutral && _lastObservedControl != PointOwner.Neutral && _lastObservedControl != agentTeamOwner)
-                {
-                    AddReward(objectiveNeutralizedReward);
-                }
-                
-                _lastObservedControl = capPoint.controllingTeam;
-            }
+            _lastObservedControl = capPoint.controllingTeam;
+            return;
         }
+
+        float dt = Time.deltaTime;
+        PointOwner myOwner = OwnerFor(_teamMember.team);
+        bool owned = capPoint.controllingTeam == myOwner;
+        bool onPoint = IsOnPoint();
+        bool needsUs = ObjectiveNeedsUs(capPoint);
+
+        _epTime += dt;
+        if (onPoint)
+        {
+            _epOnPointTime += dt;
+            _lastOnPointTime = Time.time;
+            if (needsUs) _epContestTime += dt;
+        }
+        else if (needsUs) _epNeededAbsentTime += dt;
+
+        if (useObjectiveRewards && onPoint)
+        {
+            // No pay for idling on a point that is already ours and uncontested.
+            if (needsUs) AddReward(objectivePresenceReward * dt);
+            if (!owned && capPoint.captureProgress > 0f && capPoint.currentChallenger == _teamMember.team)
+                AddReward(objectiveCaptureProgressReward * dt);
+        }
+
+        if (capPoint.controllingTeam != _lastObservedControl)
+        {
+            // Whole team benefits from a capture, but players who were not there get only a fraction.
+            bool contributed = Time.time - _lastOnPointTime <= objectiveContributionWindow;
+            float scale = contributed ? 1f : objectiveAssistFraction;
+
+            if (capPoint.controllingTeam == myOwner)
+            {
+                _epCaptures += 1f;
+                if (contributed) _epContributedCaptures += 1f;
+                if (useObjectiveRewards) AddReward(objectiveCapturedReward * scale);
+            }
+            else if (capPoint.controllingTeam == PointOwner.Neutral && _lastObservedControl != PointOwner.Neutral && _lastObservedControl != myOwner)
+            {
+                _epNeutralizes += 1f;
+                if (useObjectiveRewards) AddReward(objectiveNeutralizedReward * scale);
+            }
+            _lastObservedControl = capPoint.controllingTeam;
+        }
+    }
+
+    // Potential-based (applied once per decision, gamma 0.99 like the trainer): pull toward the point only while it needs us
+    // and we are healthy, so it never fights the retreat term.
+    private void ApplyObjectiveApproachShaping()
+    {
+        if (!useObjectiveRewards || defaultObjective == null || _teamMember == null || !MatchLive || IsLowHealth()
+            || !defaultObjective.TryGetComponent<CapturePoint>(out var capPoint) || !ObjectiveNeedsUs(capPoint))
+        {
+            _hasPrevObjPotential = false;
+            return;
+        }
+
+        float outside = Mathf.Max(0f, FlatDistance(transform.position, defaultObjective.position) - GetObjectiveRadius());
+        float potential = -Mathf.Min(outside, ObjectiveShapingRange) / ObjectiveShapingRange;
+        if (_hasPrevObjPotential)
+            AddReward(objectiveApproachShaping * (0.99f * potential - _prevObjPotential));
+        _prevObjPotential = potential;
+        _hasPrevObjPotential = true;
+    }
+
+    // Potential-based: gaining distance from the nearest enemy while low on health. Cannot be farmed (telescopes), and
+    // is complementary to the mobility escape reward, which pays for a specific ability.
+    private void ApplyRetreatShaping()
+    {
+        if (retreatShaping <= 0f || !MatchLive || !IsLowHealth() || _candidateCount == 0)
+        {
+            _hasPrevRetreat = false;
+            return;
+        }
+
+        float nearest = float.MaxValue;
+        for (int i = 0; i < _candidateCount; i++)
+            if (_candidates[i].root != null)
+                nearest = Mathf.Min(nearest, Vector3.Distance(transform.position, _candidates[i].root.position));
+        if (nearest == float.MaxValue)
+        {
+            _hasPrevRetreat = false;
+            return;
+        }
+
+        float potential = Mathf.Min(nearest, detectionRange) / detectionRange;
+        if (_hasPrevRetreat)
+            AddReward(retreatShaping * (0.99f * potential - _prevRetreat));
+        _prevRetreat = potential;
+        _hasPrevRetreat = true;
     }
 
     // Potential-based shaping (gamma matches the trainer's 0.99): gives a dense "get to a useful range"
     // signal without changing which policy is optimal.
     private void ApplyRangeShaping()
     {
-        if (_currentTarget == null)
+        if (_currentTarget == null || _intent != IntentEngage || IsLowHealth() || !MatchLive)
         {
             _hasPrevPotential = false;
             return;
@@ -711,6 +1016,20 @@ public class RLEnemyCombatAgent : Agent
                 stats.Add($"Ability/{AbilitySlotNames[i]}/Uses", _epSlotUses[i]);
                 stats.Add($"Ability/{AbilitySlotNames[i]}/Damage", _epSlotDamage[i]);
             }
+            stats.Add("Combat/ObjectiveIntent", _epObjectiveIntent / d);   // fraction of decisions spent heading for the point
+            if (_epTime > 0f)
+            {
+                stats.Add("Objective/OnPointFraction", _epOnPointTime / _epTime);
+                stats.Add("Objective/AwayFraction", 1f - _epOnPointTime / _epTime);
+                stats.Add("Objective/ContestingFraction", _epContestTime / _epTime);               // on the point while it needed us
+                stats.Add("Objective/NeededButAbsentFraction", _epNeededAbsentTime / _epTime);     // point needed us, we were elsewhere
+            }
+            stats.Add("Objective/TeamCaptures", _epCaptures);
+            stats.Add("Objective/ContributedCaptures", _epContributedCaptures);
+            stats.Add("Objective/Neutralizations", _epNeutralizes);
+            stats.Add("Combat/TargetSwitches", _epTargetSwitches);
+            if (_epTargetDecisions > 0)
+                stats.Add("Combat/NonNearestTargetFraction", _epNonNearest / (float)_epTargetDecisions);
             stats.Add("Combat/EpisodeDecisions", d);
             string hero = GetHeroName();
             stats.Add($"Hero/{hero}/DamageDealt", _epDamageDealt);
@@ -722,7 +1041,10 @@ public class RLEnemyCombatAgent : Agent
         _epHealed = 0f;
         System.Array.Clear(_epSlotUses, 0, AbilitySlots);
         System.Array.Clear(_epSlotDamage, 0, AbilitySlots);
-        _epDecisions = _epWithTarget = _epWithLos = _epInRange = _epAttackUses = _epAbilityUses = 0;
+        _epDecisions = _epWithTarget = _epWithLos = _epInRange = _epAttackUses = _epAbilityUses = _epObjectiveIntent = 0;
+        _epTime = _epOnPointTime = _epContestTime = _epNeededAbsentTime = 0f;
+        _epCaptures = _epContributedCaptures = _epNeutralizes = _epTargetSwitches = 0f;
+        _epTargetDecisions = _epNonNearest = 0;
     }
 
     public void EndEpisodeOnce()
@@ -746,16 +1068,16 @@ public class RLEnemyCombatAgent : Agent
 
         TrackDecision();
 
-        if (_movement == null || _currentTarget == null)
+        if (_movement == null)
         {
             _hasAimTarget = false;
             return;
         }
 
         var discreteActions = actions.DiscreteActions;
-        if (discreteActions.Length < 3)
+        if (discreteActions.Length < 5)
         {
-            Debug.LogError($"RLEnemyCombatAgent requires 3 discrete branches, but received {discreteActions.Length}.");
+            Debug.LogError($"RLEnemyCombatAgent requires 5 discrete branches (aim 5, combat 6, move 9, intent 2, target {TargetSlots}), but received {discreteActions.Length}.");
             return;
         }
 
@@ -764,6 +1086,27 @@ public class RLEnemyCombatAgent : Agent
             _hasAimTarget = false;
             return;
         }
+
+        // Branch 3: Intent. Applies even with no opponent in range, so the policy owns the fight-vs-objective call.
+        _intent = Mathf.Clamp(discreteActions[3], 0, IntentActions - 1);
+        if (_intent == IntentObjective) _epObjectiveIntent++;
+
+        // Branch 2: Positioning. Read before the target check: movement matters with no opponent too (relative to the objective).
+        _moveAction = Mathf.Clamp(discreteActions[2], 0, MoveActions - 1);
+
+        ApplyObjectiveApproachShaping();
+        ApplyRetreatShaping();
+
+        // Branch 4: Target selection
+        if (policyPicksTarget) ApplyTargetChoice(discreteActions[4]);
+
+        if (_currentTarget == null)
+        {
+            _hasAimTarget = false;
+            return;
+        }
+
+        ApplyRangeShaping();   // was defined but never called; now only active while engaging and healthy
 
         // Branch 0: Aim
         int aimAction = discreteActions[0];
@@ -785,8 +1128,6 @@ public class RLEnemyCombatAgent : Agent
         int combatAction = discreteActions[1];
         ExecuteCombatSlot(combatAction);
 
-        // Branch 2: Positioning
-        _moveAction = Mathf.Clamp(discreteActions[2], 0, MoveActions - 1);
     }
 
     private void ApplyAimRotation()
@@ -1070,6 +1411,7 @@ public class RLEnemyCombatAgent : Agent
         _hasLineOfSight = false;
         _hasAimTarget = false;
         _hasPrevPotential = false;
+        ResetDecisionState();
         _nextNavTime = 0f;
         _lastObservedControl = PointOwner.Neutral;
 
@@ -1115,9 +1457,9 @@ public class RLEnemyCombatAgent : Agent
     public void ApplyMatchOutcome(Team? winner, float winRewardValue, float lossRewardValue)
     {
         if (!winner.HasValue) return;
-        AddReward(_teamMember != null && _teamMember.team == winner.Value
-            ? winRewardValue
-            : lossRewardValue);
+        bool won = _teamMember != null && _teamMember.team == winner.Value;
+        Academy.Instance.StatsRecorder.Add("Match/Win", won ? 1f : 0f);   // TensorBoard mean = win rate
+        AddReward(won ? winRewardValue : lossRewardValue);
     }
 
     private void HandleTargetDamageTaken(int damage, GameObject attacker)
@@ -1169,6 +1511,12 @@ public class RLEnemyCombatAgent : Agent
                 ? 0
                 : (Mathf.RoundToInt(Mathf.Atan2(x, z) * Mathf.Rad2Deg / 45f) + 8) % 8 + 1;
         }
+
+        if (discreteActions.Length > 3)
+            discreteActions[3] = Input.GetKey(KeyCode.O) ? IntentObjective : IntentEngage;   // hold O = go to objective
+
+        if (discreteActions.Length > 4)
+            discreteActions[4] = 0;   // nearest enemy
     }
 
     private void OnDestroy()

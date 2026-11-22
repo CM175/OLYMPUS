@@ -1,3 +1,4 @@
+
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
@@ -8,9 +9,15 @@ public class AIMovementController : MonoBehaviour, IMovementController
     [Header("Physics & Gravity")]
     [SerializeField] private float gravity = -20f;
     [SerializeField] private float horizontalDrag = 8f;
+
     [Tooltip("Geometry that blocks dashes, knockback and ground checks. Character layers are stripped in Awake so agents never treat each other as ground or walls.")]
     [SerializeField] private LayerMask obstacleMask = ~0;
-    private static readonly string[] CharacterLayerNames = { "Enemy", "Player", "Character", "Projectile", "Objective", "ShadowRealm" };
+
+    private static readonly string[] CharacterLayerNames =
+    {
+        "Enemy", "Player", "Character", "Projectile", "Objective", "ShadowRealm"
+    };
+
     private const float SkinWidth = 0.05f;
 
     [Header("NavMesh Recovery")]
@@ -20,12 +27,20 @@ public class AIMovementController : MonoBehaviour, IMovementController
 
     private NavMeshAgent _agent;
     private RLEnemyCombatAgent _enemyAI;
+
     private float _baseSpeed;
     private Vector3 _velocity;
+
     private Coroutine _stunCoroutine;
+    private Coroutine _slowCoroutine;
+
     private bool _isDashing;
     private bool _isStunned;
     private bool _isUnderExternalForce;
+
+    private float _speedMultiplier = 1f;
+    private float _gravityMultiplier = 1f;
+    private float _preSlowMultiplier = 1f;
 
     public bool IsDashing
     {
@@ -33,16 +48,9 @@ public class AIMovementController : MonoBehaviour, IMovementController
         set
         {
             if (_isDashing == value) return;
+
             _isDashing = value;
-            if (_isDashing)
-            {
-                if (_agent != null) _agent.enabled = false;
-            }
-            else 
-            {
-                SyncAgentToTransform();
-            }
-            EvaluateAgentControl();
+            UpdateAgentEnabledState();
         }
     }
 
@@ -52,19 +60,19 @@ public class AIMovementController : MonoBehaviour, IMovementController
         set
         {
             if (_isUnderExternalForce == value) return;
+
             _isUnderExternalForce = value;
-            if (_isUnderExternalForce)
-            {
-                if (_agent != null) _agent.enabled = false;
-            }
-            else EndExternalForce();
+
+            if (!_isUnderExternalForce)
+                _velocity = Vector3.zero;
+
+            UpdateAgentEnabledState();
         }
     }
 
     public bool IsStunned => _isStunned;
+
     public bool IsGrounded => CheckGrounded();
-    private float _speedMultiplier = 1f;
-    private float _gravityMultiplier = 1f;
 
     public float SpeedMultiplier
     {
@@ -72,20 +80,21 @@ public class AIMovementController : MonoBehaviour, IMovementController
         set
         {
             _speedMultiplier = value;
-            if (_agent != null) _agent.speed = _baseSpeed * _speedMultiplier;
+
+            if (_agent != null)
+                _agent.speed = _baseSpeed * _speedMultiplier;
         }
     }
-
-    private Coroutine _slowCoroutine;
-    private float _preSlowMultiplier = 1f;
 
     private void Awake()
     {
         _agent = GetComponent<NavMeshAgent>();
         _enemyAI = GetComponent<RLEnemyCombatAgent>();
-        if (_agent != null) _baseSpeed = _agent.speed;
 
-        // Applied in code (not just the inspector default) so prefabs that already serialized ~0 are fixed too.
+        if (_agent != null)
+            _baseSpeed = _agent.speed;
+
+        // Applied in code so prefabs that already serialized ~0 are fixed too.
         int characterLayers = LayerMask.GetMask(CharacterLayerNames);
         obstacleMask = obstacleMask & ~characterLayers;
     }
@@ -93,9 +102,12 @@ public class AIMovementController : MonoBehaviour, IMovementController
     private void Update()
     {
         if (_agent == null) return;
+
         if (!CheckGrounded() && !_agent.isOnNavMesh)
             IsUnderExternalForce = true;
-        if (_isUnderExternalForce) ApplyAirPhysics();
+
+        if (_isUnderExternalForce)
+            ApplyAirPhysics();
     }
 
     public void ApplyImpulseForce(Vector3 force)
@@ -107,12 +119,17 @@ public class AIMovementController : MonoBehaviour, IMovementController
     public void HaltVelocity()
     {
         _velocity = Vector3.zero;
-        if (IsGrounded) SyncAgentToTransform();
+
+        if (IsGrounded)
+            SyncAgentToTransform();
+
         if (_agent != null && _agent.enabled && _agent.isOnNavMesh)
             _agent.ResetPath();
     }
 
-    /// <summary>Hard reset used by the training respawn system.</summary>
+    /// <summary>
+    /// Hard reset used by the training respawn system.
+    /// </summary>
     public void ResetForTraining(Vector3 position, Quaternion rotation)
     {
         if (_stunCoroutine != null)
@@ -120,24 +137,33 @@ public class AIMovementController : MonoBehaviour, IMovementController
             StopCoroutine(_stunCoroutine);
             _stunCoroutine = null;
         }
+
         if (_slowCoroutine != null)
         {
             StopCoroutine(_slowCoroutine);
             _slowCoroutine = null;
         }
+
         _isStunned = false;
         _isDashing = false;
         _isUnderExternalForce = false;
+
         _velocity = Vector3.zero;
         _gravityMultiplier = 1f;
         _speedMultiplier = 1f;
         _preSlowMultiplier = 1f;
 
-        if (_agent != null) _agent.enabled = false;
+        if (_agent != null)
+            _agent.enabled = false;
 
-        // Sample valid NavMesh position near the requested spawn pose
+        // Sample a valid NavMesh position near the requested spawn pose.
         Vector3 validPosition = position;
-        if (NavMesh.SamplePosition(position, out NavMeshHit hit, navMeshRecoveryRadius + 4f, NavMesh.AllAreas))
+
+        if (NavMesh.SamplePosition(
+            position,
+            out NavMeshHit hit,
+            navMeshRecoveryRadius + 4f,
+            NavMesh.AllAreas))
         {
             validPosition = hit.position;
         }
@@ -147,7 +173,27 @@ public class AIMovementController : MonoBehaviour, IMovementController
         if (_agent != null)
         {
             _agent.enabled = true;
-            _agent.Warp(validPosition);
+
+            if (NavMesh.SamplePosition(
+                validPosition,
+                out NavMeshHit validHit,
+                navMeshRecoveryRadius + 4f,
+                new NavMeshQueryFilter
+                {
+                    agentTypeID = _agent.agentTypeID,
+                    areaMask = _agent.areaMask
+                }))
+            {
+                _agent.Warp(validHit.position);
+            }
+            else
+            {
+                Debug.LogWarning(
+                    $"[{name}] Could not find a compatible NavMesh during training reset.",
+                    this
+                );
+            }
+
             _agent.speed = _baseSpeed;
             _agent.ResetPath();
             _agent.velocity = Vector3.zero;
@@ -161,30 +207,48 @@ public class AIMovementController : MonoBehaviour, IMovementController
         if (_isUnderExternalForce || _isDashing)
         {
             float distance = displacement.magnitude;
+
             if (distance > 0.0001f)
             {
                 Vector3 dir = displacement / distance;
-                float radius = _agent.radius; // Approximate character radius
+                float radius = _agent.radius;
 
-                // SphereCast along the movement path to guarantee we never tunnel through walls or floors
-                if (Physics.SphereCast(transform.position + Vector3.up * radius, radius, dir, out RaycastHit hit, distance + radius, obstacleMask, QueryTriggerInteraction.Ignore))
+                // SphereCast along the movement path to prevent tunnelling.
+                if (Physics.SphereCast(
+                    transform.position + Vector3.up * radius,
+                    radius,
+                    dir,
+                    out RaycastHit hit,
+                    distance + radius,
+                    obstacleMask,
+                    QueryTriggerInteraction.Ignore))
                 {
-                    float travel = Mathf.Clamp(hit.distance - SkinWidth, 0f, distance);
+                    float travel = Mathf.Clamp(
+                        hit.distance - SkinWidth,
+                        0f,
+                        distance
+                    );
+
                     transform.position += dir * travel;
                     _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal);
-                    
-                    // If we hit the floor or a steep wall downwards, halt vertical fall velocity
+
+                    // If we hit the floor or a steep wall downwards,
+                    // halt vertical fall velocity.
                     if (hit.normal.y > 0.2f)
                     {
                         _velocity.y = 0f;
+
                         _isUnderExternalForce = false;
                         _isDashing = false;
+
+                        UpdateAgentEnabledState();
                     }
+
                     return;
                 }
             }
 
-            // Safe fallback if path is clear
+            // Safe fallback if path is clear.
             transform.position += displacement;
         }
         else if (_agent != null && _agent.enabled && _agent.isOnNavMesh)
@@ -195,13 +259,17 @@ public class AIMovementController : MonoBehaviour, IMovementController
 
     public void Teleport(Vector3 position)
     {
-        if (_agent != null && _agent.enabled) _agent.Warp(position);
-        else transform.position = position;
+        if (_agent != null && _agent.enabled)
+            _agent.Warp(position);
+        else
+            transform.position = position;
     }
 
     public void Stun(float duration)
     {
-        if (_stunCoroutine != null) StopCoroutine(_stunCoroutine);
+        if (_stunCoroutine != null)
+            StopCoroutine(_stunCoroutine);
+
         _stunCoroutine = StartCoroutine(StunRoutine(duration));
     }
 
@@ -212,21 +280,47 @@ public class AIMovementController : MonoBehaviour, IMovementController
         if (!IsGrounded || _velocity.y > 0f)
             _velocity.y += gravity * _gravityMultiplier * Time.deltaTime;
 
-        Vector3 horizontalVelocity = new Vector3(_velocity.x, 0f, _velocity.z);
-        horizontalVelocity = Vector3.Lerp(horizontalVelocity, Vector3.zero, horizontalDrag * Time.deltaTime);
-        _velocity = new Vector3(horizontalVelocity.x, _velocity.y, horizontalVelocity.z);
+        Vector3 horizontalVelocity = new Vector3(
+            _velocity.x,
+            0f,
+            _velocity.z
+        );
+
+        horizontalVelocity = Vector3.Lerp(
+            horizontalVelocity,
+            Vector3.zero,
+            horizontalDrag * Time.deltaTime
+        );
+
+        _velocity = new Vector3(
+            horizontalVelocity.x,
+            _velocity.y,
+            horizontalVelocity.z
+        );
+
         Vector3 displacement = _velocity * Time.deltaTime;
 
         if (_velocity.y < 0f)
         {
             float downDistance = Mathf.Abs(displacement.y) + groundCheckTolerance;
-            if (Physics.Raycast(transform.position + Vector3.up * 0.5f, Vector3.down, out RaycastHit groundHit,
-                downDistance + 0.5f, obstacleMask, QueryTriggerInteraction.Ignore))
+
+            if (Physics.Raycast(
+                transform.position + Vector3.up * 0.5f,
+                Vector3.down,
+                out RaycastHit groundHit,
+                downDistance + 0.5f,
+                obstacleMask,
+                QueryTriggerInteraction.Ignore))
             {
-                transform.position = new Vector3(transform.position.x + displacement.x, groundHit.point.y,
-                    transform.position.z + displacement.z);
+                transform.position = new Vector3(
+                    transform.position.x + displacement.x,
+                    groundHit.point.y,
+                    transform.position.z + displacement.z
+                );
+
                 _velocity.y = 0f;
                 IsUnderExternalForce = false;
+
                 return;
             }
         }
@@ -234,8 +328,15 @@ public class AIMovementController : MonoBehaviour, IMovementController
         if (displacement.sqrMagnitude > 0.0001f)
         {
             Vector3 origin = transform.position + Vector3.up * 0.5f;
-            if (Physics.SphereCast(origin, _agent.radius, displacement.normalized, out RaycastHit hit,
-                displacement.magnitude, obstacleMask, QueryTriggerInteraction.Ignore))
+
+            if (Physics.SphereCast(
+                origin,
+                _agent.radius,
+                displacement.normalized,
+                out RaycastHit hit,
+                displacement.magnitude,
+                obstacleMask,
+                QueryTriggerInteraction.Ignore))
             {
                 displacement = Vector3.ProjectOnPlane(displacement, hit.normal);
                 _velocity = Vector3.ProjectOnPlane(_velocity, hit.normal);
@@ -243,45 +344,85 @@ public class AIMovementController : MonoBehaviour, IMovementController
         }
 
         transform.position += displacement;
+
         if (_velocity.magnitude < 0.01f && _velocity.y <= 0f && IsGrounded)
             IsUnderExternalForce = false;
     }
 
-    private void EndExternalForce()
+    /// <summary>
+    /// Centralised control of the NavMeshAgent.
+    /// The agent must remain disabled while either dash or external
+    /// transform-based movement is active.
+    /// </summary>
+    private void UpdateAgentEnabledState()
     {
-        _velocity = Vector3.zero;
-        if (_agent != null)
+        if (_agent == null) return;
+
+        // Transform-based movement takes priority.
+        if (_isDashing || _isUnderExternalForce)
         {
-            _agent.enabled = true;
-            SyncAgentToTransform();
+            if (_agent.enabled)
+            {
+                if (_agent.isOnNavMesh)
+                {
+                    _agent.ResetPath();
+                    _agent.isStopped = true;
+                }
+
+                _agent.enabled = false;
+            }
+
+            return;
         }
+
+        // Both movement overrides have ended.
+        if (!_agent.enabled)
+            _agent.enabled = true;
+
+        SyncAgentToTransform();
         EvaluateAgentControl();
     }
 
     private void SyncAgentToTransform()
     {
-        if (_agent == null) return;
-        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, navMeshRecoveryRadius, NavMesh.AllAreas))
+        if (_agent == null || !_agent.enabled)
+            return;
+
+        NavMeshQueryFilter filter = new NavMeshQueryFilter
+        {
+            agentTypeID = _agent.agentTypeID,
+            areaMask = _agent.areaMask
+        };
+
+        if (NavMesh.SamplePosition(
+            transform.position,
+            out NavMeshHit hit,
+            navMeshRecoveryRadius,
+            filter))
         {
             transform.position = hit.position;
-            if (_agent.enabled)
-            {
-                _agent.Warp(hit.position);
-                _agent.nextPosition = hit.position;
-            }
+            _agent.Warp(hit.position);
+            _agent.nextPosition = hit.position;
         }
-        else if (_agent.enabled)
+        else
         {
-            _agent.Warp(transform.position);
-            _agent.nextPosition = transform.position;
+            Debug.LogWarning(
+                $"[{name}] Could not synchronise NavMeshAgent: " +
+                $"no compatible NavMesh found near {transform.position}.",
+                this
+            );
         }
     }
 
     private void EvaluateAgentControl()
     {
-        if (_agent == null || !_agent.enabled) return;
+        if (_agent == null || !_agent.enabled)
+            return;
+
         bool overrideTransform = _isDashing || _isUnderExternalForce;
+
         _agent.updatePosition = !overrideTransform;
+
         if (overrideTransform)
         {
             if (_agent.isOnNavMesh)
@@ -292,36 +433,68 @@ public class AIMovementController : MonoBehaviour, IMovementController
         }
         else if (_isStunned)
         {
-            if (_agent.isOnNavMesh) _agent.isStopped = true;
+            if (_agent.isOnNavMesh)
+                _agent.isStopped = true;
         }
-        else if (_agent.isOnNavMesh) _agent.isStopped = false;
+        else if (_agent.isOnNavMesh)
+        {
+            _agent.isStopped = false;
+        }
     }
 
     private IEnumerator StunRoutine(float duration)
     {
         _isStunned = true;
+
         HaltVelocity();
+
         if (TryGetComponent<AbilityManager>(out var abilityManager))
             abilityManager.InterruptAllAbilities();
+
         EvaluateAgentControl();
+
         yield return new WaitForSeconds(duration);
+
         _isStunned = false;
         _stunCoroutine = null;
+
         EvaluateAgentControl();
     }
 
     private bool CheckGrounded()
     {
-        if (Physics.Raycast(transform.position + Vector3.up * 0.2f, Vector3.down,
-            out RaycastHit hit, groundCheckTolerance + 0.3f, obstacleMask, QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(
+            transform.position + Vector3.up * 0.2f,
+            Vector3.down,
+            out RaycastHit hit,
+            groundCheckTolerance + 0.3f,
+            obstacleMask,
+            QueryTriggerInteraction.Ignore))
+        {
             return true;
-        if (NavMesh.SamplePosition(transform.position, out NavMeshHit navHit, 0.4f, NavMesh.AllAreas))
+        }
+
+        if (NavMesh.SamplePosition(
+            transform.position,
+            out NavMeshHit navHit,
+            0.4f,
+            NavMesh.AllAreas))
+        {
             return Mathf.Abs(transform.position.y - navHit.position.y) <= groundCheckTolerance;
+        }
+
         return false;
     }
 
-    public void SetGravityMultiplier(float value) => _gravityMultiplier = value;
-    public void HaltVerticalVelocity() => _velocity.y = 0f;
+    public void SetGravityMultiplier(float value)
+    {
+        _gravityMultiplier = value;
+    }
+
+    public void HaltVerticalVelocity()
+    {
+        _velocity.y = 0f;
+    }
 
     public void ApplySlow(float slowMultiplier, float duration, bool decaying = false)
     {
@@ -330,21 +503,41 @@ public class AIMovementController : MonoBehaviour, IMovementController
             StopCoroutine(_slowCoroutine);
             SpeedMultiplier = _preSlowMultiplier;
         }
-        _slowCoroutine = StartCoroutine(SlowRoutine(slowMultiplier, duration, decaying));
+
+        _slowCoroutine = StartCoroutine(
+            SlowRoutine(slowMultiplier, duration, decaying)
+        );
     }
 
-    private IEnumerator SlowRoutine(float slowMultiplier, float duration, bool decaying)
+    private IEnumerator SlowRoutine(
+        float slowMultiplier,
+        float duration,
+        bool decaying)
     {
         _preSlowMultiplier = SpeedMultiplier;
+
         float targetSpeed = _preSlowMultiplier * slowMultiplier;
+
         SpeedMultiplier = targetSpeed;
+
         float elapsed = 0f;
+
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            if (decaying) SpeedMultiplier = Mathf.Lerp(targetSpeed, _preSlowMultiplier, elapsed / duration);
+
+            if (decaying)
+            {
+                SpeedMultiplier = Mathf.Lerp(
+                    targetSpeed,
+                    _preSlowMultiplier,
+                    elapsed / duration
+                );
+            }
+
             yield return null;
         }
+
         SpeedMultiplier = _preSlowMultiplier;
         _slowCoroutine = null;
     }
