@@ -71,6 +71,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0e5ec8fb484303429c35d32e6c6fbe1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WingedDaggers
+  role: 0
   cooldown: 0.5
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -78,7 +79,7 @@ MonoBehaviour:
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
-  damage: 15
+  damage: 28
   range: 10
   isHolding: 0
   daggerPrefab: {fileID: 3150148930126200046, guid: a5374ea1dee73c144a49c220c1ae15ea, type: 3}
@@ -97,6 +98,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1294a2926a8b9846a91e378b4369464, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FleetFooted
+  role: 2
   cooldown: 0
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -117,6 +119,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9442ef74296702541b00759c47586e1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MessengerOfTheGods
+  role: 0
   cooldown: 0
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -131,7 +134,7 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 9
-  baseDamage: 75
+  baseDamage: 130
   silenceDuration: 1.5
   pushbackImpulse: 10
   sonicTrailVfxPrefab: {fileID: 1788617512228869260, guid: 62c0094be20d61946b4813fccbd67212, type: 3}
@@ -148,6 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4d7e0af8c466584a88c175218fa87c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlinkDash
+  role: 3
   cooldown: 6
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -173,6 +177,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9726c240909ff464aae7de1543f3ffc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AmbushInvisibility
+  role: 2
   cooldown: 8
   playerCamera: {fileID: 0}
   CanBeCancelled: 0

@@ -87,7 +87,7 @@ MonoBehaviour:
   minSpeed: 30
   maxSpeed: 70
   minDamage: 30
-  maxDamage: 75
+  maxDamage: 65
   knockbackImpulse: 12
 --- !u!65 &3730859780651531796
 BoxCollider:

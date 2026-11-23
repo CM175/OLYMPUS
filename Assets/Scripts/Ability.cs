@@ -1,7 +1,14 @@
 using UnityEngine;
 
+// How the RL agent judges an ability. Existing prefabs default to Damage, so behaviour is unchanged until you set a role.
+public enum AbilityRole { Damage, Mobility, Defensive, Buff, Utility }
+
 public abstract class Ability : MonoBehaviour
 {
+    [Header("RL")]
+    [Tooltip("Damage = paid for damage dealt, punished if it hits nothing. Defensive = paid for damage it mitigates. Buff/Utility = never punished for dealing no damage.")]
+    public AbilityRole role = AbilityRole.Damage;
+
     public float cooldown;
     public Camera playerCamera;
     public bool CanBeCancelled = false;

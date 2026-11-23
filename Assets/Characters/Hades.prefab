@@ -69,6 +69,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a3b42108bf41a84c80ec78dc711fdab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BidentPrimary
+  role: 0
   cooldown: 1
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -94,6 +95,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f50e850d3dd5f345866d708435d2196, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShadowStep
+  role: 3
   cooldown: 8
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -120,6 +122,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6c0f3a4dfa57e5408825ef5ddb07d3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Hellfire
+  role: 0
   cooldown: 10
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -128,10 +131,10 @@ MonoBehaviour:
   sprite: {fileID: 0}
   exclusiveState: 0
   radius: 6
-  initialDamage: 40
-  duration: 4
+  initialDamage: 45
+  duration: 3
   tickRate: 0.5
-  damagePerTick: 10
+  damagePerTick: 15
   slowMultiplier: 0.5
   slowDuration: 1
 --- !u!1001 &5324058320279271234

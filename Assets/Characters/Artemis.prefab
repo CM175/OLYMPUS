@@ -72,6 +72,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a3a3a0271a2a6e42a7a11aa3e803ec6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  role: 0
   cooldown: 0.25
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -96,6 +97,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f45e0ff8404476c4fbe1cd87ef9eda3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoonlightTrap
+  role: 3
   cooldown: 12
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -117,6 +119,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 814664d49b34f1e438010aeadfdfc66e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HuntersLeap
+  role: 3
   cooldown: 6
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -139,6 +142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ec2b9bae3ced314fb0202f16c4e1c19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GreatConstellation
+  role: 2
   cooldown: 0
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -163,6 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69864e26c4109514aad10737a97b59a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrackThePrey
+  role: 3
   cooldown: 0
   playerCamera: {fileID: 0}
   CanBeCancelled: 0

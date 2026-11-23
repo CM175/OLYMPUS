@@ -50,7 +50,7 @@ MonoBehaviour:
   speed: 5
   gravityScale: 1
   maxRange: 100
-  damage: 20
+  damage: 40
   piercesTargets: 0
   impactEffect: {fileID: 0}
   useGeneratedVfx: 1

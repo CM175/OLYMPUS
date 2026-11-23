@@ -73,6 +73,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e8cc0da677021a4eb5187d249f3b0ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldBash
+  role: 0
   cooldown: 8
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -82,8 +83,8 @@ MonoBehaviour:
   exclusiveState: 1
   bashRange: 2.5
   bashRadius: 1
-  damage: 20
-  stunDuration: 1.5
+  damage: 45
+  stunDuration: 0.8
   minDotProduct: 0.5
 --- !u!114 &2332108503570882413
 MonoBehaviour:
@@ -97,7 +98,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 377573bfd1373474b854d287b719cb4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpearThrow
-  cooldown: 10
+  role: 0
+  cooldown: 8
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
   isChargeable: 0
@@ -105,7 +107,7 @@ MonoBehaviour:
   sprite: {fileID: 0}
   exclusiveState: 1
   spearPrefab: {fileID: 4986571318311556195, guid: 71e7570cf4627904d8c3f1ffb3123a2c, type: 3}
-  damage: 35
+  damage: 85
 --- !u!114 &3960189197151477339
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,6 +120,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7cb2d8d7e3eb94d45a8f06cd031a3ef2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FrontalArmor
+  role: 1
   cooldown: 0
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -138,6 +141,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75e6137ca1063c14aad0719de1d1c464, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleCry
+  role: 3
   cooldown: 8
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -159,6 +163,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4354040081b85447bbaf1f94f25dd6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AchillesFury
+  role: 2
   cooldown: 0
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -292,6 +297,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9cbc96890fa5523449296b53ea9a6549, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  role: 0
   cooldown: 0.5
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -299,7 +305,7 @@ MonoBehaviour:
   vfxPrefab: {fileID: 980020930575051002, guid: 861fb436dfc0ccc43bdcbf8d51391754, type: 3}
   sprite: {fileID: 0}
   exclusiveState: 1
-  damage: 30
+  damage: 60
   range: 3
   isHolding: 0
   thrustRadius: 0.75

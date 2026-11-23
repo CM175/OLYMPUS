@@ -71,6 +71,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d48c629d1a9cc2459e0780ade616d01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoldenBow
+  role: 0
   cooldown: 0.5
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -95,6 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e8f0676cb0b0a84ab77c16c9645d014, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HymnOfRadiance
+  role: 3
   cooldown: 8
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -103,10 +105,8 @@ MonoBehaviour:
   sprite: {fileID: 0}
   exclusiveState: 0
   burstRadius: 8
-  healAmount: 50
-  damageAmount: 20
-  healOrDamageDuration: 1.5
-  pushForce: 5
+  healAmount: 140
+  healOrDamageDuration: 4
 --- !u!114 &838558696938162224
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -119,6 +119,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b42f68a29069c7429561c81e095d277, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChariotOfTheSun
+  role: 0
   cooldown: 0
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -149,6 +150,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f3f79bff74c65f4e95e47b1a387e2d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SolarBlind
+  role: 0
   cooldown: 10
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -157,7 +159,7 @@ MonoBehaviour:
   sprite: {fileID: 0}
   exclusiveState: 0
   flashRadius: 5
-  minorBurnDamage: 15
+  minorBurnDamage: 35
   utilityDuration: 2
   range: 15
 --- !u!114 &4313851592219717390
@@ -172,7 +174,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06dbd8fc43a344748a84a4ffc25ab210, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AscensionLeap
-  cooldown: 5
+  role: 3
+  cooldown: 9
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
   isChargeable: 0

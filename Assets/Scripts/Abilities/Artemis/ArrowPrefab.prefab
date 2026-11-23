@@ -59,8 +59,8 @@ MonoBehaviour:
   projectileLayer: 0
   minSpeed: 20
   maxSpeed: 100
-  minDamage: 25
-  maxDamage: 125
+  minDamage: 30
+  maxDamage: 105
 --- !u!54 &2458603987542987744
 Rigidbody:
   m_ObjectHideFlags: 0

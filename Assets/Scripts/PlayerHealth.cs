@@ -18,6 +18,8 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     [HideInInspector] public MatchManager matchManager;
 
     public event Action<int, GameObject> OnDamageReceived;
+    // Damage absorbed by DamageReduction (raw - applied). Lets an RL agent credit defensive abilities.
+    public event Action<int, GameObject> OnDamageMitigated;
     public event Action<GameObject> OnDied;
 
     private void OnEnable() => PlayerRegistry.Register(transform);
@@ -39,9 +41,16 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damage, GameObject attacker)
     {
-        if (IsInvincible || IsDead) return;
+        if (IsDead) return;
+        if (IsInvincible)
+        {
+            OnDamageMitigated?.Invoke(damage, attacker); 
+            return;
+        }
 
         int reduced = Mathf.RoundToInt(damage * (1f - DamageReduction));
+        int mitigated = damage - reduced;
+        if (mitigated > 0) OnDamageMitigated?.Invoke(mitigated, attacker);
         currentHealth -= reduced;
         currentHealth = Mathf.Max(currentHealth, 0);
 

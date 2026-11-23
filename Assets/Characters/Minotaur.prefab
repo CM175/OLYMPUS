@@ -70,6 +70,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34b21beb02225cb48a7bd0bdb1c73825, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Charge
+  role: 0
   cooldown: 8
   playerCamera: {fileID: 0}
   CanBeCancelled: 1
@@ -80,8 +81,8 @@ MonoBehaviour:
   chargeSpeed: 10
   chargeDuration: 3
   hitSweepRadius: 2
-  impactDamage: 40
-  pinWallCrushDamage: 150
+  impactDamage: 45
+  pinWallCrushDamage: 165
   horizontalImpulse: 20
   verticalImpulse: 5
   turnRate: 45
@@ -98,6 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41e3da4ca54074f4fb96f2aee2842048, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GroundSlam
+  role: 0
   cooldown: 10
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -106,7 +108,7 @@ MonoBehaviour:
   sprite: {fileID: 0}
   exclusiveState: 1
   stompRadius: 6
-  baseDamage: 30
+  baseDamage: 65
   slowMultiplier: 0.4
   slowDuration: 1.5
   knockbackForce: 30
@@ -124,6 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8f0f8d4ba6d20c468289b1ce902eaeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AxeSwing
+  role: 0
   cooldown: 0.9
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -131,7 +134,7 @@ MonoBehaviour:
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
-  damage: 35
+  damage: 80
   range: 3.5
   isHolding: 0
   swingRadius: 1.4
@@ -150,6 +153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7f1dcd302b9db241a491ec4ef6fe45a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LabyrinthDomain
+  role: 0
   cooldown: 0
   playerCamera: {fileID: 0}
   CanBeCancelled: 0

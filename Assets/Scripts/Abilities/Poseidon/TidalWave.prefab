@@ -53,15 +53,15 @@ MonoBehaviour:
   speed: 20
   gravityScale: 0
   maxRange: 20
-  damage: 20
+  damage: 60
   piercesTargets: 0
   impactEffect: {fileID: 0}
   useGeneratedVfx: 0
   vfxColor: {r: 0, g: 0, b: 1, a: 1}
   _hasImpacted: 0
   projectileLayer: 0
-  pushImpulse: 30
-  liftImpulse: 10
+  pushImpulse: 15
+  liftImpulse: 5
   slowMultiplier: 0.5
   slowDuration: 1.5
 --- !u!54 &1520239512302379260

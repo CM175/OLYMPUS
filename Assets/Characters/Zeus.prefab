@@ -70,6 +70,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13bd501399bafa4448c1996ec2bcf846, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightningBolt
+  role: 0
   cooldown: 1
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -77,7 +78,7 @@ MonoBehaviour:
   vfxPrefab: {fileID: 0}
   sprite: {fileID: 0}
   exclusiveState: 0
-  damage: 40
+  damage: 55
   range: 10
   isHolding: 0
   chainRange: 15
@@ -96,6 +97,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c75cb1beee0b444c8d5c69bc97ba6c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OlympianWrath
+  role: 0
   cooldown: 0
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -103,10 +105,10 @@ MonoBehaviour:
   vfxPrefab: {fileID: 3660803384501889622, guid: 4893636430285eb4c8adc86ba35f51af, type: 3}
   sprite: {fileID: 21300000, guid: f68e3626cf1c7c34ab1064c4dba43755, type: 3}
   exclusiveState: 0
-  cost: 5000
+  cost: 1500
   radius: 15
-  duration: 6
-  strikeInterval: 0.5
+  duration: 3
+  strikeInterval: 0.2
   damagePerStrike: 15
   strikeBoltPrefab: {fileID: 1296805581021919717, guid: 8401c1cf4a97053448e1ef8c8e2ab404, type: 3}
   skyHeight: 20
@@ -122,6 +124,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97979cceda6759c4dbac3c08278b11f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LightningBarrier
+  role: 2
   cooldown: 10
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
@@ -130,7 +133,7 @@ MonoBehaviour:
   sprite: {fileID: 21300000, guid: 6868b430b09f9bf41bc59369f818063a, type: 3}
   exclusiveState: 1
   duration: 4
-  contactDamage: 10
+  contactDamage: 25
 --- !u!114 &2604176348958728968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -143,7 +146,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca2d743a692eb9d4db4ff8427fcc36c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkyCharge
-  cooldown: 6
+  role: 0
+  cooldown: 8
   playerCamera: {fileID: 0}
   CanBeCancelled: 0
   isChargeable: 0
@@ -154,7 +158,7 @@ MonoBehaviour:
   dashDuration: 0.15
   allowVerticalDashing: 1
   hitSweepRadius: 2.5
-  dashDamage: 25
+  dashDamage: 40
 --- !u!1001 &7475358620197373142
 PrefabInstance:
   m_ObjectHideFlags: 0
