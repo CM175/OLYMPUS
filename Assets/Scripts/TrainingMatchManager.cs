@@ -87,7 +87,7 @@ public class TrainingMatchManager : MonoBehaviour
         else if (killerTeam == Team.TeamB) TeamBScore++;
         else return;
 
-        Debug.Log($"[TrainingMatch] Team A: {TeamAScore} | Team B: {TeamBScore}");
+        //Debug.Log($"[TrainingMatch] Team A: {TeamAScore} | Team B: {TeamBScore}");
 
         // Don't finish inside the death event: the killer's kill reward is booked by a later subscriber,
         // and EndEpisode() before it would push that reward into the next episode. Resolve in LateUpdate.
@@ -132,9 +132,9 @@ public class TrainingMatchManager : MonoBehaviour
     {
         if (!IsMatchActive) return;
         State = TrainingMatchState.Finished;
-        Debug.Log(winner.HasValue
-            ? $"[TrainingMatch] {winner.Value} wins!"
-            : "[TrainingMatch] Match ended in a draw.");
+        //Debug.Log(winner.HasValue
+        //    ? $"[TrainingMatch] {winner.Value} wins!"
+        //    : "[TrainingMatch] Match ended in a draw.");
 
         OnMatchEnded?.Invoke(winner);
 

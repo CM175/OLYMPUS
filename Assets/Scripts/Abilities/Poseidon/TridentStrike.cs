@@ -45,6 +45,7 @@ public class TridentStrike : Attack, IInitializable
 
     private void PerformMeleeThrust()
     {
+        bool hitsomething = false;
         IMovementController movement = _rootTransform.GetComponent<IMovementController>();
         Vector3 origin = (playerCamera != null) ? playerCamera.transform.position : _rootTransform.position + Vector3.up * 1.5f;
         Vector3 dir = (playerCamera != null) ? playerCamera.transform.forward : (movement != null ? movement.GetAimDirection() : _rootTransform.forward);
@@ -79,8 +80,14 @@ public class TridentStrike : Attack, IInitializable
             IDamageable target = targetRoot.GetComponent<IDamageable>() ?? closestHit.GetComponent<IDamageable>();
             if (target != null)
             {
+                hitsomething = true;
                 Deal(target, damage);
             }
+        }
+
+        if (!hitsomething)
+        {
+            //Debug.Log($"[TridentStrike] Melee thrust missed. Origin: {origin}, Direction: {dir}");
         }
 
         if (vfxPrefab != null)
@@ -96,7 +103,7 @@ public class TridentStrike : Attack, IInitializable
     private void ThrowTrident(float chargeRatio)
     {
         if (tridentProjectilePrefab == null) return;
-
+        Debug.Log($"[TridentStrike] Throwing trident with charge ratio {chargeRatio}");
         Vector3 spawnPos;
         Quaternion spawnRot;
 

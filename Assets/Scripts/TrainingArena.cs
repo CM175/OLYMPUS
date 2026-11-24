@@ -260,10 +260,6 @@ public class TrainingArena : MonoBehaviour
             rotation
         );
 
-        Debug.Log(
-            $"[{character.name}] Successfully placed on NavMesh at {hit.position}"
-        );
-
         return true;
     }
 

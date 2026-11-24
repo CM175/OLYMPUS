@@ -94,13 +94,12 @@ public class UntertowSurge : Ability, IInitializable
                 if (enemyRoot == _rootTransform) continue;
                 if (myTeam != null && !myTeam.IsEnemy(enemyRoot.gameObject)) continue;
 
-                sweptTargets.Add(enemyRoot);
-
                 IDamageable targetDmg = enemyRoot.GetComponent<IDamageable>() ?? enemyRoot.GetComponentInChildren<IDamageable>();
                 IMovementController targetMove = enemyRoot.GetComponent<IMovementController>();
 
                 if (targetDmg != null && !sweptTargets.Contains(enemyRoot))
                 {
+                    sweptTargets.Add(enemyRoot);
                     Deal(targetDmg, surgeDamage);
                 }
 
@@ -184,6 +183,20 @@ public class UntertowSurge : Ability, IInitializable
         {
             _movementController.HaltVelocity();
             _movementController.IsDashing = false;
+        }
+    }
+
+    private void OnDisable()
+    {
+        CleanupSurge(LayerMask.NameToLayer("Character"));
+    }
+
+    private void OnDestroy()
+    {
+        if (_activeWaveInstance != null)
+        {
+            Destroy(_activeWaveInstance);
+            _activeWaveInstance = null;
         }
     }
 

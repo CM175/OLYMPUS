@@ -94,7 +94,7 @@ public class HeroManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"[HeroManager] Loaded hero: {currentHero.heroName} (AI: {isAIControlled})");
+        //Debug.Log($"[HeroManager] Loaded hero: {currentHero.heroName} (AI: {isAIControlled})");
     }
 
     private void GiveCameraToAbilities()

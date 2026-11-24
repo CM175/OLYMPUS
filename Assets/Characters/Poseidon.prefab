@@ -81,7 +81,7 @@ MonoBehaviour:
   damage: 65
   range: 3
   isHolding: 0
-  thrustRadius: 0.6
+  thrustRadius: 1
   tridentProjectilePrefab: {fileID: 4986571318311556195, guid: 1bbb758dacc7b814684c585dfc0d33c3, type: 3}
   maxChargeTime: 1.2
 --- !u!114 &3439894929921627425

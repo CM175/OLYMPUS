@@ -14,7 +14,6 @@ public class MoonlightTrap : BaseProjectile
     protected override void Start()
     {
         base.Start();
-        InitializeMovement();
     }
 
     protected override void OnImpact(Collider other)
@@ -28,9 +27,18 @@ public class MoonlightTrap : BaseProjectile
 
     private void ArmTrap()
     {
+        if (_isArmed) return;
         _isArmed = true;
-        //rb.linearVelocity = Vector3.zero;
-        rb.isKinematic = true; // Freeze physics translation safely
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.isKinematic = true;
+        }
+        else
+        {
+            Debug.LogWarning($"{name} is missing a Rigidbody component!", this);
+        }
 
         if (useGeneratedVfx)
         {

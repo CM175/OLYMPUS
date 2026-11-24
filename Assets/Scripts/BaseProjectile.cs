@@ -31,11 +31,15 @@ public class BaseProjectile : MonoBehaviour
         attackerRoot = attacker.transform.root.gameObject;
     }
 
+    protected virtual void Awake()
+    {
+        rb = GetComponent<Rigidbody>();
+        projectileLayer = LayerMask.NameToLayer("Projectile");
+    }
+
     protected virtual void Start()
     {
-        projectileLayer = LayerMask.NameToLayer("Projectile");
         spawnPosition = transform.position;
-        rb = GetComponent<Rigidbody>();
         SetLayerRecursively(gameObject);
         AttachGeneratedVfx();
         InitializeMovement();

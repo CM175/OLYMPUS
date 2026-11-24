@@ -90,6 +90,7 @@ public class OlympianWrath : Ultimate
         Destroy(bolt.gameObject, boltDuration + 0.5f);
         while (elapsed < boltDuration)
         {
+            if (bolt == null) yield break;
             bolt.SetPosition(0, skyPos);
             for (int i = 1; i < segments - 1; i++)
             {
@@ -102,6 +103,8 @@ public class OlympianWrath : Ultimate
             elapsed += Time.deltaTime;
             yield return null;
         }
-        Destroy(bolt.gameObject);
+        if (bolt != null)
+            Destroy(bolt.gameObject);
     }
+        
 }

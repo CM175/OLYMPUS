@@ -91,18 +91,34 @@ public class RLEnemyCombatAgent : Agent
     [SerializeField] private float meleeRangeShapingMultiplier = 3f;
     [Header("Ability Rewards (outcome-based: pays for what an ability achieves, not for pressing it)")]
     [SerializeField] private bool useAbilityRewards = true;
-    [Tooltip("Index 0..3 = primary ability, secondary ability, mobility, ultimate. Seconds after a press in which damage is credited to that ability.")]
-    [SerializeField] private float[] abilityWindow = { 2.5f, 2.5f, 1.5f, 6f };
-    [Tooltip("Extra reward per full target health dealt inside the window (on top of damageDealtReward).")]
-    [SerializeField] private float[] abilityDamageBonus = { 0.25f, 0.25f, 0f, 0.5f };
-    [Tooltip("Penalty when the window closes with zero damage. Leave 0 for utility slots (shields, heals, mobility) that are not meant to deal damage.")]
-    [SerializeField] private float[] abilityWastePenalty = { 0.05f, 0f, 0f, 0.3f };
+    [System.Serializable]
+    private class RoleRewardSettings
+    {
+        public AbilityRole role;
+        [Tooltip("Seconds after a press in which damage and mitigation are credited to that ability.")]
+        public float window = 2.5f;
+        [Tooltip("Extra reward per full target health dealt inside the window (on top of damageDealtReward).")]
+        public float damageBonus = 0f;
+        [Tooltip("Penalty when the window closes with nothing to show. Damage roles: zero damage dealt. Defensive/Buff/Utility roles: no enemy around and nothing happened. Mobility roles are never penalised.")]
+        public float wastePenalty = 0f;
+    }
+    [Tooltip("Reward settings per ability ROLE. How an ability is judged comes only from its role, never from the slot it sits in. Roles not listed here use Other Roles.")]
+    [SerializeField] private RoleRewardSettings[] roleSettings =
+    {
+        new RoleRewardSettings { role = AbilityRole.Damage,   window = 2.5f, damageBonus = 0.25f, wastePenalty = 0.05f },
+        new RoleRewardSettings { role = AbilityRole.Mobility, window = 1.5f, damageBonus = 0f,    wastePenalty = 0f },
+        new RoleRewardSettings { role = AbilityRole.Buff,     window = 5f,   damageBonus = 0.25f, wastePenalty = 0.05f },
+    };
+    [Tooltip("Used for any role not listed above (Defensive, Utility, ...). Add an entry to the list to give a role its own values.")]
+    [SerializeField] private RoleRewardSettings otherRoles = new RoleRewardSettings { window = 3f, damageBonus = 0f, wastePenalty = 0.05f };
     [Tooltip("Reward per full max-health actually healed. Keep below damageTakenPenalty.")]
     [SerializeField] private float healReward = 0.5f;
     [Tooltip("Defensive-role abilities: reward per full max-health mitigated inside the window. Keep below damageTakenPenalty so getting hit on purpose never pays.")]
     [SerializeField] private float mitigationReward = 0.25f;
-    [Tooltip("Defensive/Buff/Utility abilities: penalty only when used with no enemy detected and nothing happened in the window.")]
-    [SerializeField] private float noThreatWastePenalty = 0.05f;
+    [Tooltip("Cap on mitigation reward per ability use. Without it, standing in enemy fire behind a shield pays more than avoiding the fire.")]
+    [SerializeField] private float mitigationRewardCapPerUse = 0.15f;
+    [Tooltip("Lets the policy press abilities (heals, shields, mobility) with no enemy selected. Before, every ability press was dropped when there was no target.")]
+    [SerializeField] private bool allowAbilitiesWithoutTarget = true;
     [Tooltip("Healthy: mobility is rewarded for ending closer to ideal range (scaled gain in the range potential).")]
     [SerializeField] private float mobilityRangeBonus = 0f;
     [Tooltip("At or below this health fraction when mobility is pressed, it is judged as an escape instead of an engage.")]
@@ -179,23 +195,27 @@ public class RLEnemyCombatAgent : Agent
     private int _epDecisions, _epWithTarget, _epWithLos, _epInRange, _epAttackUses, _epAbilityUses;
     private EnemyHealth _trainingDummy;
 
-    // ability reward window state (slot index 0..3, -1 = no open window)
-    private const int AbilitySlots = 4;
-    private static readonly string[] AbilitySlotNames = { "Primary", "Secondary", "Mobility", "Ultimate" };
-    private int _abilitySlot = -1;
+    // Ability reward windows: one per ability instance that was pressed, so pressing a second ability no longer
+    // settles (and cuts short) the first. Everything a window does is decided by the ability's role.
+    private sealed class AbilityWindow
+    {
+        public Ability ability;
+        public AbilityRole role;
+        public RoleRewardSettings settings;
+        public float openedAt, end;
+        public float damage, mitigated, damageTaken, mitigationPaid;
+        public float startHpFrac, startDist, startPotential;
+        public bool startLos, startThreat, startThreatened;
+    }
+    private readonly List<AbilityWindow> _windows = new List<AbilityWindow>();
+    private readonly Stack<AbilityWindow> _windowPool = new Stack<AbilityWindow>();
     private int _lastHealCheckHp = -1;
-    private float _abilityStartHpFrac, _abilityStartDist, _abilityDamageTaken;
-    private bool _abilityStartLos;
     private float _epHealed;
-    private float _abilityWindowEnd, _abilityDamage, _abilityStartPotential;
-    private float _abilityMitigated;
-    private bool _abilityStartThreat;
-    private AbilityRole _abilityRole = AbilityRole.Damage;
     private PlayerHealth _selfPlayerHealth;
     private int _epHeldOutOfRange;
-    private readonly float[] _epSlotMitigated = new float[AbilitySlots];
-    private readonly float[] _epSlotUses = new float[AbilitySlots];
-    private readonly float[] _epSlotDamage = new float[AbilitySlots];
+    // Per-episode ability stats, keyed by role (reported as Ability/<Role>/*)
+    private sealed class RoleStats { public float uses, damage, mitigated, reward, wasted; }
+    private readonly Dictionary<AbilityRole, RoleStats> _epRoleStats = new Dictionary<AbilityRole, RoleStats>();
 
     // Hero one-hot slots (roster size must be <= HeroSlots; changing this changes the observation size)
     private const int HeroSlots = 8;
@@ -251,6 +271,7 @@ public class RLEnemyCombatAgent : Agent
         _selfDamageable = GetComponent<IDamageable>();
         _selfHeroManager = GetComponent<HeroManager>();
         ValidateBrainSetup();
+        EnforceRewardSanity();
 
         if (defaultObjective == null)
             defaultObjective = GameObject.FindWithTag("Objective")?.transform;
@@ -286,7 +307,7 @@ public class RLEnemyCombatAgent : Agent
         ReportEpisodeStats();
 
         _isTrainingDead = false;
-        _abilitySlot = -1;
+        ClearAbilityWindows();
         _lastHealCheckHp = -1;
         _strafeSide = Random.value < 0.5f ? 1f : -1f;
         _hasPrevPotential = false;
@@ -350,7 +371,7 @@ public class RLEnemyCombatAgent : Agent
         }
         ApplyAimRotation();
         EvaluateObjectiveRewards();
-        if (_abilitySlot >= 0 && Time.time >= _abilityWindowEnd) CloseAbilityWindow();
+        UpdateAbilityWindows();
         UpdateHealReward();
     }
 
@@ -362,6 +383,22 @@ public class RLEnemyCombatAgent : Agent
         _hasPrevRetreat = false;
         _nextPerceptionTime = 0f;
         _candidateCount = 0;
+    }
+
+    // Ability payouts must stay below damageTakenPenalty, otherwise taking damage on purpose can pay.
+    private void EnforceRewardSanity()
+    {
+        float cap = damageTakenPenalty * 0.9f;
+        if (healReward > cap)
+        {
+            Debug.LogWarning($"{name}: healReward {healReward} clamped to {cap} (must stay below damageTakenPenalty).", this);
+            healReward = cap;
+        }
+        if (mitigationReward > cap)
+        {
+            Debug.LogWarning($"{name}: mitigationReward {mitigationReward} clamped to {cap} (must stay below damageTakenPenalty).", this);
+            mitigationReward = cap;
+        }
     }
 
     private void ValidateBrainSetup()
@@ -511,8 +548,11 @@ public class RLEnemyCombatAgent : Agent
         if (_currentTarget == null) return;
         if (!_currentTarget.gameObject.activeInHierarchy
             || (_targetDamageable != null && _targetDamageable.IsDead)
+            || !IsTargetVisible(_currentTarget)
             || Vector3.Distance(transform.position, _currentTarget.position) > detectionRange * 1.5f)
+        {
             SetTarget(null, null);
+        }
     }
 
     private void ScanSurroundings()
@@ -541,9 +581,10 @@ public class RLEnemyCombatAgent : Agent
             if (dmg == null || dmg.IsDead) continue;
 
             bool enemy = _teamMember.IsEnemy(root.gameObject);
+
             bool ally = !enemy && root.GetComponent<TeamMember>() != null;
             if (!enemy && !ally) continue;
-
+            if (enemy && !IsTargetVisible(root)) continue;
             bool onPoint = hasObjective && FlatDistance(root.position, defaultObjective.position) <= radius;
             if (ally)
             {
@@ -1053,11 +1094,15 @@ public class RLEnemyCombatAgent : Agent
             stats.Add("Combat/AttackUses", _epAttackUses);
             stats.Add("Combat/AbilityUses", _epAbilityUses);
             stats.Add("Combat/Healed", _epHealed);
-            for (int i = 0; i < AbilitySlots; i++)
+            foreach (var kv in _epRoleStats)
             {
-                stats.Add($"Ability/{AbilitySlotNames[i]}/Uses", _epSlotUses[i]);
-                stats.Add($"Ability/{AbilitySlotNames[i]}/Damage", _epSlotDamage[i]);
-                stats.Add($"Ability/{AbilitySlotNames[i]}/Mitigated", _epSlotMitigated[i]);
+                string role = kv.Key.ToString();
+                RoleStats rs = kv.Value;
+                stats.Add($"Ability/{role}/Uses", rs.uses);
+                stats.Add($"Ability/{role}/Damage", rs.damage);
+                stats.Add($"Ability/{role}/Mitigated", rs.mitigated);
+                stats.Add($"Ability/{role}/Reward", rs.reward);   // net reward from this role's ability terms
+                stats.Add($"Ability/{role}/Wasted", rs.wasted);   // windows closed with nothing to show
             }
             stats.Add("Combat/ObjectiveIntent", _epObjectiveIntent / d);   // fraction of decisions spent heading for the point
             if (_epTime > 0f)
@@ -1082,9 +1127,7 @@ public class RLEnemyCombatAgent : Agent
 
         _epDamageDealt = _epDamageTaken = _epKilled = _epDied = 0f;
         _epHealed = 0f;
-        System.Array.Clear(_epSlotUses, 0, AbilitySlots);
-        System.Array.Clear(_epSlotDamage, 0, AbilitySlots);
-        System.Array.Clear(_epSlotMitigated, 0, AbilitySlots);
+        _epRoleStats.Clear();
         _epHeldOutOfRange = 0;
         _epDecisions = _epWithTarget = _epWithLos = _epInRange = _epAttackUses = _epAbilityUses = _epObjectiveIntent = 0;
         _epTime = _epOnPointTime = _epContestTime = _epNeededAbsentTime = 0f;
@@ -1149,6 +1192,9 @@ public class RLEnemyCombatAgent : Agent
         {
             _hasAimTarget = false;
             ReleasePrimary();   // a held primary used to keep swinging after the target was lost
+            // Heals, shields and mobility don't need a target; only the primary attack does.
+            int noTargetAction = discreteActions[1];
+            if (allowAbilitiesWithoutTarget && noTargetAction >= 2) ExecuteCombatSlot(noTargetAction);
             return;
         }
 
@@ -1214,19 +1260,8 @@ public class RLEnemyCombatAgent : Agent
         if (targetAbility.isExecuting || targetAbility.IsOnCooldown())
         {
             _epAbilityUses++;
-            OpenAbilityWindow(actionIndex - 2, targetAbility);
+            OpenAbilityWindow(targetAbility);
         }
-    }
-
-    // Which of our own slots (0..3) an ability belongs to. -1 = unknown source, -2 = primary attack / anything else.
-    private int SlotOf(Ability a)
-    {
-        if (a == null || _abilityManager == null) return -1;
-        if (a == _abilityManager.primaryAbility) return 0;
-        if (a == _abilityManager.secondaryAbility) return 1;
-        if (a == _abilityManager.mobilityAbility) return 2;
-        if (a == _abilityManager.ultimateAbility) return 3;
-        return -2;
     }
 
     // Reward HP actually restored (overheal pays nothing). healReward < damageTakenPenalty, so taking damage
@@ -1244,9 +1279,25 @@ public class RLEnemyCombatAgent : Agent
         _lastHealCheckHp = hp;
     }
 
-    private static float SlotValue(float[] values, int i, float fallback = 0f)
-        => values != null && i >= 0 && i < values.Length ? values[i] : fallback;
+    private bool IsTargetVisible(Transform targetRoot)
+    {
+        if (targetRoot == null) return false;
 
+        // Cache or avoid frequent GetComponentsInChildren allocations if needed,
+        // though ScanSurroundings already runs on a 0.1s perceptionInterval.
+        Renderer[] renderers = targetRoot.GetComponentsInChildren<Renderer>();
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            // Ignore particle/trail VFX renderers so active aura VFX don't accidentally reveal them
+            if (renderers[i] is ParticleSystemRenderer || renderers[i] is TrailRenderer)
+                continue;
+
+            if (renderers[i].enabled)
+                return true;
+        }
+
+        return false;
+    }
     private float CurrentRangePotential()
     {
         if (_currentTarget == null) return 0f;
@@ -1254,77 +1305,166 @@ public class RLEnemyCombatAgent : Agent
         return -Mathf.Abs(Vector3.Distance(transform.position, _currentTarget.position) - ideal) / detectionRange;
     }
 
-    private void OpenAbilityWindow(int slot, Ability ability)
+    private RoleStats StatsFor(AbilityRole role)
     {
-        if (slot < 0 || slot >= AbilitySlots) return;
-        _epSlotUses[slot] += 1f;
-        CloseAbilityWindow();   // a new press settles the previous one
-        if (!useAbilityRewards) return;
-        _abilitySlot = slot;
-        _abilityWindowEnd = Time.time + Mathf.Max(0.1f, SlotValue(abilityWindow, slot, 2f));
-        _abilityDamage = 0f;
-        _abilityMitigated = 0f;
-        _abilityRole = ability != null ? ability.role : AbilityRole.Damage;
-        _abilityStartThreat = _candidateCount > 0;
-        _abilityStartPotential = CurrentRangePotential();
-        _abilityStartHpFrac = _selfDamageable != null
-            ? _selfDamageable.CurrentHealth / (float)Mathf.Max(1, _selfDamageable.MaxHealth)
-            : 1f;
-        _abilityStartDist = _currentTarget != null ? Vector3.Distance(transform.position, _currentTarget.position) : 0f;
-        _abilityStartLos = _hasLineOfSight;
-        _abilityDamageTaken = 0f;
+        if (!_epRoleStats.TryGetValue(role, out var st))
+        {
+            st = new RoleStats();
+            _epRoleStats[role] = st;
+        }
+        return st;
     }
 
-    private void CloseAbilityWindow()
+    private RoleRewardSettings GetRoleSettings(AbilityRole role)
     {
-        if (_abilitySlot < 0) return;
-        int slot = _abilitySlot;
-        _abilitySlot = -1;
-        if (!MatchLive) return;
+        if (roleSettings != null)
+            for (int i = 0; i < roleSettings.Length; i++)
+                if (roleSettings[i] != null && roleSettings[i].role == role) return roleSettings[i];
+        return otherRoles;
+    }
 
-        _epSlotDamage[slot] += _abilityDamage;
-        _epSlotMitigated[slot] += _abilityMitigated;
-        if (_abilityRole == AbilityRole.Damage)
+    private AbilityWindow FindWindow(Ability ability)
+    {
+        for (int i = 0; i < _windows.Count; i++)
+            if (_windows[i].ability == ability) return _windows[i];
+        return null;
+    }
+
+    private void OpenAbilityWindow(Ability ability)
+    {
+        if (ability == null) return;
+        AbilityRole role = ability.role;
+        StatsFor(role).uses += 1f;
+        CloseAbilityWindow(FindWindow(ability));   // re-pressing the same ability settles its previous window; other abilities are untouched
+        if (!useAbilityRewards) return;
+
+        RoleRewardSettings cfg = GetRoleSettings(role);
+        float range = Mathf.Max(GetCombatRange(), 0.01f);
+        float dist = _currentTarget != null ? Vector3.Distance(transform.position, _currentTarget.position) : 0f;
+
+        AbilityWindow w = _windowPool.Count > 0 ? _windowPool.Pop() : new AbilityWindow();
+        w.ability = ability;
+        w.role = role;
+        w.settings = cfg;
+        w.openedAt = Time.time;
+        w.end = Time.time + Mathf.Max(0.1f, cfg.window);
+        w.damage = w.mitigated = w.damageTaken = w.mitigationPaid = 0f;
+        w.startHpFrac = _selfDamageable != null
+            ? _selfDamageable.CurrentHealth / (float)Mathf.Max(1, _selfDamageable.MaxHealth)
+            : 1f;
+        w.startDist = dist;
+        w.startPotential = CurrentRangePotential();
+        w.startLos = _hasLineOfSight;
+        w.startThreat = _candidateCount > 0;
+        // Someone is actually on us: in sight, or close enough that the next hit is imminent.
+        w.startThreatened = _currentTarget != null && (_hasLineOfSight || dist <= range * 1.5f);
+        _windows.Add(w);
+    }
+
+    private void UpdateAbilityWindows()
+    {
+        for (int i = _windows.Count - 1; i >= 0; i--)
+            if (Time.time >= _windows[i].end) CloseAbilityWindow(_windows[i]);
+    }
+
+    private void ClearAbilityWindows()
+    {
+        for (int i = 0; i < _windows.Count; i++) _windowPool.Push(_windows[i]);
+        _windows.Clear();
+    }
+
+    private void PayAbilityReward(AbilityRole role, float amount)
+    {
+        if (amount == 0f) return;
+        AddReward(amount);
+        StatsFor(role).reward += amount;
+    }
+
+    private void CloseAbilityWindow(AbilityWindow w)
+    {
+        if (w == null) return;
+        _windows.Remove(w);
+        if (MatchLive) SettleAbilityWindow(w);
+        _windowPool.Push(w);
+    }
+
+    // Damage and mitigation bonuses are paid the moment they happen (dense credit, and not lost if the agent dies
+    // inside the window). Closing a window only settles the "did it do anything" penalty and the mobility judgement.
+    private void SettleAbilityWindow(AbilityWindow w)
+    {
+        RoleStats st = StatsFor(w.role);
+        st.damage += w.damage;
+        st.mitigated += w.mitigated;
+
+        if (w.role == AbilityRole.Damage)
         {
-            if (_abilityDamage > 0f)
-                AddReward(SlotValue(abilityDamageBonus, slot) * _abilityDamage);
-            else
-                AddReward(-SlotValue(abilityWastePenalty, slot));
+            if (w.damage <= 0f)
+            {
+                st.wasted += 1f;
+                PayAbilityReward(w.role, -w.settings.wastePenalty);
+            }
         }
-        else if (_abilityRole == AbilityRole.Mobility)
+        else if (w.role != AbilityRole.Mobility)
         {
-            // Never punished for hitting nothing; paid per-slot bonus for damage landed.
-            AddReward(SlotValue(abilityDamageBonus, slot) * _abilityDamage);
+            // Defensive / Buff / Utility: never punished for dealing no damage; only when used with nobody around and nothing happened.
+            bool threat = w.startThreat || w.mitigated > 0f || w.damageTaken > 0f || w.damage > 0f;
+            if (!threat)
+            {
+                st.wasted += 1f;
+                PayAbilityReward(w.role, -w.settings.wastePenalty);
+            }
         }
         else
         {
-            // Defensive / Buff / Utility: never punished for dealing no damage. Paid for what it absorbed, and for damage
-            // dealt while it was up; only punished when used with nobody around and nothing happened.
-            AddReward(mitigationReward * _abilityMitigated);
-            AddReward(SlotValue(abilityDamageBonus, slot) * _abilityDamage);
-            bool threat = _abilityStartThreat || _abilityMitigated > 0f || _abilityDamageTaken > 0f || _abilityDamage > 0f;
-            if (!threat) AddReward(-noThreatWastePenalty);
-        }
-
-        if (_abilityRole == AbilityRole.Mobility || (slot == 2 && _abilityRole == AbilityRole.Damage))   // mobility: judged by intent (escape when hurt, engage when healthy)
-        {
-            bool hadTarget = _abilityStartDist > 0f;
-            if (hadTarget && _abilityStartHpFrac <= escapeHpThreshold)
+            // Mobility: judged by intent (escape when hurt, engage when healthy).
+            bool hadTarget = w.startDist > 0f;
+            if (hadTarget && w.startHpFrac <= escapeHpThreshold)
             {
-                // Low health: reward breaking away. Closing in is deliberately NOT rewarded here.
-                float distFrac = _currentTarget == null
-                    ? 1f   // target lost entirely (left detection range)
-                    : Mathf.Clamp01((Vector3.Distance(transform.position, _currentTarget.position) - _abilityStartDist) / Mathf.Max(1f, escapeDistance));
-                float losBroken = _abilityStartLos && !_hasLineOfSight ? 1f : 0f;
-                float survived = 1f - Mathf.Clamp01(_abilityDamageTaken / 0.25f);   // got hit hard on the way out = not an escape
-                AddReward(escapeReward * Mathf.Max(distFrac, losBroken) * survived);
+                // Low health: reward breaking away, but only from a real threat. Dashing away from nobody is not an escape.
+                if (w.startThreatened)
+                {
+                    float distFrac = _currentTarget == null
+                        ? 1f   // target lost entirely (left detection range)
+                        : Mathf.Clamp01((Vector3.Distance(transform.position, _currentTarget.position) - w.startDist) / Mathf.Max(1f, escapeDistance));
+                    float losBroken = w.startLos && !_hasLineOfSight ? 1f : 0f;
+                    float survived = 1f - Mathf.Clamp01(w.damageTaken / 0.25f);   // got hit hard on the way out = not an escape
+                    PayAbilityReward(w.role, escapeReward * Mathf.Max(distFrac, losBroken) * survived);
+                }
             }
             else if (_currentTarget != null)
             {
-                float gain = CurrentRangePotential() - _abilityStartPotential;
-                if (gain > 0f) AddReward(mobilityRangeBonus * gain);
+                float gain = CurrentRangePotential() - w.startPotential;
+                if (gain > 0f) PayAbilityReward(w.role, mobilityRangeBonus * gain);
             }
         }
+    }
+
+    // Every hit landed on the current target. Pays the role's damage bonus to the window(s) that own the hit.
+    private void CreditAbilityDamage(float fraction)
+    {
+        if (!useAbilityRewards || _windows.Count == 0) return;
+        Ability dealer = Ability.CurrentDealer;
+        bool credited = false;
+        AbilityWindow latest = null;
+        for (int i = 0; i < _windows.Count; i++)
+        {
+            AbilityWindow w = _windows[i];
+            if (Time.time > w.end) continue;
+            if (latest == null || w.openedAt >= latest.openedAt) latest = w;
+            if ((dealer != null && w.ability == dealer) || w.role == AbilityRole.Buff)
+            {
+                ApplyDamageCredit(w, fraction);
+                credited = true;
+            }
+        }
+        // Unknown damage source: fall back to the most recently opened window, as before.
+        if (!credited && dealer == null && latest != null) ApplyDamageCredit(latest, fraction);
+    }
+
+    private void ApplyDamageCredit(AbilityWindow w, float fraction)
+    {
+        w.damage += fraction;
+        PayAbilityReward(w.role, w.settings.damageBonus * fraction);
     }
 
     // The primary attack is driven exactly like a player's mouse button: press starts it (Attack.Update then fires it
@@ -1379,11 +1519,26 @@ public class RLEnemyCombatAgent : Agent
         return 0f;
     }
 
+    // Credited to the most recently opened defensive/buff/utility window, paid immediately, capped per use.
     private void HandleSelfDamageMitigated(int mitigated, GameObject attacker)
     {
-        if (!MatchLive || _selfDamageable == null || _abilitySlot < 0) return;
+        if (!MatchLive || _selfDamageable == null) return;
         if (attacker == null || attacker.transform.root == transform.root) return;
-        _abilityMitigated += mitigated / (float)Mathf.Max(1, _selfDamageable.MaxHealth);
+
+        AbilityWindow target = null;
+        for (int i = 0; i < _windows.Count; i++)
+        {
+            AbilityWindow w = _windows[i];
+            if (Time.time > w.end || w.role == AbilityRole.Damage || w.role == AbilityRole.Mobility) continue;
+            if (target == null || w.openedAt >= target.openedAt) target = w;
+        }
+        if (target == null) return;
+
+        float frac = mitigated / (float)Mathf.Max(1, _selfDamageable.MaxHealth);
+        target.mitigated += frac;
+        float pay = Mathf.Min(mitigationReward * frac, Mathf.Max(0f, mitigationRewardCapPerUse - target.mitigationPaid));
+        target.mitigationPaid += pay;
+        PayAbilityReward(target.role, pay);
     }
 
     private void HandleSelfDamageTaken(int damage, GameObject attacker)
@@ -1398,7 +1553,8 @@ public class RLEnemyCombatAgent : Agent
 
         _epDamageTaken += lost / Mathf.Max(1, _selfDamageable.MaxHealth);
         AddReward(-damageTakenPenalty * lost / Mathf.Max(1, _selfDamageable.MaxHealth));
-        if (_abilitySlot >= 0) _abilityDamageTaken += lost / Mathf.Max(1, _selfDamageable.MaxHealth);
+        float lostFrac = lost / Mathf.Max(1, _selfDamageable.MaxHealth);
+        for (int i = 0; i < _windows.Count; i++) _windows[i].damageTaken += lostFrac;
     }
 
     private void HandleSelfDeath(GameObject killer)
@@ -1413,7 +1569,7 @@ public class RLEnemyCombatAgent : Agent
             AddReward(deathPenalty);
         }
         _hasAimTarget = false;
-        _abilitySlot = -1;   // death is already penalised; do not also settle the window
+        ClearAbilityWindows();   // death is already penalised; do not also settle the windows
         _lastHealCheckHp = -1;
         UnsubscribeFromTarget();
         _currentTarget = null;
@@ -1557,11 +1713,7 @@ public class RLEnemyCombatAgent : Agent
         float fraction = lost / Mathf.Max(1, _targetDamageable.MaxHealth);
         _epDamageDealt += fraction;
         AddReward(damageDealtReward * fraction);
-        if (_abilitySlot >= 0 && Time.time <= _abilityWindowEnd)
-        {
-            int dealer = SlotOf(Ability.CurrentDealer);
-            if (dealer == _abilitySlot || dealer == -1 || _abilityRole == AbilityRole.Buff) _abilityDamage += fraction;
-        }
+        CreditAbilityDamage(fraction);
     }
 
 
