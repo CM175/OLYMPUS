@@ -64,6 +64,7 @@
     <Compile Include="Assets\Scripts\HeroManager.cs" />
     <Compile Include="Assets\Scripts\Hero.cs" />
     <Compile Include="Assets\Scripts\MapGenerator.cs" />
+    <Compile Include="Assets\Scripts\Map\HermesJumpPad.cs" />
     <Compile Include="Assets\Scripts\DamageProxy.cs" />
     <Compile Include="Assets\Scripts\Abilities\Poseidon\TidalWaveProjectile.cs" />
     <Compile Include="Assets\Scripts\Abilities\Hermes\BlinkDash.cs" />
@@ -132,6 +133,7 @@
     <Compile Include="Assets\Scripts\Abilities\Apollo\SolarArrow.cs" />
     <Compile Include="Assets\Scripts\AbilityHUD.cs" />
     <Compile Include="Assets\Scripts\Abilities\Achillies\SpearThrow.cs" />
+    <Compile Include="Assets\Scripts\OlympusSpawnPoint.cs" />
     <Compile Include="Assets\Scripts\IDamageable.cs" />
     <Compile Include="Assets\Scripts\Abilities\Artemis\MoonlightTrap.cs" />
     <Compile Include="Assets\Scripts\CapturePointHudController.cs" />

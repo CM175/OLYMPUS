@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6924209327971569138}
   - component: {fileID: 9064320150381833255}
   - component: {fileID: 4069935764002932067}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: VisualRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -178,7 +178,7 @@ GameObject:
   - component: {fileID: 7241429260726907724}
   - component: {fileID: 8753005704174017487}
   - component: {fileID: 1432647078147964046}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: CapturePoint
   m_TagString: Objective
   m_Icon: {fileID: 0}
