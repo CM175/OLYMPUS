@@ -24,6 +24,7 @@ public class CapturePoint : MonoBehaviour
     [Range(0f, 100f)] public float teamBScore = 0f;
     public bool isContested = false;
     public bool isOvertime = false;
+    public bool isGameOver = false;
 
     private readonly HashSet<TeamMember> teamAPlayers = new();
     private readonly HashSet<TeamMember> teamBPlayers = new();
@@ -35,6 +36,7 @@ public class CapturePoint : MonoBehaviour
         Rigidbody rb = GetComponent<Rigidbody>();
         rb.isKinematic = true;
         rb.useGravity = false;
+        isGameOver = false;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -58,8 +60,11 @@ public class CapturePoint : MonoBehaviour
     private void Update()
     {
         PurgeInvalidPlayers();
-        EvaluateCaptureLogic();
-        UpdateScoreAndOvertime();
+        if (!isGameOver)
+        {       
+            EvaluateCaptureLogic();
+            UpdateScoreAndOvertime();
+        }
     }
 
     private void PurgeInvalidPlayers()
@@ -188,8 +193,8 @@ public class CapturePoint : MonoBehaviour
 
     private void DeclareWinner(PointOwner winner)
     {
-        if (!enabled) return;
-        enabled = false;
+        if (isGameOver) return;
+        isGameOver = true;
         Debug.Log($"Temple secured! Victor: {winner}");
 
         TrainingArena arena = GetComponentInParent<TrainingArena>();
@@ -200,7 +205,7 @@ public class CapturePoint : MonoBehaviour
         else
         {
             Debug.LogWarning("CapturePoint has no TrainingMatchManager; objective win was not forwarded.", this);
-            enabled = true;
+            this.enabled = true;
         }
     }
 
@@ -215,7 +220,7 @@ public class CapturePoint : MonoBehaviour
         isContested = false;
         isOvertime = false;
         overtimeFuseTimer = 0f;
-        enabled = true;
+        this.enabled = true;
         PurgeInvalidPlayers();
     }
 }

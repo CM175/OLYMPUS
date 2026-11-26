@@ -4,7 +4,7 @@ using System.Collections;
 
 public class PlayerStats : MonoBehaviour
 {
-    public float currentUltimateCharge = 0f;
+    public float currentUltimateCharge;
     public float maxUltimateCharge;
 
     [Header("Charge On Hit")]

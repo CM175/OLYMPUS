@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Rendering;
+using UnityEngine.AI;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -541,26 +542,38 @@ using UnityEditor.SceneManagement;
         void BuildSpawn(int r, int c, int half, Vector3 center, string id)
         {
             // Walls on every open (void) edge so nobody walks off the spawn room.
-            BuildEdgeWalls(r, c, half, center, spawnWallHeight, 0.6f, CoverMat, "SpawnWall_" + id, _env);
+            BuildEdgeWalls(r, c, half, center, spawnWallHeight, 0.6f, CoverMat, $"SpawnWall_{id}", _env);
 
             Team assignedTeam = half == 0 ? Team.TeamA : Team.TeamB;
             int n = Mathf.Max(1, spawnGridPerTile);
 
-            // Keep points away from edge walls (0.6f thick) and adjacent tiles
-            float usableSpan = Mathf.Max(0.5f, tileSize - 1.6f);
+            // Pull outer points further inward so they clear walls and NavMesh edge erosion
+            float wallClearance = Mathf.Max(2.2f, tileSize * 0.4f);
+            float usableSpan = Mathf.Max(0.25f, tileSize - wallClearance);
+
             Quaternion rot = LookRot(ToHalf(Vector3.forward, half)); // face toward the centre island
+            float navSampleRadius = Mathf.Max(1.0f, tileSize * 0.25f);
 
             for (int i = 0; i < n; i++)
             {
+                float tX = n == 1 ? 0f : (i / (float)(n - 1)) - 0.5f;
+
                 for (int j = 0; j < n; j++)
                 {
-                    float tX = n == 1 ? 0f : (i / (float)(n - 1)) - 0.5f;
                     float tZ = n == 1 ? 0f : (j / (float)(n - 1)) - 0.5f;
 
-                    Vector3 localOffset = new Vector3(tX * usableSpan, 0.02f, tZ * usableSpan);
-                    var go = new GameObject($"SpawnPoint_{id}_{i}{j}");
+                    Vector3 localPos = center + new Vector3(tX * usableSpan, 0.02f, tZ * usableSpan);
+                    Vector3 worldPos = _spawns != null ? _spawns.TransformPoint(localPos) : localPos;
+
+                    if (NavMesh.SamplePosition(worldPos, out NavMeshHit hit, navSampleRadius, NavMesh.AllAreas))
+                    {
+                        Vector3 snappedLocal = _spawns != null ? _spawns.InverseTransformPoint(hit.position) : hit.position;
+                        localPos = new Vector3(snappedLocal.x, snappedLocal.y + 0.02f, snappedLocal.z);
+                    }
+
+                    var go = new GameObject($"SpawnPoint_{id}_{i}_{j}");
                     go.transform.SetParent(_spawns, false);
-                    go.transform.localPosition = center + localOffset;
+                    go.transform.localPosition = localPos;
                     go.transform.localRotation = rot;
 
                     var sp = go.AddComponent<OlympusSpawnPoint>();

@@ -130,7 +130,10 @@ public class EnemyHealth : MonoBehaviour, IDamageable
         if (matchManager == null)
             matchManager = FindFirstObjectByType<MatchManager>();
         if (matchManager != null && heroPrefab != null && spawnPoint != null)
-            matchManager.RespawnAI(heroPrefab, team, spawnPoint);
+        {
+            float ultCharge = GetComponent<PlayerStats>().currentUltimateCharge;
+            matchManager.RespawnAI(heroPrefab, team, spawnPoint, ultCharge);
+        }
         Destroy(gameObject);
     }
 }

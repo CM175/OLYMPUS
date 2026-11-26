@@ -303,6 +303,7 @@ MonoBehaviour:
   teamBScore: 0
   isContested: 0
   isOvertime: 0
+  isGameOver: 0
 --- !u!54 &1432647078147964046
 Rigidbody:
   m_ObjectHideFlags: 0

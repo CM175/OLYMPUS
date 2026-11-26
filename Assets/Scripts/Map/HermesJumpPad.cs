@@ -43,7 +43,6 @@ public class HermesJumpPad : MonoBehaviour
             var movement = actor.GetComponentInParent<IMovementController>();
             if (movement != null)
             {
-                Debug.Log("movement launching");
                 movement.HaltVelocity();
                 Vector3 impactDirection = (targetWorldPoint - actor.transform.position).normalized;
                 movement.ApplyImpulseForce(launchVelocity + impactDirection);

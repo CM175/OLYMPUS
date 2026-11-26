@@ -164,7 +164,8 @@ public class PlayerHealth : MonoBehaviour, IDamageable
             {
                 matchManager.hudController.ShowDeathScreen();
             }
-            matchManager.RespawnPlayer();
+            float ultCharge = GetComponent<PlayerStats>().currentUltimateCharge;
+            matchManager.RespawnPlayer(ultCharge);
         }
 
         Destroy(gameObject);

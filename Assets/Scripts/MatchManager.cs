@@ -1,5 +1,7 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
+using System.Linq;
 
 public class MatchManager : MonoBehaviour
 {
@@ -13,8 +15,8 @@ public class MatchManager : MonoBehaviour
     public CharacterDatabase characterDatabase;
 
     [Header("Spawn Points")]
-    public Transform[] teamASpawns;
-    public Transform[] teamBSpawns;
+    public OlympusSpawnPoint[] teamASpawns;
+    public OlympusSpawnPoint[] teamBSpawns;
     public float teamAMaxPlayers = 5;
     public float teamBMaxPlayers = 5;
 
@@ -30,6 +32,7 @@ public class MatchManager : MonoBehaviour
 
     void Start()
     {
+        SetupSpawnPoints();
         if (deathSpectatorCamera != null)
             deathSpectatorCamera.gameObject.SetActive(false);
 
@@ -41,6 +44,13 @@ public class MatchManager : MonoBehaviour
         SetupAIs();
     }
 
+    public void SetupSpawnPoints()
+    {
+        OlympusSpawnPoint[] allSpawns = FindObjectsByType<OlympusSpawnPoint>(FindObjectsSortMode.None);
+
+        teamASpawns = allSpawns.Where(s => s != null && s.team == Team.TeamA).ToArray();
+        teamBSpawns = allSpawns.Where(s => s != null && s.team == Team.TeamB).ToArray();
+    }
     void SetupAIs()
     {
         int totalAvailableHeroes = characterDatabase.CharacterCount;
@@ -48,18 +58,18 @@ public class MatchManager : MonoBehaviour
         for (int i = 1; i < teamAMaxPlayers; i++)
         {
             Hero hero = characterDatabase.GetHeroAtIndex((i+Random.Range(0, totalAvailableHeroes)) % totalAvailableHeroes);
-            SpawnAIBot(hero, Team.TeamA, teamASpawns[i % teamASpawns.Length]);
+            SpawnAIBot(hero, Team.TeamA, teamASpawns[Random.Range(0, teamASpawns.Length)].transform);
         }
 
         // TEAM B (AI Competitors)
         for (int i = 0; i < teamBMaxPlayers; i++)
         {
             Hero hero = characterDatabase.GetHeroAtIndex((i+Random.Range(0, totalAvailableHeroes)) % totalAvailableHeroes);
-            SpawnAIBot(hero, Team.TeamB, teamBSpawns[i% teamBSpawns.Length]);
+            SpawnAIBot(hero, Team.TeamB, teamBSpawns[Random.Range(0, teamBSpawns.Length)].transform);
         }
     }
 
-    public void SpawnHumanPlayer(Hero selectedHeroPrefab)
+    public void SpawnHumanPlayer(Hero selectedHeroPrefab, float savedUltimateCharge = 0f)
     {
         _savedPlayerHero = selectedHeroPrefab;
 
@@ -67,11 +77,12 @@ public class MatchManager : MonoBehaviour
         if (deathSpectatorCamera != null)
             deathSpectatorCamera.gameObject.SetActive(false);
 
-        GameObject playerRoot = Instantiate(humanPlayerRootPrefab, teamASpawns[0].position, teamASpawns[0].rotation);
+        Transform spawnPoint = teamASpawns[Random.Range(0, teamASpawns.Length)].transform; // Assuming the first spawn point is for the human player
+        GameObject playerRoot = Instantiate(humanPlayerRootPrefab, spawnPoint.position, spawnPoint.rotation);
         
         if (playerRoot.TryGetComponent<PlayerHealth>(out var pHealth))
         {
-            pHealth.spawnPoint = teamASpawns[0];
+            pHealth.spawnPoint = spawnPoint;
             pHealth.matchManager = this;
         }
 
@@ -83,9 +94,12 @@ public class MatchManager : MonoBehaviour
 
         var manager = playerRoot.GetComponent<HeroManager>();
         manager.LoadHero(selectedHeroPrefab);
+
+        var playerStats = playerRoot.GetComponent<PlayerStats>();
+        playerStats.currentUltimateCharge = savedUltimateCharge; 
     }
 
-    public void SpawnAIBot(Hero heroPrefab, Team team, Transform spawnPoint)
+    public void SpawnAIBot(Hero heroPrefab, Team team, Transform spawnPoint, float savedUltimateCharge = 0f)
     {
         GameObject aiRoot = Instantiate(aiBotRootPrefab, spawnPoint.position, spawnPoint.rotation);
 
@@ -102,14 +116,18 @@ public class MatchManager : MonoBehaviour
 
         var manager = aiRoot.GetComponent<HeroManager>();
         manager.LoadHero(heroPrefab);
+
+        var aiStats = aiRoot.GetComponent<PlayerStats>();
+        aiStats.currentUltimateCharge = savedUltimateCharge;
     }
 
-    public void RespawnPlayer()
+    public void RespawnPlayer(float savedUltimateCharge = 0)
     {
-        StartCoroutine(RespawnPlayerRoutine());
+        StartCoroutine(RespawnPlayerRoutine(savedUltimateCharge));
     }
+    
 
-    private IEnumerator RespawnPlayerRoutine()
+    private IEnumerator RespawnPlayerRoutine(float savedUltimateCharge)
     {
         // 1. Enable spectator camera
         if (deathSpectatorCamera != null)
@@ -133,21 +151,23 @@ public class MatchManager : MonoBehaviour
         // 4. Recreate player instance
         if (_savedPlayerHero != null)
         {
-            SpawnHumanPlayer(_savedPlayerHero);
+            SpawnHumanPlayer(_savedPlayerHero, savedUltimateCharge);
         }
     }
 
-    public void RespawnAI(Hero heroPrefab, Team team, Transform spawnPoint)
+    public void RespawnAI(Hero heroPrefab, Team team, Transform spawnPoint, float savedUltimateCharge = 0f)
     {
-        StartCoroutine(RespawnAIRoutine(heroPrefab, team, spawnPoint));
+        StartCoroutine(RespawnAIRoutine(heroPrefab, team, spawnPoint, savedUltimateCharge));
     }
 
-    private IEnumerator RespawnAIRoutine(Hero heroPrefab, Team team, Transform spawnPoint)
+    private IEnumerator RespawnAIRoutine(Hero heroPrefab, Team team, Transform spawnPoint, float savedUltimateCharge)
     {
         yield return new WaitForSeconds(aiRespawnDelay);
         if (heroPrefab != null && spawnPoint != null)
         {
-            SpawnAIBot(heroPrefab, team, spawnPoint);
+            SpawnAIBot(heroPrefab, team, spawnPoint, savedUltimateCharge);
         }
     }
+
+    
 }
